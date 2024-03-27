@@ -35,10 +35,13 @@
 		- [1.8.1. listen() - Prototype](#181-listen---prototype)
 		- [1.8.2. listen() - Explications](#182-listen---explications)
 		- [1.8.3. listen() - Exemple](#183-listen---exemple)
-	- [1.9. gai\_strerror](#19-gai_strerror)
-	- [1.10. socketpair](#110-socketpair)
-	- [1.11. select](#111-select)
-	- [1.12. accept](#112-accept)
+	- [1.9. accept()](#19-accept)
+		- [1.9.1. accept() - Prototype](#191-accept---prototype)
+		- [1.9.2. accept() - Explications](#192-accept---explications)
+		- [1.9.3. accept() - Exemple](#193-accept---exemple)
+	- [1.10. gai\_strerror](#110-gai_strerror)
+	- [1.11. socketpair](#111-socketpair)
+	- [1.12. select](#112-select)
 	- [1.13. send](#113-send)
 	- [1.14. recv](#114-recv)
 	- [1.15. connect](#115-connect)
@@ -450,13 +453,114 @@ Socket lié avec le port 8080
 Server is running on port 8080
 ```
 
-## 1.9. gai_strerror
+## 1.9. accept()
 
-## 1.10. socketpair
+### 1.9.1. accept() - Prototype
 
-## 1.11. select
+```cpp
+#include <sys/types.h>
+#include <sys/socket.h>
 
-## 1.12. accept
+int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
+```
+
+### 1.9.2. accept() - Explications
+
+La fonction **accept()** permet d'extraire la première connexion de la queue des connexion en attente d'un socket qui en est mode listen.
+
+Le paramère *sockfd* et le descripteur de fichier du socket qui a été *bind()* et *listen()*.
+
+Le paramètre *addr* est une structure qui va reçevoir les informations de la connexion du client.
+
+Le paramètre *addrlen* va reçwvoir la taille de la structure *addr* retournée.
+
+Si **accept()** reçoit une nouvelle connexion, un descripteur de fichier est retourné, sinon, *-1*.
+
+### 1.9.3. accept() - Exemple
+
+```cpp
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/un.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+
+#include <iostream>
+#include <cerrno>
+#include <cstring>
+
+#define LISTEN_BACKLOG 42
+
+int main () {
+	int fd_socket = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
+	if (fd_socket == -1)
+	{
+		std::cerr << "[!] -> " << std::strerror(errno) << std::endl;
+		return 1;
+	}
+
+	struct sockaddr_in addr;
+	std::memset(&addr, 0, sizeof(addr));
+	addr.sin_family = AF_INET;
+	addr.sin_addr.s_addr = htonl(0x7F000001);
+	addr.sin_port = htons(8080);
+	if (bind(fd_socket, (struct sockaddr*) &addr, sizeof(addr)) == -1)
+	{
+		std::cerr << "[!] -> " << std::strerror(errno) << std::endl;
+		return 2;
+	}
+
+	if(listen(fd_socket, LISTEN_BACKLOG) == -1)
+	{
+		std::cerr << "[!] -> " << std::strerror(errno) << std::endl;
+		return 3;
+	}
+	std::cout << "Server is running on port 8080" << std::endl;
+
+	struct sockaddr_in peer_addr;
+	socklen_t peer_len;
+	int fd_peer;
+	std::cout << "waiting ..." << std::endl;
+	for (;;)
+	{
+		peer_len = sizeof(peer_addr);
+		fd_peer = accept(fd_socket, (struct sockaddr *) &peer_addr, &peer_len);
+		if (fd_peer != -1)
+			break;
+	}
+	std::cout << "New connection !!!" << std::endl;
+	close(fd_peer);
+	close(fd_socket);
+	return 0;
+}
+```
+
+- server
+
+```text
+Server is running on port 8080
+waiting ...
+```
+
+- client
+
+```text
+nc 127.0.0.1 8080
+```
+
+- server
+
+```text
+Server is running on port 8080
+waiting ...
+New connection !!!
+```
+
+## 1.10. gai_strerror
+
+## 1.11. socketpair
+
+## 1.12. select
 
 ## 1.13. send
 
