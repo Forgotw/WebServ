@@ -20,13 +20,16 @@
 		- [1.4.2. htonl() - Explications](#142-htonl---explications)
 		- [1.4.3. htonl() - Exemple](#143-htonl---exemple)
 	- [1.5. htons()](#15-htons)
-		- [htons() - Prototype](#htons---prototype)
-		- [htons() - Explications](#htons---explications)
-		- [htons() - Exemple](#htons---exemple)
-	- [1.6. gai\_strerror](#16-gai_strerror)
-	- [1.7. socketpair](#17-socketpair)
-	- [1.8. ntohs](#18-ntohs)
-	- [1.9. ntohl](#19-ntohl)
+		- [1.5.1. htons() - Prototype](#151-htons---prototype)
+		- [1.5.2. htons() - Explications](#152-htons---explications)
+		- [1.5.3. htons() - Exemple](#153-htons---exemple)
+	- [1.6. ntohl()](#16-ntohl)
+		- [1.6.1. ntohl() - Prototype](#161-ntohl---prototype)
+		- [1.6.2. nthohl() - Explications](#162-nthohl---explications)
+		- [1.6.3. ntohl() - Exemple](#163-ntohl---exemple)
+	- [1.7. gai\_strerror](#17-gai_strerror)
+	- [1.8. socketpair](#18-socketpair)
+	- [1.9. ntohs](#19-ntohs)
 	- [1.10. select](#110-select)
 	- [1.11. accept](#111-accept)
 	- [1.12. listen](#112-listen)
@@ -247,7 +250,7 @@ htonl(ip_addr) : 100007f
 
 ## 1.5. htons()
 
-### htons() - Prototype
+### 1.5.1. htons() - Prototype
 
 ```cpp
 #include <arpa/inet.h>
@@ -255,13 +258,13 @@ htonl(ip_addr) : 100007f
 uint16_t htons(uint16_t hostshort);
 ```
 
-### htons() - Explications
+### 1.5.2. htons() - Explications
 
 La fonction **htons()** (host to network short) convertit l'entier non signé sur 16 bits *hostshort* avec les bytes ordonée selon l'hôte (*little-endian*) en entier non signé de 16 bits ou les bytes sont ordonné pour le réseau (*big-endian*).
 
 Cette fonction est utilisée pour changer le port avec les bytes ordonné pour l'hôte en port avec les bytes ordonné pour le réseau.
 
-### htons() - Exemple
+### 1.5.3. htons() - Exemple
 
 ```cpp
 #include <arpa/inet.h>
@@ -284,13 +287,52 @@ port hex : 1092
 htons(port) : 9210
 ```
 
-## 1.6. gai_strerror
+## 1.6. ntohl()
 
-## 1.7. socketpair
+### 1.6.1. ntohl() - Prototype
 
-## 1.8. ntohs
+```cpp
+#include <arpa/inet.h>
 
-## 1.9. ntohl
+uint32_t ntohl(uint32_t netlong);
+```
+
+### 1.6.2. nthohl() - Explications
+
+La fonction **ntohl()** (network to host long) fait l'inverse de la fonction **htonl()**. Elle prend un *uint32_t* ordonné selon le réseau (*big-endian*) et le retourne ordonné selon l'hôte (*little-endian*).
+
+### 1.6.3. ntohl() - Exemple
+
+```cpp
+#include <arpa/inet.h>
+
+#include <iostream>
+
+int main () {
+	uint32_t ip_addr_base = 0x7F000001;
+	uint32_t ip_addr_convert = htonl(ip_addr_base);
+	uint32_t result = ntohl(ip_addr_convert);
+
+	std::cout << "ip_addr_base : " << std::hex << ip_addr_base << std::endl;
+	std::cout << "ip_addr_convert : " << std::hex << ip_addr_convert << std::endl;
+	std::cout << "result : " << std::hex << result << std::endl;
+	std::cout << "result == ip_addr_base : " << std::boolalpha << (result == ip_addr_base ? true : false) << std::endl;
+	return 0;
+}
+```
+
+```text
+ip_addr_base : 7f000001
+ip_addr_convert : 100007f
+result : 7f000001
+result == ip_addr_base : true
+```
+
+## 1.7. gai_strerror
+
+## 1.8. socketpair
+
+## 1.9. ntohs
 
 ## 1.10. select
 
