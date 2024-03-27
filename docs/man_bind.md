@@ -1,101 +1,165 @@
+BIND(2)                                  Linux Programmer's Manual                                  BIND(2)
 
-BIND(2)                     BSD System Calls Manual                    BIND(2)
+NAME
+       bind - bind a name to a socket
 
-NNAAMMEE
-     bbiinndd -- bind a name to a socket
+SYNOPSIS
+       #include <sys/types.h>          /* See NOTES */
+       #include <sys/socket.h>
 
-SSYYNNOOPPSSIISS
-     ##iinncclluuddee <<ssyyss//ssoocckkeett..hh>>
+       int bind(int sockfd, const struct sockaddr *addr,
+                socklen_t addrlen);
 
-     _i_n_t
-     bbiinndd(_i_n_t _s_o_c_k_e_t, _c_o_n_s_t _s_t_r_u_c_t _s_o_c_k_a_d_d_r _*_a_d_d_r_e_s_s, _s_o_c_k_l_e_n___t _a_d_d_r_e_s_s___l_e_n);
+DESCRIPTION
+       When  a  socket is created with socket(2), it exists in a name space (address family) but has no ad‐
+       dress assigned to it.  bind() assigns the address specified by addr to the socket referred to by the
+       file  descriptor  sockfd.  addrlen specifies the size, in bytes, of the address structure pointed to
+       by addr.  Traditionally, this operation is called “assigning a name to a socket”.
 
-DDEESSCCRRIIPPTTIIOONN
-     bbiinndd() assigns a name to an unnamed socket.  When a socket is created
-     with socket(2) it exists in a name space (address family) but has no name
-     assigned.  bbiinndd() requests that _a_d_d_r_e_s_s be assigned to the socket.
+       It is normally necessary to assign a local address using bind() before a SOCK_STREAM socket may  re‐
+       ceive connections (see accept(2)).
 
-NNOOTTEESS
-     Binding a name in the UNIX domain creates a socket in the file system
-     that must be deleted by the caller when it is no longer needed (using
-     unlink(2)).
+       The rules used in name binding vary between address families.  Consult the manual entries in Section
+       7 for detailed information.  For AF_INET, see ip(7); for AF_INET6, see  ipv6(7);  for  AF_UNIX,  see
+       unix(7); for AF_APPLETALK, see ddp(7); for AF_PACKET, see packet(7); for AF_X25, see x25(7); and for
+       AF_NETLINK, see netlink(7).
 
-     The rules used in name binding vary between communication domains.  Con-
-     sult the manual entries in section 4 for detailed information.
+       The actual structure passed for the addr argument will depend on the address family.   The  sockaddr
+       structure is defined as something like:
 
-RREETTUURRNN VVAALLUUEESS
-     Upon successful completion, a value of 0 is returned.  Otherwise, a value
-     of -1 is returned and the global integer variable _e_r_r_n_o is set to indi-
-     cate the error.
+           struct sockaddr {
+               sa_family_t sa_family;
+               char        sa_data[14];
+           }
 
-EERRRROORRSS
-     The bbiinndd() system call will fail if:
+       The only purpose of this structure is to cast the structure pointer passed in addr in order to avoid
+       compiler warnings.  See EXAMPLES below.
 
-     [EACCES]           The requested address is protected, and the current
-                        user has inadequate permission to access it.
+RETURN VALUE
+       On success, zero is returned.  On error, -1 is returned, and errno is set appropriately.
 
-     [EADDRINUSE]       The specified address is already in use.
+ERRORS
+       EACCES The address is protected, and the user is not the superuser.
 
-     [EADDRNOTAVAIL]    The specified address is not available from the local
-                        machine.
+       EADDRINUSE
+              The given address is already in use.
 
-     [EAFNOSUPPORT]     _a_d_d_r_e_s_s is not valid for the address family of _s_o_c_k_e_t.
+       EADDRINUSE
+              (Internet domain sockets) The port number was specified as zero in the socket address  struc‐
+              ture, but, upon attempting to bind to an ephemeral port, it was determined that all port num‐
+              bers  in  the  ephemeral  port  range  are  currently  in  use.   See   the   discussion   of
+              /proc/sys/net/ipv4/ip_local_port_range ip(7).
 
-     [EBADF]            _s_o_c_k_e_t is not a valid file descriptor.
+       EBADF  sockfd is not a valid file descriptor.
 
-     [EDESTADDRREQ]     _s_o_c_k_e_t is a null pointer.
+       EINVAL The socket is already bound to an address.
 
-     [EFAULT]           The _a_d_d_r_e_s_s parameter is not in a valid part of the
-                        user address space.
+       EINVAL addrlen is wrong, or addr is not a valid address for this socket's domain.
 
-     [EINVAL]           _s_o_c_k_e_t is already bound to an address and the protocol
-                        does not support binding to a new address.  Alterna-
-                        tively, _s_o_c_k_e_t may have been shut down.
+       ENOTSOCK
+              The file descriptor sockfd does not refer to a socket.
 
-     [ENOTSOCK]         _s_o_c_k_e_t does not refer to a socket.
+       The following errors are specific to UNIX domain (AF_UNIX) sockets:
 
-     [EOPNOTSUPP]       _s_o_c_k_e_t is not of a type that can be bound to an
-                        address.
+       EACCES Search  permission  is  denied  on  a  component  of the path prefix.  (See also path_resolu‐
+              tion(7).)
 
-     The following errors are specific to binding names in the UNIX domain.
+       EADDRNOTAVAIL
+              A nonexistent interface was requested or the requested address was not local.
 
-     [EACCES]           A component of the path prefix does not allow search-
-                        ing or the node's parent directory denies write per-
-                        mission.
+       EFAULT addr points outside the user's accessible address space.
 
-     [EEXIST]           A file already exists at the pathname.  unlink(2) it
-                        first.
+       ELOOP  Too many symbolic links were encountered in resolving addr.
 
-     [EIO]              An I/O error occurred while making the directory entry
-                        or allocating the inode.
+       ENAMETOOLONG
+              addr is too long.
 
-     [EISDIR]           An empty pathname was specified.
+       ENOENT A component in the directory prefix of the socket pathname does not exist.
 
-     [ELOOP]            Too many symbolic links were encountered in translat-
-                        ing the pathname.  This is taken to be indicative of a
-                        looping symbolic link.
+       ENOMEM Insufficient kernel memory was available.
 
-     [ENAMETOOLONG]     A component of a pathname exceeded {NAME_MAX} charac-
-                        ters, or an entire path name exceeded {PATH_MAX} char-
-                        acters.
+       ENOTDIR
+              A component of the path prefix is not a directory.
 
-     [ENOENT]           A component of the path name does not refer to an
-                        existing file.
+       EROFS  The socket inode would reside on a read-only filesystem.
 
-     [ENOTDIR]          A component of the path prefix is not a directory.
+CONFORMING TO
+       POSIX.1-2001, POSIX.1-2008, SVr4, 4.4BSD (bind() first appeared in 4.2BSD).
 
-     [EROFS]            The name would reside on a read-only file system.
+NOTES
+       POSIX.1 does not require the inclusion of <sys/types.h>, and this header file  is  not  required  on
+       Linux.   However,  some historical (BSD) implementations required this header file, and portable ap‐
+       plications are probably wise to include it.
 
-LLEEGGAACCYY SSYYNNOOPPSSIISS
-     ##iinncclluuddee <<ssyyss//ttyyppeess..hh>>
-     ##iinncclluuddee <<ssyyss//ssoocckkeett..hh>>
+       For background on the socklen_t type, see accept(2).
 
-     The include file <_s_y_s_/_t_y_p_e_s_._h> is necessary.
+BUGS
+       The transparent proxy options are not described.
 
-SSEEEE AALLSSOO
-     connect(2), connectx(2), getsockname(2), listen(2), socket(2), compat(5)
+EXAMPLES
+       An example of the use of bind() with Internet domain sockets can be found in getaddrinfo(3).
 
-HHIISSTTOORRYY
-     The bbiinndd() function call appeared in 4.2BSD.
+       The following example shows how to bind a stream socket in the UNIX  (AF_UNIX)  domain,  and  accept
+       connections:
 
-4.2 Berkeley Distribution       March 18, 2015       4.2 Berkeley Distribution
+       #include <sys/socket.h>
+       #include <sys/un.h>
+       #include <stdlib.h>
+       #include <stdio.h>
+       #include <string.h>
+
+       #define MY_SOCK_PATH "/somepath"
+       #define LISTEN_BACKLOG 50
+
+       #define handle_error(msg) \
+           do { perror(msg); exit(EXIT_FAILURE); } while (0)
+
+       int
+       main(int argc, char *argv[])
+       {
+           int sfd, cfd;
+           struct sockaddr_un my_addr, peer_addr;
+           socklen_t peer_addr_size;
+
+           sfd = socket(AF_UNIX, SOCK_STREAM, 0);
+           if (sfd == -1)
+               handle_error("socket");
+
+           memset(&my_addr, 0, sizeof(my_addr));
+                               /* Clear structure */
+           my_addr.sun_family = AF_UNIX;
+           strncpy(my_addr.sun_path, MY_SOCK_PATH,
+                   sizeof(my_addr.sun_path) - 1);
+
+           if (bind(sfd, (struct sockaddr *) &my_addr,
+                   sizeof(my_addr)) == -1)
+               handle_error("bind");
+
+           if (listen(sfd, LISTEN_BACKLOG) == -1)
+               handle_error("listen");
+
+           /* Now we can accept incoming connections one
+              at a time using accept(2) */
+
+           peer_addr_size = sizeof(peer_addr);
+           cfd = accept(sfd, (struct sockaddr *) &peer_addr,
+                        &peer_addr_size);
+           if (cfd == -1)
+               handle_error("accept");
+
+           /* Code to deal with incoming connection(s)... */
+
+           /* When no longer required, the socket pathname, MY_SOCK_PATH
+              should be deleted using unlink(2) or remove(3) */
+       }
+
+SEE ALSO
+       accept(2),  connect(2),  getsockname(2), listen(2), socket(2), getaddrinfo(3), getifaddrs(3), ip(7),
+       ipv6(7), path_resolution(7), socket(7), unix(7)
+
+COLOPHON
+       This page is part of release 5.10 of the Linux man-pages project.  A description of the project, in‐
+       formation   about   reporting  bugs,  and  the  latest  version  of  this  page,  can  be  found  at
+       https://www.kernel.org/doc/man-pages/.
+
+Linux                                            2020-11-01                                         BIND(2)
