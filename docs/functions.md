@@ -31,20 +31,22 @@
 		- [1.7.1. ntohs() - Prototype](#171-ntohs---prototype)
 		- [1.7.2. ntohs() - Explications](#172-ntohs---explications)
 		- [1.7.3. ntohs() - Exemple](#173-ntohs---exemple)
-	- [1.8. gai\_strerror](#18-gai_strerror)
-	- [1.9. socketpair](#19-socketpair)
-	- [1.10. select](#110-select)
-	- [1.11. accept](#111-accept)
-	- [1.12. listen](#112-listen)
+	- [1.8. listen()](#18-listen)
+		- [1.8.1. listen() - Prototype](#181-listen---prototype)
+		- [1.8.2. listen() - Explications](#182-listen---explications)
+		- [1.8.3. listen() - Exemple](#183-listen---exemple)
+	- [1.9. gai\_strerror](#19-gai_strerror)
+	- [1.10. socketpair](#110-socketpair)
+	- [1.11. select](#111-select)
+	- [1.12. accept](#112-accept)
 	- [1.13. send](#113-send)
 	- [1.14. recv](#114-recv)
-	- [1.15. chdir](#115-chdir)
-	- [1.16. connect](#116-connect)
-	- [1.17. getaddrinfo](#117-getaddrinfo)
-	- [1.18. freeaddrinfo](#118-freeaddrinfo)
-	- [1.19. setsockopt](#119-setsockopt)
-	- [1.20. getsockname](#120-getsockname)
-	- [1.21. getprotobyname](#121-getprotobyname)
+	- [1.15. connect](#115-connect)
+	- [1.16. getaddrinfo](#116-getaddrinfo)
+	- [1.17. freeaddrinfo](#117-freeaddrinfo)
+	- [1.18. setsockopt](#118-setsockopt)
+	- [1.19. getsockname](#119-getsockname)
+	- [1.20. getprotobyname](#120-getprotobyname)
 
 ## 1.2. socket()
 
@@ -374,30 +376,100 @@ result : 1092
 result == port_base : true
 ```
 
-## 1.8. gai_strerror
+## 1.8. listen()
 
-## 1.9. socketpair
+### 1.8.1. listen() - Prototype
 
-## 1.10. select
+```cpp
+#include <sys/types.h>
+#include <sys/socket.h>
 
-## 1.11. accept
+int listen(int sockfd, int backlog);
+```
 
-## 1.12. listen
+### 1.8.2. listen() - Explications
+
+La fonction **listen()** marque un socket référencé *sockfd* comme étant un socket passif, c'est à dire, un socket qui sera utiliser pour reçevoir des connections.
+
+Le paramètre *sockfd* est un descripteur de fichier sur un socket.
+
+Le parmètre *backlog* représente la taille de la queue de connexion en attente. Si la taille de la queue est plus dépasse se nombre, les nouvelle connexion ne seront pas accéptée.
+
+Si la fonction se déroule correctement, *0* est retourné alors que si la fonction échoue *-1* est retourné et *errno* et set.
+
+### 1.8.3. listen() - Exemple
+
+```cpp
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/un.h>
+#include <arpa/inet.h>
+
+#include <iostream>
+#include <cerrno>
+#include <cstring>
+
+#define LISTEN_BACKLOG 42
+
+int main () {
+	int fd_socket = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
+
+	if (fd_socket == -1)
+	{
+		std::cerr << "[!] -> " << std::strerror(errno) << std::endl;
+		return (1);
+	}
+	std::cout << "fd_socket : " << fd_socket << std::endl;
+
+	struct sockaddr_in addr;
+	std::memset(&addr, 0, sizeof(addr));
+	addr.sin_family = AF_INET;
+	addr.sin_addr.s_addr = htonl(0x7F000001);
+	addr.sin_port = htons(8080);
+	if (bind(fd_socket, (struct sockaddr*)&addr, sizeof(addr)) == -1)
+	{
+		std::cerr << "[!] -> " << std::strerror(errno) << std::endl;
+		return (2);
+	}
+	std::cout << "Socket lié avec le port 8080" << std::endl;
+
+	if(listen(fd_socket, LISTEN_BACKLOG) == -1)
+	{
+		std::cerr << "[!] -> " << std::strerror(errno) << std::endl;
+		return (3);
+	}
+	std::cout << "Server is running on port 8080" << std::endl;
+
+	return 0;
+}
+```
+
+```text
+fd_socket : 3
+Socket lié avec le port 8080
+Server is running on port 8080
+```
+
+## 1.9. gai_strerror
+
+## 1.10. socketpair
+
+## 1.11. select
+
+## 1.12. accept
 
 ## 1.13. send
 
 ## 1.14. recv
 
-## 1.15. chdir
+## 1.15. connect
 
-## 1.16. connect
+## 1.16. getaddrinfo
 
-## 1.17. getaddrinfo
+## 1.17. freeaddrinfo
 
-## 1.18. freeaddrinfo
+## 1.18. setsockopt
 
-## 1.19. setsockopt
+## 1.19. getsockname
 
-## 1.20. getsockname
-
-## 1.21. getprotobyname
+## 1.20. getprotobyname
