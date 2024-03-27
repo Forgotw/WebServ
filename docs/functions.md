@@ -27,9 +27,12 @@
 		- [1.6.1. ntohl() - Prototype](#161-ntohl---prototype)
 		- [1.6.2. nthohl() - Explications](#162-nthohl---explications)
 		- [1.6.3. ntohl() - Exemple](#163-ntohl---exemple)
-	- [1.7. gai\_strerror](#17-gai_strerror)
-	- [1.8. socketpair](#18-socketpair)
-	- [1.9. ntohs](#19-ntohs)
+	- [1.7. ntohs()](#17-ntohs)
+		- [1.7.1. ntohs() - Prototype](#171-ntohs---prototype)
+		- [1.7.2. ntohs() - Explications](#172-ntohs---explications)
+		- [1.7.3. ntohs() - Exemple](#173-ntohs---exemple)
+	- [1.8. gai\_strerror](#18-gai_strerror)
+	- [1.9. socketpair](#19-socketpair)
 	- [1.10. select](#110-select)
 	- [1.11. accept](#111-accept)
 	- [1.12. listen](#112-listen)
@@ -328,11 +331,52 @@ result : 7f000001
 result == ip_addr_base : true
 ```
 
-## 1.7. gai_strerror
+## 1.7. ntohs()
 
-## 1.8. socketpair
+### 1.7.1. ntohs() - Prototype
 
-## 1.9. ntohs
+```cpp
+#include <arpa/inet.h>
+
+uint16_t ntohs(uint16_t netshort);
+```
+
+### 1.7.2. ntohs() - Explications
+
+La fonction **ntohs()** (network to host short) fait l'inverse de la fonction **htons()**. Elle prend un *uint16_t* ordonné selon le réseau (*big-endian*) et le retourne ordonné selon l'hôte (*little-endian*).
+
+### 1.7.3. ntohs() - Exemple
+
+```cpp
+#include <arpa/inet.h>
+
+#include <iostream>
+
+int main () {
+	uint16_t port_base = 4242;
+	uint16_t port_convert = htons(port_base);
+	uint16_t result = ntohs(port_convert);
+
+	std::cout << "port_base : " << port_base << std::endl;
+	std::cout << "port_base hex : " << std::hex << port_base << std::endl;
+	std::cout << "port_convert : " << std::hex << port_convert << std::endl;
+	std::cout << "result : " << result << std::endl;
+	std::cout << "result == port_base : " << std::boolalpha << (result == port_base ? true : false) << std::endl;
+	return 0;
+}
+```
+
+```text
+port_base : 4242
+port_base hex : 1092
+port_convert : 9210
+result : 1092
+result == port_base : true
+```
+
+## 1.8. gai_strerror
+
+## 1.9. socketpair
 
 ## 1.10. select
 
