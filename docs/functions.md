@@ -16,10 +16,13 @@
 		- [1.3.3. bind() - Exemple](#133-bind---exemple)
 		- [1.3.4. bind() - Notes](#134-bind---notes)
 	- [1.4. htonl()](#14-htonl)
-		- [htonl() - Prototype](#htonl---prototype)
-		- [htonl() - Explications](#htonl---explications)
-		- [htonl() - Exemple](#htonl---exemple)
-	- [1.5. htons](#15-htons)
+		- [1.4.1. htonl() - Prototype](#141-htonl---prototype)
+		- [1.4.2. htonl() - Explications](#142-htonl---explications)
+		- [1.4.3. htonl() - Exemple](#143-htonl---exemple)
+	- [1.5. htons()](#15-htons)
+		- [htons() - Prototype](#htons---prototype)
+		- [htons() - Explications](#htons---explications)
+		- [htons() - Exemple](#htons---exemple)
 	- [1.6. gai\_strerror](#16-gai_strerror)
 	- [1.7. socketpair](#17-socketpair)
 	- [1.8. ntohs](#18-ntohs)
@@ -207,19 +210,21 @@ Socket lié avec le port 8080
 
 ## 1.4. htonl()
 
-### htonl() - Prototype
+### 1.4.1. htonl() - Prototype
 
 ```cpp
 #include <arpa/inet.h>
 
-uint32_t htonl(uint32_t hostlong)
+uint32_t htonl(uint32_t hostlong);
 ```
 
-### htonl() - Explications
+### 1.4.2. htonl() - Explications
 
-La fonction **htonl()** (host to network long) convertit l'entier non signé *hostlong* avec les bytes ordonné selon l’hôte (*little-endian*) en entier non signé ou les bytes sont ordonné pour le réseau (*big-endian*).
+La fonction **htonl()** (host to network long) convertit l'entier non signé sur 32 bits *hostlong* avec les bytes ordonné selon l’hôte (*little-endian*) en entier non signé de 32 bits ou les bytes sont ordonné pour le réseau (*big-endian*).
 
-### htonl() - Exemple
+Cette fonction est utilisée pour modifier une adresse IPv4 encodée en hexadécimal avec les bytes ordonné selon l'hôte.
+
+### 1.4.3. htonl() - Exemple
 
 ```cpp
 #include <arpa/inet.h>
@@ -240,7 +245,44 @@ ip_addr : 7f000001
 htonl(ip_addr) : 100007f
 ```
 
-## 1.5. htons
+## 1.5. htons()
+
+### htons() - Prototype
+
+```cpp
+#include <arpa/inet.h>
+
+uint16_t htons(uint16_t hostshort);
+```
+
+### htons() - Explications
+
+La fonction **htons()** (host to network short) convertit l'entier non signé sur 16 bits *hostshort* avec les bytes ordonée selon l'hôte (*little-endian*) en entier non signé de 16 bits ou les bytes sont ordonné pour le réseau (*big-endian*).
+
+Cette fonction est utilisée pour changer le port avec les bytes ordonné pour l'hôte en port avec les bytes ordonné pour le réseau.
+
+### htons() - Exemple
+
+```cpp
+#include <arpa/inet.h>
+
+#include <iostream>
+
+int main () {
+	uint16_t port = 4242;
+
+	std::cout << "port : " << port << std::endl;
+	std::cout << "port hex : " << std::hex << port << std::endl;
+	std::cout << "htons(port) : " << std::hex << htons(port) << std::endl;
+	return 0;
+}
+```
+
+```text
+port : 4242
+port hex : 1092
+htons(port) : 9210
+```
 
 ## 1.6. gai_strerror
 
