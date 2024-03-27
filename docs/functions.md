@@ -14,11 +14,14 @@
 			- [1.3.2.1. const struct sockaddr \*addr on INET](#1321-const-struct-sockaddr-addr-on-inet)
 			- [1.3.2.2. const struct sockaddr \*addr on INET6](#1322-const-struct-sockaddr-addr-on-inet6)
 		- [1.3.3. bind() - Exemple](#133-bind---exemple)
-		- [bind() - Notes](#bind---notes)
-	- [1.4. gai\_strerror](#14-gai_strerror)
-	- [1.5. socketpair](#15-socketpair)
-	- [1.6. htons](#16-htons)
-	- [1.7. htonl](#17-htonl)
+		- [1.3.4. bind() - Notes](#134-bind---notes)
+	- [1.4. htonl()](#14-htonl)
+		- [htonl() - Prototype](#htonl---prototype)
+		- [htonl() - Explications](#htonl---explications)
+		- [htonl() - Exemple](#htonl---exemple)
+	- [1.5. htons](#15-htons)
+	- [1.6. gai\_strerror](#16-gai_strerror)
+	- [1.7. socketpair](#17-socketpair)
 	- [1.8. ntohs](#18-ntohs)
 	- [1.9. ntohl](#19-ntohl)
 	- [1.10. select](#110-select)
@@ -196,19 +199,52 @@ fd_socket : 3
 Socket lié avec le port 8080
 ```
 
-### bind() - Notes
+### 1.3.4. bind() - Notes
 
-- Nous devons passer l'adresse IP sous la forme d'un entier de 32 bits. L'adresse est représenter sous forme hexadécimal ou chaque partie de l'adresse IP est encoder sur 2 caractère. C'est pour cela que dans l exemple, j'utilise comme adresse 0x7F000001, `7F` vaut `127`, `00` vaut `0` et `01` vaut `1`.
-- J'utilise la fonction **htonl()** dans l'exemple. Je dois l'utiliser car *bind()* s'attend a un entier sur 32 bits sous forme hexadécimal encoder en *big-endian*. Il a un chapitre dédié à cette fonction dans ce document.
+- Nous devons passer l'adresse IP sous la forme d'un entier non signé de 32 bits. L'adresse est représenter sous forme hexadécimal ou chaque partie de l'adresse IP est encoder sur 2 caractère. C'est pour cela que dans l exemple, j'utilise comme adresse 0x7F000001, `7F` vaut `127`, `00` vaut `0` et `01` vaut `1`.
+- J'utilise la fonction **htonl()** dans l'exemple. Je dois l'utiliser car *bind()* s'attend a un entier non signé sur 32 bits sous forme hexadécimal encoder en *big-endian*. Il a un chapitre dédié à cette fonction dans ce document.
 - J'utilise aussi la fonction **htons()** pour set le port. Cette fonction aussi envoie le port encoder en *big-endian* à *bind()*. Il y a aussi un chapitre dédié à cette fonction dans ce document.
 
-## 1.4. gai_strerror
+## 1.4. htonl()
 
-## 1.5. socketpair
+### htonl() - Prototype
 
-## 1.6. htons
+```cpp
+#include <arpa/inet.h>
 
-## 1.7. htonl
+uint32_t htonl(uint32_t hostlong)
+```
+
+### htonl() - Explications
+
+La fonction **htonl()** (host to network long) convertit l'entier non signé *hostlong* avec les bytes ordonné selon l’hôte (*little-endian*) en entier non signé ou les bytes sont ordonné pour le réseau (*big-endian*).
+
+### htonl() - Exemple
+
+```cpp
+#include <arpa/inet.h>
+
+#include <iostream>
+
+int main () {
+	uint32_t ip_addr = 0x7F000001;
+
+	std::cout << "ip_addr : " << std::hex << ip_addr << std::endl;
+	std::cout << "htonl(ip_addr) : " << std::hex << htonl(ip_addr) << std::endl;
+	return 0;
+}
+```
+
+```text
+ip_addr : 7f000001
+htonl(ip_addr) : 100007f
+```
+
+## 1.5. htons
+
+## 1.6. gai_strerror
+
+## 1.7. socketpair
 
 ## 1.8. ntohs
 
