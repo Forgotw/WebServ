@@ -39,12 +39,15 @@
 		- [1.9.1. accept() - Prototype](#191-accept---prototype)
 		- [1.9.2. accept() - Explications](#192-accept---explications)
 		- [1.9.3. accept() - Exemple](#193-accept---exemple)
-	- [1.10. gai\_strerror](#110-gai_strerror)
-	- [1.11. socketpair](#111-socketpair)
-	- [1.12. select](#112-select)
-	- [1.13. send](#113-send)
-	- [1.14. recv](#114-recv)
-	- [1.15. connect](#115-connect)
+	- [1.10. connect()](#110-connect)
+		- [1.10.1. connect() - Prototype](#1101-connect---prototype)
+		- [1.10.2. connect() - Explications](#1102-connect---explications)
+		- [1.10.3. connect() - Exemple](#1103-connect---exemple)
+	- [1.11. gai\_strerror](#111-gai_strerror)
+	- [1.12. socketpair](#112-socketpair)
+	- [1.13. select](#113-select)
+	- [1.14. send](#114-send)
+	- [1.15. recv](#115-recv)
 	- [1.16. getaddrinfo](#116-getaddrinfo)
 	- [1.17. freeaddrinfo](#117-freeaddrinfo)
 	- [1.18. setsockopt](#118-setsockopt)
@@ -535,38 +538,164 @@ int main () {
 }
 ```
 
-- server
-
-```text
+```bash
+# Server
 Server is running on port 8080
 waiting ...
 ```
 
-- client
-
-```text
+```bash
+# Client
 nc 127.0.0.1 8080
 ```
 
-- server
-
-```text
+```bash
+# Server
 Server is running on port 8080
 waiting ...
 New connection !!!
 ```
 
-## 1.10. gai_strerror
+## 1.10. connect()
 
-## 1.11. socketpair
+### 1.10.1. connect() - Prototype
 
-## 1.12. select
+```cpp
+#include <sys/types.h>
+#include <sys/socket.h>
 
-## 1.13. send
+int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
+```
 
-## 1.14. recv
+### 1.10.2. connect() - Explications
 
-## 1.15. connect
+La fonction **connect()** connecte le socket (*sockfd*) passé en paramètre à l'adresse spécifiée par le paramètre *addr*. Le paramètre *addrlen* corréspond à la taille de *addr*.
+
+Si une erreur survient durant l'exécution de **connect()**, -1 est retourné et errno est set.
+
+### 1.10.3. connect() - Exemple
+
+```cpp
+// Server
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/un.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+
+#include <iostream>
+#include <cerrno>
+#include <cstring>
+
+#define LISTEN_BACKLOG 42
+
+int main () {
+	int fd_socket = socket(AF_INET, SOCK_STREAM, 0);
+	if (fd_socket == -1)
+	{
+		std::cerr << "[!] -> " << std::strerror(errno) << std::endl;
+		return 1;
+	}
+
+	struct sockaddr_in addr;
+	std::memset(&addr, 0, sizeof(addr));
+	addr.sin_family = AF_INET;
+	addr.sin_addr.s_addr = htonl(0x7F000001);
+	addr.sin_port = htons(8080);
+	if (bind(fd_socket, (struct sockaddr*) &addr, sizeof(addr)) == -1)
+	{
+		std::cerr << "[!] -> " << std::strerror(errno) << std::endl;
+		return 2;
+	}
+
+	if(listen(fd_socket, LISTEN_BACKLOG) == -1)
+	{
+		std::cerr << "[!] -> " << std::strerror(errno) << std::endl;
+		return 3;
+	}
+	std::cout << "Server is running on port 8080" << std::endl;
+
+	struct sockaddr_in peer_addr;
+	socklen_t peer_len;
+	int fd_peer;
+	std::cout << "waiting ..." << std::endl;
+	for (;;)
+	{
+		peer_len = sizeof(peer_addr);
+		fd_peer = accept(fd_socket, (struct sockaddr *) &peer_addr, &peer_len);
+		if (fd_peer != -1)
+			break;
+	}
+	std::cout << "New connection !!!" << std::endl;
+	close(fd_peer);
+	close(fd_socket);
+	return 0;
+}
+```
+
+```cpp
+// Client
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/un.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+
+#include <iostream>
+#include <cerrno>
+#include <cstring>
+
+int main () {
+	int fd_socket = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
+	if (fd_socket == -1)
+	{
+		std::cerr << "[!] -> " << std::strerror(errno) << std::endl;
+		return 1;
+	}
+
+	struct sockaddr_in addr;
+	std::memset(&addr, 0, sizeof(addr));
+	addr.sin_family = AF_INET;
+	addr.sin_addr.s_addr = htonl(0x7F000001);
+	addr.sin_port = htons(8080);
+
+	if (connect(fd_socket, (struct sockaddr *) &addr, sizeof(addr)) > 0) {
+		std::cerr << "[!] -> " << std::strerror(errno) << std::endl;
+		return 2;
+	}
+	std::cout << "Connected !!" << std::endl;
+	close(fd_socket);
+	return 0;
+}
+```
+
+```bash
+# Server
+Server is running on port 8080
+waiting ...
+```
+
+```bash
+# Client
+Connected !!
+```
+
+```bash
+# Server
+Server is running on port 8080
+waiting ...
+New connection !!!
+```
+
+## 1.11. gai_strerror
+
+## 1.12. socketpair
+
+## 1.13. select
+
+## 1.14. send
+
+## 1.15. recv
 
 ## 1.16. getaddrinfo
 
