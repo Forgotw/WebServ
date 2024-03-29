@@ -43,16 +43,20 @@
 		- [1.10.1. connect() - Prototype](#1101-connect---prototype)
 		- [1.10.2. connect() - Explications](#1102-connect---explications)
 		- [1.10.3. connect() - Exemple](#1103-connect---exemple)
-	- [1.11. gai\_strerror](#111-gai_strerror)
-	- [1.12. socketpair](#112-socketpair)
-	- [1.13. select](#113-select)
-	- [1.14. send](#114-send)
-	- [1.15. recv](#115-recv)
-	- [1.16. getaddrinfo](#116-getaddrinfo)
-	- [1.17. freeaddrinfo](#117-freeaddrinfo)
-	- [1.18. setsockopt](#118-setsockopt)
-	- [1.19. getsockname](#119-getsockname)
-	- [1.20. getprotobyname](#120-getprotobyname)
+	- [1.11. send()](#111-send)
+		- [1.11.1. send() - Prototype](#1111-send---prototype)
+		- [1.11.2. send() - Explications](#1112-send---explications)
+		- [1.11.3. send() - Exemple](#1113-send---exemple)
+	- [1.12. recv](#112-recv)
+	- [1.13. gai\_strerror](#113-gai_strerror)
+	- [1.14. socketpair](#114-socketpair)
+	- [1.15. select](#115-select)
+	- [1.16. send](#116-send)
+	- [1.17. getaddrinfo](#117-getaddrinfo)
+	- [1.18. freeaddrinfo](#118-freeaddrinfo)
+	- [1.19. setsockopt](#119-setsockopt)
+	- [1.20. getsockname](#120-getsockname)
+	- [1.21. getprotobyname](#121-getprotobyname)
 
 ## 1.2. socket()
 
@@ -687,22 +691,47 @@ waiting ...
 New connection !!!
 ```
 
-## 1.11. gai_strerror
+## 1.11. send()
 
-## 1.12. socketpair
+### 1.11.1. send() - Prototype
 
-## 1.13. select
+```cpp
+#include <sys/types.h>
+#include <sys/socket.h>
 
-## 1.14. send
+ssize_t send(int sockfd, const void *buf, size_t len, int flag);
+```
 
-## 1.15. recv
+### 1.11.2. send() - Explications
 
-## 1.16. getaddrinfo
+La fonction **send()** permet de transmettre à message à un socket. Cette fonction doit être utilisée seulement quand le socket à le status *connected*. La seul différence entre **send()** et **write()** et la présence du paramètre *flag*. utiliser **send()** avec un flag de *0* est similaire à utiliser **write()**.
 
-## 1.17. freeaddrinfo
+Le paramètre *sockfd* est le socket par le quel nous voulons envoyer notre message.
 
-## 1.18. setsockopt
+Le paramètre *buf* contient le message que nous voulons envoyer et le paramètre *len* est la longeur du message.
 
-## 1.19. getsockname
+Pour la liste des flags, voir `man send`.
 
-## 1.20. getprotobyname
+Si **send()** se déroule corréctement, elle renvoie le nombre de bytes qui a été envoyé. Sinon, -1 est retourné et errno est set.
+
+### 1.11.3. send() - Exemple
+
+## 1.12. recv
+
+## 1.13. gai_strerror
+
+## 1.14. socketpair
+
+## 1.15. select
+
+## 1.16. send
+
+## 1.17. getaddrinfo
+
+## 1.18. freeaddrinfo
+
+## 1.19. setsockopt
+
+## 1.20. getsockname
+
+## 1.21. getprotobyname
