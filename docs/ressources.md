@@ -24,8 +24,9 @@ __HTTP__
 __RFC__
 - [How to Read an RFC](https://www.tutorialspoint.com/cplusplus/cpp_web_programming.htm)
 - [RFC 9110 - HTTP Semantics ](https://www.rfc-editor.org/info/rfc9110)
-- [RFC 9112 - HTTP/1.1 ](https://www.rfc-editor.org/info/rfc9112) 
-- [RFC 2068 - ABNF](https://www.cs.columbia.edu/sip/syntax/rfc2068.html) 
+- [RFC 9112 - HTTP/1.1 ](https://www.rfc-editor.org/info/rfc9112)
+- [RFC 2068 - ABNF](https://www.cs.columbia.edu/sip/syntax/rfc2068.html)
 - [RFC 3986 -  (URI) Generic Syntax](https://www.ietf.org/rfc/rfc3986)
 - [RFC 6265 - HTTP State Management Mechanism (Cookies)](https://www.rfc-editor.org/rfc/rfc6265)
 - [RFC 3875 - CGI](https://datatracker.ietf.org/doc/html/rfc3875)
+- [socketpair - stackoverflow](https://stackoverflow.com/questions/11461106/socketpair-in-c-unix)
