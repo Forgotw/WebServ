@@ -47,16 +47,18 @@
 		- [1.11.1. send() - Prototype](#1111-send---prototype)
 		- [1.11.2. send() - Explications](#1112-send---explications)
 		- [1.11.3. send() - Exemple](#1113-send---exemple)
-	- [1.12. recv](#112-recv)
+	- [1.12. recv()](#112-recv)
+		- [1.12.1. recv() - Prototype](#1121-recv---prototype)
+		- [1.12.2. recv() - Explications](#1122-recv---explications)
+		- [1.12.3. recv() - Exemple](#1123-recv---exemple)
 	- [1.13. gai\_strerror](#113-gai_strerror)
 	- [1.14. socketpair](#114-socketpair)
 	- [1.15. select](#115-select)
-	- [1.16. send](#116-send)
-	- [1.17. getaddrinfo](#117-getaddrinfo)
-	- [1.18. freeaddrinfo](#118-freeaddrinfo)
-	- [1.19. setsockopt](#119-setsockopt)
-	- [1.20. getsockname](#120-getsockname)
-	- [1.21. getprotobyname](#121-getprotobyname)
+	- [1.16. getaddrinfo](#116-getaddrinfo)
+	- [1.17. freeaddrinfo](#117-freeaddrinfo)
+	- [1.18. setsockopt](#118-setsockopt)
+	- [1.19. getsockname](#119-getsockname)
+	- [1.20. getprotobyname](#120-getprotobyname)
 
 ## 1.2. socket()
 
@@ -716,7 +718,285 @@ Si **send()** se déroule corréctement, elle renvoie le nombre de bytes qui a �
 
 ### 1.11.3. send() - Exemple
 
-## 1.12. recv
+```cpp
+// Server
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/un.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+
+#include <iostream>
+#include <cerrno>
+#include <cstring>
+
+#define LISTEN_BACKLOG 42
+
+int main () {
+	int fd_socket = socket(AF_INET, SOCK_STREAM, 0);
+	if (fd_socket == -1)
+	{
+		std::cerr << "[!] -> " << std::strerror(errno) << std::endl;
+		return 1;
+	}
+
+	struct sockaddr_in addr;
+	std::memset(&addr, 0, sizeof(addr));
+	addr.sin_family = AF_INET;
+	addr.sin_addr.s_addr = htonl(0x7F000001);
+	addr.sin_port = htons(8080);
+	if (bind(fd_socket, (struct sockaddr*) &addr, sizeof(addr)) == -1)
+	{
+		std::cerr << "[!] -> " << std::strerror(errno) << std::endl;
+		return 2;
+	}
+
+	if(listen(fd_socket, LISTEN_BACKLOG) == -1)
+	{
+		std::cerr << "[!] -> " << std::strerror(errno) << std::endl;
+		return 3;
+	}
+	std::cout << "Server is running on port 8080" << std::endl;
+
+	struct sockaddr_in peer_addr;
+	socklen_t peer_len;
+	int fd_peer;
+	std::cout << "waiting ..." << std::endl;
+	for (;;)
+	{
+		peer_len = sizeof(peer_addr);
+		fd_peer = accept(fd_socket, (struct sockaddr *) &peer_addr, &peer_len);
+		if (fd_peer != -1)
+			break;
+	}
+	std::cout << "New connection !" << std::endl;
+	char msg[] = "Welcome !";
+	if (send(fd_peer, (const void *) &msg, std::strlen(msg), 0) == -1)
+	{
+		std::cerr << "[!] -> " << std::strerror(errno) << std::endl;
+		return 4;
+	}
+	std::cout << "The message was send !" << std::endl;
+	close(fd_peer);
+	close(fd_socket);
+	return 0;
+}
+```
+
+```cpp
+// Client
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/un.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+
+#include <iostream>
+#include <cerrno>
+#include <cstring>
+
+int main () {
+	int fd_socket = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
+	if (fd_socket == -1)
+	{
+		std::cerr << "[!] -> " << std::strerror(errno) << std::endl;
+		return 1;
+	}
+
+	struct sockaddr_in addr;
+	std::memset(&addr, 0, sizeof(addr));
+	addr.sin_family = AF_INET;
+	addr.sin_addr.s_addr = htonl(0x7F000001);
+	addr.sin_port = htons(8080);
+
+	if (connect(fd_socket, (struct sockaddr *) &addr, sizeof(addr)) > 0) {
+		std::cerr << "[!] -> " << std::strerror(errno) << std::endl;
+		return 2;
+	}
+	std::cout << "Connected !" << std::endl;
+	close(fd_socket);
+	return 0;
+}
+```
+
+```bash
+# Server
+Server is running on port 8080
+waiting ...
+```
+
+```bash
+# Client
+Connected !
+```
+
+```bash
+Server is running on port 8080
+waiting ...
+New connection !
+The message was send !
+```
+
+## 1.12. recv()
+
+### 1.12.1. recv() - Prototype
+
+```cpp
+#include <sys/types.h>
+#include <sys/socket.h>
+
+ssize_t recv(int sockfd, void *buf, size_t len, int flags)
+```
+
+### 1.12.2. recv() - Explications
+
+La fonction **recv()** permet de reçevoir un message depuis un socket. Cette fonction doit être utilisée seulement quand le socket à le status *connected*. La seul différence entre **recv()** et **read()** et la présence du paramètre *flags*. Utiliser **recv()** avec un flag de *0* est similaire à utiliser **read()**.
+
+Le paramètre *sockfd* est le socket par le quel nous allons reçevoir le message.
+
+Le paramètre *buf* est le buffer dans le quel sera écrit le message reçu et le paramètre *len* est la taille du buffer.
+
+Pour la liste des flags, voir `man send`.
+
+Si **recv()** se déroule corréctement, elle renvoie le nombre de bytes qui a été reçu. Sinon, -1 est retourné et errno est set.
+
+### 1.12.3. recv() - Exemple
+
+```cpp
+// Server
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/un.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+
+#include <iostream>
+#include <cerrno>
+#include <cstring>
+
+#define LISTEN_BACKLOG 42
+
+int main () {
+	int fd_socket = socket(AF_INET, SOCK_STREAM, 0);
+	if (fd_socket == -1)
+	{
+		std::cerr << "[!] -> " << std::strerror(errno) << std::endl;
+		return 1;
+	}
+
+	struct sockaddr_in addr;
+	std::memset(&addr, 0, sizeof(addr));
+	addr.sin_family = AF_INET;
+	addr.sin_addr.s_addr = htonl(0x7F000001);
+	addr.sin_port = htons(8080);
+	if (bind(fd_socket, (struct sockaddr*) &addr, sizeof(addr)) == -1)
+	{
+		std::cerr << "[!] -> " << std::strerror(errno) << std::endl;
+		return 2;
+	}
+
+	if(listen(fd_socket, LISTEN_BACKLOG) == -1)
+	{
+		std::cerr << "[!] -> " << std::strerror(errno) << std::endl;
+		return 3;
+	}
+	std::cout << "Server is running on port 8080" << std::endl;
+
+	struct sockaddr_in peer_addr;
+	socklen_t peer_len;
+	int fd_peer;
+	std::cout << "waiting ..." << std::endl;
+	for (;;)
+	{
+		peer_len = sizeof(peer_addr);
+		fd_peer = accept(fd_socket, (struct sockaddr *) &peer_addr, &peer_len);
+		if (fd_peer != -1)
+			break;
+	}
+	std::cout << "New connection !" << std::endl;
+	char msg[] = "Welcome !";
+	if (send(fd_peer, (const void *) &msg, std::strlen(msg), 0) == -1)
+	{
+		std::cerr << "[!] -> " << std::strerror(errno) << std::endl;
+		return 4;
+	}
+	std::cout << "The message was send !" << std::endl;
+	close(fd_peer);
+	close(fd_socket);
+	return 0;
+}
+```
+
+```cpp
+// Client
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/un.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+
+#include <iostream>
+#include <cerrno>
+#include <cstring>
+
+int main () {
+	int fd_socket = socket(AF_INET, SOCK_STREAM, 0);
+	if (fd_socket == -1)
+	{
+		std::cerr << "[!] -> " << std::strerror(errno) << std::endl;
+		return 1;
+	}
+
+	struct sockaddr_in addr;
+	std::memset(&addr, 0, sizeof(addr));
+	addr.sin_family = AF_INET;
+	addr.sin_addr.s_addr = htonl(0x7F000001);
+	addr.sin_port = htons(8080);
+
+	if (connect(fd_socket, (struct sockaddr *) &addr, sizeof(addr)) > 0) {
+		std::cerr << "[!] -> " << std::strerror(errno) << std::endl;
+		return 2;
+	}
+	std::cout << "Connected !" << std::endl;
+	char buffer[1024];
+	ssize_t rec_size = 0;
+	rec_size = recv(fd_socket, (void *) &buffer, 1024, 0);
+	if (rec_size == -1)
+	{
+		std::cerr << "[!] -> " << std::strerror(errno) << std::endl;
+		return 3;
+	}
+	if (rec_size == 0)
+		return 4;
+
+	std::cout << "Nouveau message" << std::endl;
+	buffer[rec_size] = '\0';
+	std::cout << "-> " << buffer << std::endl;
+	close(fd_socket);
+	return 0;
+}
+```
+
+```bash
+# Server
+Server is running on port 8080
+waiting ...
+```
+
+```bash
+# Client
+Connected !
+Nouveau message
+-> Welcome !
+```
+
+```bash
+# Server
+Server is running on port 8080
+waiting ...
+New connection !
+The message was send !
+```
 
 ## 1.13. gai_strerror
 
@@ -724,14 +1004,12 @@ Si **send()** se déroule corréctement, elle renvoie le nombre de bytes qui a �
 
 ## 1.15. select
 
-## 1.16. send
+## 1.16. getaddrinfo
 
-## 1.17. getaddrinfo
+## 1.17. freeaddrinfo
 
-## 1.18. freeaddrinfo
+## 1.18. setsockopt
 
-## 1.19. setsockopt
+## 1.19. getsockname
 
-## 1.20. getsockname
-
-## 1.21. getprotobyname
+## 1.20. getprotobyname
