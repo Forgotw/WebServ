@@ -51,9 +51,17 @@
 		- [1.12.1. recv() - Prototype](#1121-recv---prototype)
 		- [1.12.2. recv() - Explications](#1122-recv---explications)
 		- [1.12.3. recv() - Exemple](#1123-recv---exemple)
-	- [1.13. gai\_strerror](#113-gai_strerror)
-	- [1.14. socketpair](#114-socketpair)
-	- [1.15. select](#115-select)
+	- [1.13. select()](#113-select)
+		- [1.13.1. select() - Prototype](#1131-select---prototype)
+		- [1.13.2. select() - Explications](#1132-select---explications)
+		- [1.13.3. select() - Macros](#1133-select---macros)
+			- [1.13.3.1. FD\_ZERO()](#11331-fd_zero)
+			- [1.13.3.2. FD\_SET()](#11332-fd_set)
+			- [1.13.3.3. FD\_CLR()](#11333-fd_clr)
+			- [1.13.3.4. FD\_ISSET()](#11334-fd_isset)
+		- [1.13.4. select() - Exemple](#1134-select---exemple)
+	- [1.14. gai\_strerror](#114-gai_strerror)
+	- [1.15. socketpair](#115-socketpair)
 	- [1.16. getaddrinfo](#116-getaddrinfo)
 	- [1.17. freeaddrinfo](#117-freeaddrinfo)
 	- [1.18. setsockopt](#118-setsockopt)
@@ -998,11 +1006,190 @@ New connection !
 The message was send !
 ```
 
-## 1.13. gai_strerror
+## 1.13. select()
 
-## 1.14. socketpair
+### 1.13.1. select() - Prototype
 
-## 1.15. select
+```cpp
+#include <sys/select>
+
+int select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, timeval *timeout);
+
+void FD_CLR(int fd, fd_set *set);
+int FD_ISSET(int fd, fd_set *set);
+void FD_SET(int fd, fd_set *set);
+void FD_ZERO(fd_set *set);
+```
+
+### 1.13.2. select() - Explications
+
+La fonction **select()** permet à un programme de surveillier plusieurs file descriptor, en attendant qu'un ou plusieurs d'entre eux soient "prêt" pour une certaine catégorie d'opération d'I/O. Un descripteur de fichier est considéré comme prêt s'il est possible d'effectuer une opération d'I/O correspondante (par exemple, read()/recv() et write()/send()) sans blocage.
+
+La fonction **select()** ne peut surveillier seulement un nombre de descripteur de fichier plus petit que **FD_SIZE**.
+
+Les paramètre principaux de la fonction **select()** sont les trois *sets* de descripteur de fichier. Chaqun de ces sets (de type *fd_set*) représtent l'evenement que l'appelant attend de pouvoir traiter. Chaqun de ces trois paramètre peu être set à NULL si nous ne voulons pas traiter ce type d'événement.
+
+*readfds* est le *set* des descripteurs qu'il faut suivre pour voir si ils sont disponbile pour la lecteur. Un descripteur de fichier qui est condiédrer comme prêt pour la lecture est un descripteur ou l'opération de lecture ne bloquerait pas. Un descripteur et aussi prêt à la lecture quand il est au EOF. Une fois que **select()** à retourné, tous les descipteur dans *readfds* sont supprimer, à l'exception des descripteur qui sont prêt pour la lecture.
+
+*writefds* est le *set* des descripteurs qu'il faut suivre pour voir si ils sont disponible pour l'écriture. Un descripteur de fichier qui est considéré comme prêt pour l'écriture est un descripteur ou l'opération d'écriture ne bloquerait pas. Pourtant, même si un descripteur inique qu'il est inscriptible, l'écriture d'une gross masse d'informations pourrait quand même bloquer. Une fois que **select()** à retourné, tous les descripteur dans *wrirtefds* sont supprimé, à l'excecption des descripteurs qui sont prêt pour l'écriture.
+
+*exceptfds* est le *set* des descripteurs qu'il faut suivre pour voir pour des *condition exceptionel*. Voir `man 2 poll` section `POLLPRI`.
+
+Le paramètre *nfds* détérmine le numéro du descipteur de fichier le plus éléveé plus 1. Ce chiffre détérmine jusqu'a quel descripteur **select()** va itérer sur les trois *set*.
+
+Le paramètre *timeout* est une structure *timeval* qui définit l'intérval durant le quel est **select()** doit bloquer pour attendre qu'un descripteur de fichier deviennt prêt. L'appel va bloquer jusqu'a :
+
+- un descripteur devient prêt
+- l'appel est intérompu un handler de signal
+- *timeout* expire
+
+La structure *timeval* est définie comme suite:
+
+```cpp
+struct timeval {
+	time_t		tv_sec;		/* seconds */
+	suseconds_t	tv_usec;	/* microseconds */
+}
+```
+
+Si tous les paramètre de **select()** sont 0, la fonction retourne directement.
+
+Si le paramètre *timeout* est à 0, **select()** bloque indéfiniment jusqu'a qu'un descripteur deviennt prêt.
+
+Si la foncontion **select()** se déroule sans erreur, elle retourne le nombre de descripteur de fichier contenu dans les trois *sets*. Elle retourne 0 si le *timeout* a été atteind et en cas d'erreur, elle retourne -1 et errno est set.
+
+Pour manipuler les *fd_set*, nous avons à notre disposition des macros.
+
+### 1.13.3. select() - Macros
+
+#### 1.13.3.1. FD_ZERO()
+
+Cette macro retirer tous les descripteur de fichier du set paser en paramètre. Elle doit être utilisée comme première étape afin d'initialiser un set.
+
+#### 1.13.3.2. FD_SET()
+
+Cette macro ajoute le descripteur de fichier *fd* au *set*. Ajoute un descripteur qui est déjà présent dans le set ne fait rien et ne produit pas d'erreur.
+
+#### 1.13.3.3. FD_CLR()
+
+Cette fonction retire le descripteur de fichier *fd* du *set*. Supprimer un descripteur qui n'est pas présent dans le set ne fait rien et ne génére pas d'erreur.
+
+#### 1.13.3.4. FD_ISSET()
+
+La fonction **select()** modifie le contenu des set en fonction des règle énoncée plus haut. Après un appel à **select()**, la macro **FD_ISSET()** peu être utilisée afin de détérminer si un descripteur de fichier est encore présent dans le set. **FD_ISSET()** retourne pas 0 si un descripteur *fd* est dans le *set* et 0 si il n'y est pas.
+
+### 1.13.4. select() - Exemple
+
+```cpp
+// Server
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/un.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+
+#include <iostream>
+#include <cerrno>
+#include <cstring>
+
+#define LISTEN_BACKLOG 42
+
+int main () {
+	int fd_socket1 = socket(AF_INET, SOCK_STREAM, 0);
+	int fd_socket2 = socket(AF_INET, SOCK_STREAM, 0);
+	if (fd_socket1 == -1 || fd_socket2 == -1)
+	{
+		std::cerr << "[!] -> " << std::strerror(errno) << std::endl;
+		return 1;
+	}
+
+	struct sockaddr_in addr1;
+	std::memset(&addr1, 0, sizeof(addr1));
+	addr1.sin_family = AF_INET;
+	addr1.sin_addr.s_addr = htonl(0x7F000001);
+	addr1.sin_port = htons(8080);
+	if (bind(fd_socket1, (struct sockaddr *) &addr1, sizeof(addr1)) == -1)
+	{
+		std::cerr << "[!] -> " << std::strerror(errno) << std::endl;
+		return 2;
+	}
+	struct sockaddr_in addr2;
+	std::memset(&addr2, 0, sizeof(addr2));
+	addr2.sin_family = AF_INET;
+	addr2.sin_addr.s_addr = htonl(0x7F000001);
+	addr2.sin_port = htons(4242);
+	if(bind(fd_socket2, (struct sockaddr *) &addr2, sizeof(addr2)) == -1)
+	{
+		std::cerr << "[!] -> " << std::strerror(errno) << std::endl;
+		return 3;
+	}
+
+	if (listen(fd_socket1, LISTEN_BACKLOG) == -1)
+	{
+		std::cerr << "[!] -> " << std::strerror(errno) << std::endl;
+		return 4;
+	}
+	std::cout << "Server is running on port 8080" << std::endl;
+	if (listen(fd_socket2, LISTEN_BACKLOG) == -1)
+	{
+		std::cerr << "[!] -> " << std::strerror(errno) << std::endl;
+		return 5;
+	}
+	std::cout << "Server is running on port 4242" << std::endl;
+
+	fd_set read_fds;
+	int fd_max = fd_socket2;
+
+	for (;;)
+	{
+		FD_ZERO(&read_fds);
+		FD_SET(fd_socket1, &read_fds);
+		FD_SET(fd_socket2, &read_fds);
+
+		if (select(fd_max + 1, &read_fds, NULL, NULL, NULL) == -1)
+		{
+			std::cerr  << "[!] -> " << std::strerror(errno) << std::endl;
+			return 6;
+		}
+		struct sockaddr_in peer_addr;
+		socklen_t peer_len;
+		int fd_peer;
+		for (int i = 0; i <= fd_max; i++)
+		{
+			if (FD_ISSET(i, &read_fds))
+			{
+				if (i == fd_socket1)
+				{
+					std::cout << "New connection on port 8080" << std::endl;
+					peer_len = sizeof(peer_addr);
+					fd_peer = accept(fd_socket1, (struct sockaddr *) &peer_addr, &peer_len);
+				}
+				else if (i == fd_socket2)
+				{
+					std::cout << "New connection on port 4242" << std::endl;
+					peer_len = sizeof(peer_addr);
+					fd_peer = accept(fd_socket2, (struct sockaddr *) &peer_addr, &peer_len);
+				}
+				if (fd_peer == -1)
+				{
+					std::cerr << "[!] -> " << std::strerror(errno) << std::endl;
+					return 7;
+				}
+				close(fd_peer);
+			}
+		}
+	}
+	close(fd_socket1);
+	close(fd_socket2);
+	return 0;
+}
+```
+
+Ce serveur attend indéfiniment des connexion sur deux port différent et utilise **select()** pour savoir quand une connexion à été éffectuer. Le serveur ne fait rien du client, il ferme la connexion directement. C'est juste un code d'exemple pour illustrer l'utilisation de **select()** dans le cas de l'écoute sur plusieurs socket.
+
+## 1.14. gai_strerror
+
+## 1.15. socketpair
 
 ## 1.16. getaddrinfo
 
