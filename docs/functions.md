@@ -1355,9 +1355,21 @@ Voir [1.14.3. getaddrinfo() - Exemple](#1143-getaddrinfo---exemple)
 
 ### 1.16.1. gai_strerror() - Prototype
 
+```cpp
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+
+const char *gai_strerror(int errcode);
+```
+
 ### 1.16.2. gai_strerror() - Explications
 
+La fonction **gai_strerror()** (Get Adress Info String Error), retourne sous forme de string, le détail de l'erreur passer en paramètre.
+
 ### 1.16.3. gai_strerror() - Exemple
+
+Voir [1.14.3. getaddrinfo() - Exemple](#1143-getaddrinfo---exemple)
 
 ## 1.17. socketpair
 
