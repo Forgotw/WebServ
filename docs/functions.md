@@ -63,7 +63,7 @@
 	- [1.14. getaddrinfo()](#114-getaddrinfo)
 		- [1.14.1. getaddrinfo() - Prototype](#1141-getaddrinfo---prototype)
 		- [1.14.2. getaddrinfo() - Explications](#1142-getaddrinfo---explications)
-		- [1.14.3. getaddrinfo() - Exemplce](#1143-getaddrinfo---exemplce)
+		- [1.14.3. getaddrinfo() - Exemple](#1143-getaddrinfo---exemple)
 	- [1.15. freeaddrinfo](#115-freeaddrinfo)
 		- [1.15.1. freeaddrinfo() - Prototype](#1151-freeaddrinfo---prototype)
 		- [1.15.2. freeaddrinfo() - Explications](#1152-freeaddrinfo---explications)
@@ -1234,7 +1234,7 @@ Le paramètre *hints* pointe vers une structure *addrinfo* qui spécifie les cri
 - *ai_protocol* : Ce champ spécifie le protocole de l'adresse de socket qui sera retournée. Si cette valeur est 0, **getaddrinfo()** retounre une adresse de socket avec n'importe quel protocole.
 - *ai_flags* : Ce champ spécifie des options additionel pour l'adresse de socket retournée par **getaddrinfo()** (voir `man getaddrinfo`).
 
-### 1.14.3. getaddrinfo() - Exemplce
+### 1.14.3. getaddrinfo() - Exemple
 
 ```cpp
 #include <sys/types.h>
@@ -1335,9 +1335,21 @@ Ce serveur ne fait pas grand chose, il attend des connexions, puis, lorsque c'es
 
 ### 1.15.1. freeaddrinfo() - Prototype
 
+```cpp
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+
+void freeaddrinfo(struct addrinfo *res);
+```
+
 ### 1.15.2. freeaddrinfo() - Explications
 
+La fonction **freeaddrinfo()** permet de libérer la mémoire de la liste chainée *res* résultante d'un appel à **getaddrinfo()**.
+
 ### 1.15.3. freeaddrinfo() - Exemple
+
+Voir [1.14.3. getaddrinfo() - Exemple](#1143-getaddrinfo---exemple)
 
 ## 1.16. gai_strerror
 
