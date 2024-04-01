@@ -60,10 +60,19 @@
 			- [1.13.3.3. FD\_CLR()](#11333-fd_clr)
 			- [1.13.3.4. FD\_ISSET()](#11334-fd_isset)
 		- [1.13.4. select() - Exemple](#1134-select---exemple)
-	- [1.14. gai\_strerror](#114-gai_strerror)
-	- [1.15. socketpair](#115-socketpair)
-	- [1.16. getaddrinfo](#116-getaddrinfo)
-	- [1.17. freeaddrinfo](#117-freeaddrinfo)
+	- [1.14. getaddrinfo()](#114-getaddrinfo)
+		- [1.14.1. getaddrinfo() - Prototype](#1141-getaddrinfo---prototype)
+		- [1.14.2. getaddrinfo() - Explications](#1142-getaddrinfo---explications)
+		- [1.14.3. getaddrinfo() - Exemplce](#1143-getaddrinfo---exemplce)
+	- [1.15. freeaddrinfo](#115-freeaddrinfo)
+		- [1.15.1. freeaddrinfo() - Prototype](#1151-freeaddrinfo---prototype)
+		- [1.15.2. freeaddrinfo() - Explications](#1152-freeaddrinfo---explications)
+		- [1.15.3. freeaddrinfo() - Exemple](#1153-freeaddrinfo---exemple)
+	- [1.16. gai\_strerror](#116-gai_strerror)
+		- [1.16.1. gai\_strerror() - Prototype](#1161-gai_strerror---prototype)
+		- [1.16.2. gai\_strerror() - Explications](#1162-gai_strerror---explications)
+		- [1.16.3. gai\_strerror() - Exemple](#1163-gai_strerror---exemple)
+	- [1.17. socketpair](#117-socketpair)
 	- [1.18. setsockopt](#118-setsockopt)
 	- [1.19. getsockname](#119-getsockname)
 	- [1.20. getprotobyname](#120-getprotobyname)
@@ -1187,13 +1196,158 @@ int main () {
 
 Ce serveur attend indéfiniment des connexion sur deux port différent et utilise **select()** pour savoir quand une connexion à été éffectuer. Le serveur ne fait rien du client, il ferme la connexion directement. C'est juste un code d'exemple pour illustrer l'utilisation de **select()** dans le cas de l'écoute sur plusieurs socket.
 
-## 1.14. gai_strerror
+## 1.14. getaddrinfo()
 
-## 1.15. socketpair
+### 1.14.1. getaddrinfo() - Prototype
 
-## 1.16. getaddrinfo
+```cpp
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
 
-## 1.17. freeaddrinfo
+int getaddrinfo(const char *node, const char *service, const struct addrinfo *hints, struct addrinfo **res);
+```
+
+### 1.14.2. getaddrinfo() - Explications
+
+En lui passant un *node* et un *service*, qui identifie un hôte et un service Internet, la fonction **getaddrinfo()** retourne une ou plusieurs structure *addrinfo*, chaqu'une d'elle contiennent une adresse Internet qui peu être **bind()** ou **connect**. La fonction **getaddrinfo()** combine les fonctionalité de **gethostbyname()** et **getservbyname()** en une seule intérface qui élimine la dépendance IPv4-versus-IPv6.
+
+La structure *addrinfo* utilisé par **getaddrinfo()** contient les champs suivants :
+
+```cpp
+struct addrinfo {
+	int				ai_flags;
+	int				ai_family;
+	int				ai_socktype;
+	int				ai_protocol;
+	socklen_t		ai_addrlen;
+	struct sockaddr	*ai_addr;
+	char			*ai_canonname;
+	struct addrinfo	*ai_next;
+}
+```
+
+Le paramètre *hints* pointe vers une structure *addrinfo* qui spécifie les critères de séléction des structure *addrinfo* qui seront retournée dans la liste pointée par *res*. Si *hints* n'est pas NULL, il pointe vers une structure *addrinfo* pour la quelle *ai_family*, *ai_socktype* et *ai_protocol* spécifie les critères qui limite le set de adresse de socket retourner par **getaddrinfo()**, comme suite :
+
+- *ai_family* : Ce champ spécifie la famille d'adresse qui sera utilise par l'adresse retournée. Les valeur valide pour ce contienne : **AF_INET** et **AF_INET6**. La valeur **AF_UNSPEC** indique que **getaddrinfo()** doit retourner une adresse de socket pour toutes les famille d'adresse qui peuvent être utilisé avec *node* et *service*.
+- *ai_socktype* : Ce champ spécifie le type de socket voulu, comme par exemple **SOCK_STREAM** et **SOCK_DGRAM**. Mettre 0 dans se champ revient à demander à **getaddrinfo** de retourner une adresse de socket de n'importe quel type.
+- *ai_protocol* : Ce champ spécifie le protocole de l'adresse de socket qui sera retournée. Si cette valeur est 0, **getaddrinfo()** retounre une adresse de socket avec n'importe quel protocole.
+- *ai_flags* : Ce champ spécifie des options additionel pour l'adresse de socket retournée par **getaddrinfo()** (voir `man getaddrinfo`).
+
+### 1.14.3. getaddrinfo() - Exemplce
+
+```cpp
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+#include <sys/un.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+
+#include <iostream>
+#include <cerrno>
+#include <cstring>
+
+#define LISTEN_BACKLOG 42
+
+int main () {
+	struct addrinfo hints;
+	struct addrinfo *res;
+	struct addrinfo *rp;
+	int fd_socket;
+	int s;
+
+	std::memset(&hints, 0, sizeof(hints));
+	hints.ai_family = AF_INET;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_flags = AI_PASSIVE;
+
+	s = getaddrinfo("127.0.0.1", "8080", &hints, &res);
+	if (s != 0)
+	{
+		std::cerr << "[!] -> " << gai_strerror(s) << std::endl;
+		return 1;
+	}
+
+	for (rp = res; rp != NULL; rp = rp->ai_next)
+	{
+		fd_socket = socket(rp->ai_family, rp->ai_socktype, res->ai_protocol);
+		if (fd_socket == -1)
+			continue;
+		if (bind(fd_socket, rp->ai_addr, rp->ai_addrlen) != -1 && listen(fd_socket, LISTEN_BACKLOG) != -1)
+			break;
+		close(fd_socket);
+	}
+
+	freeaddrinfo(res);
+
+	if (rp == NULL)
+	{
+		std::cerr << "[!] -> " << std::strerror(errno) << std::endl;
+		return 2;
+	}
+	std::cout << "Server is running on localhost on port 8080" << std::endl;
+
+	fd_set read_fds;
+	int fd_max = fd_socket;
+	for (;;)
+	{
+		FD_ZERO(&read_fds);
+		FD_SET(fd_socket, &read_fds);
+
+		if (select(fd_max + 1, &read_fds, NULL, NULL, NULL) == -1)
+		{
+			std::cerr  << "[!] -> " << std::strerror(errno) << std::endl;
+			close(fd_socket);
+			return 3;
+		}
+		struct sockaddr_in peer_addr;
+		socklen_t peer_len;
+		int fd_peer;
+		for (int i = 0; i <= fd_max; i++)
+		{
+			if (FD_ISSET(i, &read_fds))
+			{
+				if (i == fd_socket)
+				{
+					std::cout << "New connection on port 8080" << std::endl;
+					peer_len = sizeof(peer_addr);
+					fd_peer = accept(fd_socket, (struct sockaddr *) &peer_addr, &peer_len);
+				}
+				if (fd_peer == -1)
+				{
+					std::cerr << "[!] -> " << std::strerror(errno) << std::endl;
+					close(fd_socket);
+					return 4;
+				}
+				close(fd_peer);
+			}
+		}
+	}
+	close(fd_socket);
+	return 0;
+}
+```
+
+Ce serveur ne fait pas grand chose, il attend des connexions, puis, lorsque c'est le cas, affiche un message puis ferme la connexion. Il permet, par contre d'illustrer l'utilisation de **gettaddrinfo()**, **freeaddrinfo()** et **gai_strerror()**.
+
+## 1.15. freeaddrinfo
+
+### 1.15.1. freeaddrinfo() - Prototype
+
+### 1.15.2. freeaddrinfo() - Explications
+
+### 1.15.3. freeaddrinfo() - Exemple
+
+## 1.16. gai_strerror
+
+### 1.16.1. gai_strerror() - Prototype
+
+### 1.16.2. gai_strerror() - Explications
+
+### 1.16.3. gai_strerror() - Exemple
+
+## 1.17. socketpair
 
 ## 1.18. setsockopt
 
