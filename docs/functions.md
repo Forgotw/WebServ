@@ -72,9 +72,12 @@
 		- [1.16.1. gai\_strerror() - Prototype](#1161-gai_strerror---prototype)
 		- [1.16.2. gai\_strerror() - Explications](#1162-gai_strerror---explications)
 		- [1.16.3. gai\_strerror() - Exemple](#1163-gai_strerror---exemple)
-	- [1.17. socketpair](#117-socketpair)
-	- [1.18. setsockopt](#118-setsockopt)
-	- [1.19. getsockname](#119-getsockname)
+	- [1.17. getsockname()](#117-getsockname)
+		- [1.17.1. getsockname() - Prototype](#1171-getsockname---prototype)
+		- [1.17.2. getsockname() - Explications](#1172-getsockname---explications)
+		- [1.17.3. getsockname() - Exemple](#1173-getsockname---exemple)
+	- [1.18. socketpair](#118-socketpair)
+	- [1.19. setsockopt](#119-setsockopt)
 	- [1.20. getprotobyname](#120-getprotobyname)
 
 ## 1.2. socket()
@@ -1371,10 +1374,101 @@ La fonction **gai_strerror()** (Get Adress Info String Error), retourne sous for
 
 Voir [1.14.3. getaddrinfo() - Exemple](#1143-getaddrinfo---exemple)
 
-## 1.17. socketpair
+## 1.17. getsockname()
 
-## 1.18. setsockopt
+### 1.17.1. getsockname() - Prototype
 
-## 1.19. getsockname
+```cpp
+#include <sys/socket.h>
+
+int getsockname(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
+```
+
+### 1.17.2. getsockname() - Explications
+
+La fonction **getsockname()** retourne l'adresse internet actuelle du socket auquel *sockfd* est connecté, dans le bufffer pointé par *addr*. Le paramètre *addrlen* doit être initialisé pour indiquer la taille en byte de *addr*. Quand le fonction retourne, *addrlen* et set à la nouvelle taille de *addr*.
+
+### 1.17.3. getsockname() - Exemple
+
+```cpp
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+#include <sys/un.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+
+#include <iostream>
+#include <cerrno>
+#include <cstring>
+
+#define LISTEN_BACKLOG 42
+
+int main () {
+	struct addrinfo hints;
+	struct addrinfo *res;
+	struct addrinfo *rp;
+	int fd_socket;
+	int s;
+
+	std::memset(&hints, 0, sizeof(hints));
+	hints.ai_family = AF_INET;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_flags = AI_PASSIVE;
+
+	s = getaddrinfo("127.0.0.1", "8080", &hints, &res);
+	if (s != 0)
+	{
+		std::cerr << "[!] -> " << gai_strerror(s) << std::endl;
+		return 1;
+	}
+
+	for (rp = res; rp != NULL; rp = rp->ai_next)
+	{
+		fd_socket = socket(rp->ai_family, rp->ai_socktype, res->ai_protocol);
+		if (fd_socket == -1)
+			continue;
+		if (bind(fd_socket, rp->ai_addr, rp->ai_addrlen) != -1 && listen(fd_socket, LISTEN_BACKLOG) != -1)
+			break;
+		close(fd_socket);
+	}
+
+	freeaddrinfo(res);
+
+	if (rp == NULL)
+	{
+		std::cerr << "[!] -> " << std::strerror(errno) << std::endl;
+		return 2;
+	}
+	std::cout << "Server is running on localhost on port 8080" << std::endl;
+
+	struct sockaddr_in socket_infos;
+	socklen_t socket_infos_len = sizeof(socket_infos);
+	if (getsockname(fd_socket, (struct sockaddr *) &socket_infos, &socket_infos_len) == -1)
+	{
+		std::cerr << "[!] -> " << std::strerror(errno) << std::endl;
+		return 3;
+	}
+	std::cout << "Socket IP : "
+						<< (unsigned int)(socket_infos.sin_addr.s_addr & 0xFF) << "."
+						<< (unsigned int)((socket_infos.sin_addr.s_addr & 0xFF00) >> 8) << "."
+						<< (unsigned int)((socket_infos.sin_addr.s_addr & 0xFF0000) >> 16) << "."
+						<< (unsigned int)((socket_infos.sin_addr.s_addr & 0xFF000000) >> 24) << std::endl;
+	std::cout << "Socket port : " << ntohs(socket_infos.sin_port) << std::endl;
+
+	close(fd_socket);
+	return 0;
+}
+```
+
+```bash
+Server is running on localhost on port 8080
+Socket IP : 127.0.0.1
+Socket port : 8080
+```
+
+## 1.18. socketpair
+
+## 1.19. setsockopt
 
 ## 1.20. getprotobyname
