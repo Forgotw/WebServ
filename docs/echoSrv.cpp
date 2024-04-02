@@ -4,6 +4,7 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <fcntl.h>
 
 #include <iostream>
 #include <cerrno>
@@ -27,7 +28,8 @@ int main () {
 	int fd_master = makeSocket("127.0.0.1", "8080");
 	if (fd_master == -1)
 		return 1;
-
+	int flags = fcntl(fd_master, F_GETFL, 0);
+	fcntl(fd_master, F_SETFL, flags | O_NONBLOCK);
 	if (!launchServer(fd_master)) {
 		close(fd_master);
 		return 2;
@@ -96,7 +98,7 @@ static void process(int masterSock) {
 			}
 		}
 
-		activity = select(FD_SETSIZE, &readfds, NULL, NULL, NULL);
+		activity = select(FD_SETSIZE, &readfds, NULL, NULL, 0);
 		if (activity < 0) {
 			std::cerr << "[!] select() : " << std::strerror(errno);
 			return;
@@ -128,7 +130,8 @@ static bool handleNewConnection(int masterSock, fd_set *readfds, int *peerSocket
 			std::cerr << "[!] accept() : " << std::strerror(errno) << std::endl;
 			return false;
 		}
-
+		int flags = fcntl(newSocket, F_GETFL, 0);
+		fcntl(newSocket, F_SETFL, flags | O_NONBLOCK);
 		std::cout << GREEN << "Connect:\t";
 		std::cout << "Socket fd : " << newSocket;
 		std::cout << " | Peer ip : "
@@ -155,7 +158,9 @@ static bool handlePeerRequest(fd_set *readfds, int *peerSockets) {
 		if (FD_ISSET(peerSockets[i], readfds)) {
 			bytes_read = read(peerSockets[i], buffer, 1024);
 			if (bytes_read < 0) {
-				std::cerr << "[!] recv : " << std::strerror(errno) << std::endl;
+				if (errno == EWOULDBLOCK || errno == EAGAIN)
+					continue;
+				std::cerr << "[!] read : " << std::strerror(errno) << std::endl;
 				return false;
 			}
 			else if (bytes_read == 0) {
@@ -180,7 +185,15 @@ static bool handlePeerRequest(fd_set *readfds, int *peerSockets) {
 				if (std::strncmp(buffer, "exit --force\n", bytes_read) == 0) {
 					return false;
 				}
-				send(peerSockets[i], buffer, std::strlen(buffer), 0);
+				int bytes_written = write(peerSockets[i], buffer, std::strlen(buffer));
+				if (bytes_written < 0)
+				{
+					if (errno == EWOULDBLOCK || errno == EAGAIN) {
+						continue;
+					} else {
+						std::cerr << "[!] write : " << std::strerror(errno) << std::endl;
+					}
+				}
 			}
 		}
 	}
