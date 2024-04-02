@@ -1,58 +1,87 @@
+LISTEN(2)                                Linux Programmer's Manual                                LISTEN(2)
 
-LISTEN(2)                   BSD System Calls Manual                  LISTEN(2)
+NAME
+       listen - listen for connections on a socket
 
-NNAAMMEE
-     lliisstteenn -- listen for connections on a socket
+SYNOPSIS
+       #include <sys/types.h>          /* See NOTES */
+       #include <sys/socket.h>
 
-SSYYNNOOPPSSIISS
-     ##iinncclluuddee <<ssyyss//ssoocckkeett..hh>>
+       int listen(int sockfd, int backlog);
 
-     _i_n_t
-     lliisstteenn(_i_n_t _s_o_c_k_e_t, _i_n_t _b_a_c_k_l_o_g);
+DESCRIPTION
+       listen()  marks the socket referred to by sockfd as a passive socket, that is, as a socket that will
+       be used to accept incoming connection requests using accept(2).
 
-DDEESSCCRRIIPPTTIIOONN
-     Creation of socket-based connections requires several operations.  First,
-     a socket is created with socket(2).  Next, a willingness to accept incom-
-     ing connections and a queue limit for incoming connections are specified
-     with lliisstteenn().  Finally, the connections are accepted with accept(2).
-     The lliisstteenn() call applies only to sockets of type SOCK_STREAM.
+       The sockfd argument is a file descriptor that refers to a socket of type  SOCK_STREAM  or  SOCK_SEQ‐
+       PACKET.
 
-     The _b_a_c_k_l_o_g parameter defines the maximum length for the queue of pending
-     connections.  If a connection request arrives with the queue full, the
-     client may receive an error with an indication of ECONNREFUSED.  Alterna-
-     tively, if the underlying protocol supports retransmission, the request
-     may be ignored so that retries may succeed.
+       The backlog argument defines the maximum length to which the queue of pending connections for sockfd
+       may grow.  If a connection request arrives when the queue is full, the client may receive  an  error
+       with  an  indication of ECONNREFUSED or, if the underlying protocol supports retransmission, the re‐
+       quest may be ignored so that a later reattempt at connection succeeds.
 
-RREETTUURRNN VVAALLUUEESS
-     The lliisstteenn() function returns the value 0 if successful; otherwise the
-     value -1 is returned and the global variable _e_r_r_n_o is set to indicate the
-     error.
+RETURN VALUE
+       On success, zero is returned.  On error, -1 is returned, and errno is set appropriately.
 
-EERRRROORRSS
-     lliisstteenn() will fail if:
+ERRORS
+       EADDRINUSE
+              Another socket is already listening on the same port.
 
-     [EACCES]           The current process has insufficient privileges.
+       EADDRINUSE
+              (Internet domain sockets) The socket referred to by sockfd had not previously been  bound  to
+              an  address  and, upon attempting to bind it to an ephemeral port, it was determined that all
+              port numbers in the ephemeral port range  are  currently  in  use.   See  the  discussion  of
+              /proc/sys/net/ipv4/ip_local_port_range in ip(7).
 
-     [EBADF]            The argument _s_o_c_k_e_t is not a valid file descriptor.
+       EBADF  The argument sockfd is not a valid file descriptor.
 
-     [EDESTADDRREQ]     The socket is not bound to a local address and the
-                        protocol does not support listening on an unbound
-                        socket.
+       ENOTSOCK
+              The file descriptor sockfd does not refer to a socket.
 
-     [EINVAL]           _s_o_c_k_e_t is already connected.
+       EOPNOTSUPP
+              The socket is not of a type that supports the listen() operation.
 
-     [ENOTSOCK]         The argument _s_o_c_k_e_t does not reference a socket.
+CONFORMING TO
+       POSIX.1-2001, POSIX.1-2008, 4.4BSD (listen() first appeared in 4.2BSD).
 
-     [EOPNOTSUPP]       The socket is not of a type that supports the opera-
-                        tion lliisstteenn().
+NOTES
+       To accept connections, the following steps are performed:
 
-SSEEEE AALLSSOO
-     accept(2), connect(2), connectx(2), socket(2)
+           1.  A socket is created with socket(2).
 
-BBUUGGSS
-     The _b_a_c_k_l_o_g is currently limited (silently) to 128.
+           2.  The  socket  is  bound  to  a local address using bind(2), so that other sockets may be con‐
+               nect(2)ed to it.
 
-HHIISSTTOORRYY
-     The lliisstteenn() function call appeared in 4.2BSD.
+           3.  A willingness to accept incoming connections and a queue limit for incoming connections  are
+               specified with listen().
 
-4.2 Berkeley Distribution       March 18, 2015       4.2 Berkeley Distribution
+           4.  Connections are accepted with accept(2).
+
+       POSIX.1  does  not  require  the inclusion of <sys/types.h>, and this header file is not required on
+       Linux.  However, some historical (BSD) implementations required this header file, and  portable  ap‐
+       plications are probably wise to include it.
+
+       The  behavior  of  the backlog argument on TCP sockets changed with Linux 2.2.  Now it specifies the
+       queue length for completely established sockets waiting to be accepted, instead of the number of in‐
+       complete connection requests.  The maximum length of the queue for incomplete sockets can be set us‐
+       ing /proc/sys/net/ipv4/tcp_max_syn_backlog.  When syncookies are enabled there is no logical maximum
+       length and this setting is ignored.  See tcp(7) for more information.
+
+       If  the  backlog  argument  is  greater  than  the value in /proc/sys/net/core/somaxconn, then it is
+       silently truncated to that value.  Since Linux 5.4, the default in this file  is  4096;  in  earlier
+       kernels, the default value is 128.  In kernels before 2.4.25, this limit was a hard coded value, SO‐
+       MAXCONN, with the value 128.
+
+EXAMPLES
+       See bind(2).
+
+SEE ALSO
+       accept(2), bind(2), connect(2), socket(2), socket(7)
+
+COLOPHON
+       This page is part of release 5.10 of the Linux man-pages project.  A description of the project, in‐
+       formation   about   reporting  bugs,  and  the  latest  version  of  this  page,  can  be  found  at
+       https://www.kernel.org/doc/man-pages/.
+
+Linux                                            2020-06-09                                       LISTEN(2)

@@ -1,133 +1,131 @@
+CONNECT(2)                               Linux Programmer's Manual                               CONNECT(2)
 
-CONNECT(2)                  BSD System Calls Manual                 CONNECT(2)
+NAME
+       connect - initiate a connection on a socket
 
-NNAAMMEE
-     ccoonnnneecctt -- initiate a connection on a socket
+SYNOPSIS
+       #include <sys/types.h>          /* See NOTES */
+       #include <sys/socket.h>
 
-SSYYNNOOPPSSIISS
-     ##iinncclluuddee <<ssyyss//ttyyppeess..hh>>
-     ##iinncclluuddee <<ssyyss//ssoocckkeett..hh>>
+       int connect(int sockfd, const struct sockaddr *addr,
+                   socklen_t addrlen);
 
-     _i_n_t
-     ccoonnnneecctt(_i_n_t _s_o_c_k_e_t, _c_o_n_s_t _s_t_r_u_c_t _s_o_c_k_a_d_d_r _*_a_d_d_r_e_s_s,
-         _s_o_c_k_l_e_n___t _a_d_d_r_e_s_s___l_e_n);
+DESCRIPTION
+       The  connect()  system call connects the socket referred to by the file descriptor sockfd to the ad‐
+       dress specified by addr.  The addrlen argument specifies the size of addr.  The format  of  the  ad‐
+       dress in addr is determined by the address space of the socket sockfd; see socket(2) for further de‐
+       tails.
 
-DDEESSCCRRIIPPTTIIOONN
-     The parameter _s_o_c_k_e_t is a socket.  If it is of type SOCK_DGRAM, this call
-     specifies the peer with which the socket is to be associated; this
-     address is that to which datagrams are to be sent, and the only address
-     from which datagrams are to be received.  If the socket is of type
-     SOCK_STREAM, this call attempts to make a connection to another socket.
-     The other socket is specified by _a_d_d_r_e_s_s, which is an address in the com-
-     munications space of the socket.
+       If the socket sockfd is of type SOCK_DGRAM, then addr is the address to which datagrams are sent  by
+       default,  and  the  only  address  from  which  datagrams  are  received.   If the socket is of type
+       SOCK_STREAM or SOCK_SEQPACKET, this call attempts to make a connection to the socket that  is  bound
+       to the address specified by addr.
 
-     Each communications space interprets the _a_d_d_r_e_s_s parameter in its own
-     way.  Generally, stream sockets may successfully ccoonnnneecctt() only once;
-     datagram sockets may use ccoonnnneecctt() multiple times to change their associ-
-     ation.  Datagram sockets may dissolve the association by calling
-     disconnectx(2), or by connecting to an invalid address, such as a null
-     address or an address with the address family set to AF_UNSPEC (the error
-     EAFNOSUPPORT will be harmlessly returned).
+       Some protocol sockets (e.g., UNIX domain stream sockets) may successfully connect() only once.
 
-RREETTUURRNN VVAALLUUEESS
-     Upon successful completion, a value of 0 is returned.  Otherwise, a value
-     of -1 is returned and the global integer variable _e_r_r_n_o is set to indi-
-     cate the error.
+       Some  protocol  sockets  (e.g., datagram sockets in the UNIX and Internet domains) may use connect()
+       multiple times to change their association.
 
-EERRRROORRSS
-     The ccoonnnneecctt() system call will fail if:
+       Some protocol sockets (e.g., TCP sockets as well as datagram sockets in the UNIX  and  Internet  do‐
+       mains)  may  dissolve the association by connecting to an address with the sa_family member of sock‐
+       addr set to AF_UNSPEC; thereafter, the socket can be connected to another  address.   (AF_UNSPEC  is
+       supported on Linux since kernel 2.2.)
 
-     [EACCES]           The destination address is a broadcast address and the
-                        socket option SO_BROADCAST is not set.
+RETURN VALUE
+       If the connection or binding succeeds, zero is returned.  On error, -1 is returned, and errno is set
+       appropriately.
 
-     [EADDRINUSE]       The address is already in use.
+ERRORS
+       The following are general socket errors only.  There may be other domain-specific error codes.
 
-     [EADDRNOTAVAIL]    The specified address is not available on this
-                        machine.
+       EACCES For UNIX domain sockets, which are identified by pathname: Write permission is denied on  the
+              socket  file,  or  search permission is denied for one of the directories in the path prefix.
+              (See also path_resolution(7).)
 
-     [EAFNOSUPPORT]     Addresses in the specified address family cannot be
-                        used with this socket.
+       EACCES, EPERM
+              The user tried to connect to a broadcast address without having the socket broadcast flag en‐
+              abled or the connection request failed because of a local firewall rule.
 
-     [EALREADY]         The socket is non-blocking and a previous connection
-                        attempt has not yet been completed.
+              EACCES  can  also be returned if an SELinux policy denied a connection (for example, if there
+              is a policy saying that an HTTP proxy can only connect to ports associated with HTTP servers,
+              and the proxy tries to connect to a different port).  dd
 
-     [EBADF]            _s_o_c_k_e_t is not a valid descriptor.
+       EADDRINUSE
+              Local address is already in use.
 
-     [ECONNREFUSED]     The attempt to connect was ignored (because the target
-                        is not listening for connections) or explicitly
-                        rejected.
+       EADDRNOTAVAIL
+              (Internet  domain  sockets) The socket referred to by sockfd had not previously been bound to
+              an address and, upon attempting to bind it to an ephemeral port, it was determined  that  all
+              port  numbers  in  the  ephemeral  port  range  are  currently in use.  See the discussion of
+              /proc/sys/net/ipv4/ip_local_port_range in ip(7).
 
-     [EFAULT]           The _a_d_d_r_e_s_s parameter specifies an area outside the
-                        process address space.
+       EAFNOSUPPORT
+              The passed address didn't have the correct address family in its sa_family field.
 
-     [EHOSTUNREACH]     The target host cannot be reached (e.g., down, discon-
-                        nected).
+       EAGAIN For nonblocking UNIX domain sockets, the socket is nonblocking, and the connection cannot  be
+              completed  immediately.   For  other  socket  families, there are insufficient entries in the
+              routing cache.
 
-     [EINPROGRESS]      The socket is non-blocking and the connection cannot
-                        be completed immediately.  It is possible to select(2)
-                        for completion by selecting the socket for writing.
+       EALREADY
+              The socket is nonblocking and a previous connection attempt has not yet been completed.
 
-     [EINTR]            Its execution was interrupted by a signal.
+       EBADF  sockfd is not a valid open file descriptor.
 
-     [EINVAL]           An invalid argument was detected (e.g., _a_d_d_r_e_s_s___l_e_n is
-                        not valid for the address family, the specified
-                        address family is invalid).
+       ECONNREFUSED
+              A connect() on a stream socket found no one listening on the remote address.
 
-     [EISCONN]          The socket is already connected.
+       EFAULT The socket structure address is outside the user's address space.
 
-     [ENETDOWN]         The local network interface is not functioning.
+       EINPROGRESS
+              The socket is nonblocking and the connection cannot be completed immediately.   (UNIX  domain
+              sockets  failed  with EAGAIN instead.)  It is possible to select(2) or poll(2) for completion
+              by selecting the socket for writing.  After select(2)  indicates  writability,  use  getsock‐
+              opt(2)  to  read  the SO_ERROR option at level SOL_SOCKET to determine whether connect() com‐
+              pleted successfully (SO_ERROR is zero) or unsuccessfully (SO_ERROR is one of the usual  error
+              codes listed here, explaining the reason for the failure).
 
-     [ENETUNREACH]      The network isn't reachable from this host.
+       EINTR  The system call was interrupted by a signal that was caught; see signal(7).
 
-     [ENOBUFS]          The system call was unable to allocate a needed memory
-                        buffer.
+       EISCONN
+              The socket is already connected.
 
-     [ENOTSOCK]         _s_o_c_k_e_t is not a file descriptor for a socket.
+       ENETUNREACH
+              Network is unreachable.
 
-     [EOPNOTSUPP]       Because _s_o_c_k_e_t is listening, no connection is allowed.
+       ENOTSOCK
+              The file descriptor sockfd does not refer to a socket.
 
-     [EPROTOTYPE]       _a_d_d_r_e_s_s has a different type than the socket that is
-                        bound to the specified peer address.
+       EPROTOTYPE
+              The  socket  type does not support the requested communications protocol.  This error can oc‐
+              cur, for example, on an attempt to connect a UNIX domain datagram socket to a stream socket.
 
-     [ETIMEDOUT]        Connection establishment timed out without establish-
-                        ing a connection.
+       ETIMEDOUT
+              Timeout while attempting connection.  The server may be too busy to accept  new  connections.
+              Note  that  for  IP  sockets  the timeout may be very long when syncookies are enabled on the
+              server.
 
-     [ECONNRESET]       Remote host reset the connection request.
+CONFORMING TO
+       POSIX.1-2001, POSIX.1-2008, SVr4, 4.4BSD, (connect() first appeared in 4.2BSD).
 
-     The following errors are specific to connecting names in the UNIX domain.
-     These errors may not apply in future versions of the UNIX IPC domain.
+NOTES
+       POSIX.1 does not require the inclusion of <sys/types.h>, and this header file  is  not  required  on
+       Linux.   However,  some historical (BSD) implementations required this header file, and portable ap‐
+       plications are probably wise to include it.
 
-     [EACCES]           Search permission is denied for a component of the
-                        path prefix.
+       For background on the socklen_t type, see accept(2).
 
-     [EACCES]           Write access to the named socket is denied.
+       If connect() fails, consider the state of the socket as unspecified.  Portable  applications  should
+       close the socket and create a new one for reconnecting.
 
-     [EIO]              An I/O error occurred while reading from or writing to
-                        the file system.
+EXAMPLES
+       An example of the use of connect() is shown in getaddrinfo(3).
 
-     [ELOOP]            Too many symbolic links were encountered in translat-
-                        ing the pathname.  This is taken to be indicative of a
-                        looping symbolic link.
+SEE ALSO
+       accept(2), bind(2), getsockname(2), listen(2), socket(2), path_resolution(7), selinux(8)
 
-     [ENAMETOOLONG]     A component of a pathname exceeded {NAME_MAX} charac-
-                        ters, or an entire path name exceeded {PATH_MAX} char-
-                        acters.
+COLOPHON
+       This page is part of release 5.10 of the Linux man-pages project.  A description of the project, in‐
+       formation  about  reporting  bugs,  and  the  latest  version  of  this  page,  can  be   found   at
+       https://www.kernel.org/doc/man-pages/.
 
-     [ENOENT]           The named socket does not exist.
-
-     [ENOTDIR]          A component of the path prefix is not a directory.
-
-LLEEGGAACCYY SSYYNNOOPPSSIISS
-     ##iinncclluuddee <<ssyyss//ttyyppeess..hh>>
-     ##iinncclluuddee <<ssyyss//ssoocckkeett..hh>>
-
-     The include file <_s_y_s_/_t_y_p_e_s_._h> is necessary.
-
-SSEEEE AALLSSOO
-     accept(2), connectx(2), disconnectx(2), getsockname(2), select(2),
-     socket(2), compat(5)
-
-HHIISSTTOORRYY
-     The ccoonnnneecctt() function call appeared in 4.2BSD.
-
-4.2 Berkeley Distribution       March 18, 2015       4.2 Berkeley Distribution
+Linux                                            2020-04-11                                      CONNECT(2)
