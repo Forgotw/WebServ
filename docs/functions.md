@@ -80,8 +80,11 @@
 		- [1.18.1. getprotobyname() - Prototype](#1181-getprotobyname---prototype)
 		- [1.18.2. getprotobyname() - Explications](#1182-getprotobyname---explications)
 		- [1.18.3. getprotobyname() - Exemple](#1183-getprotobyname---exemple)
-	- [1.19. socketpair](#119-socketpair)
-	- [1.20. setsockopt](#120-setsockopt)
+	- [1.19. setsockopt()](#119-setsockopt)
+		- [1.19.1. setsockopt() - Prototype](#1191-setsockopt---prototype)
+		- [1.19.2. setsockopt() - Explications](#1192-setsockopt---explications)
+		- [1.19.3. setsockopt() - Exemple](#1193-setsockopt---exemple)
+	- [1.20. socketpair](#120-socketpair)
 
 ## 1.2. socket()
 
@@ -1538,7 +1541,106 @@ Protocol aliases :
 Protocol number : 6
 ```
 
-## 1.19. socketpair
+## 1.19. setsockopt()
 
-## 1.20. setsockopt
+### 1.19.1. setsockopt() - Prototype
 
+```cpp
+#include <sys/types.h>
+#include <sys/socket>
+
+int setsockopt(int sockfd, int level, int optname, const void *optval, socklen_t optlen);
+```
+
+### 1.19.2. setsockopt() - Explications
+
+La fonction **setsockopt()** permet de manipuler les options du socket *sockfd*. Les options peuvent exister à plusieurs niveau du protocole. Elle sont toujours présent au niveau le plus haut du socket.
+
+Quand nous manipulons les options d'un socket,le niveau au quel l'option appartient doit être spécifié. Pour manipuler les options au niveau du socket, *level* doit être set à **SOL_SOCKET**.
+
+Le paramètre *optname* dépend du niveau au qu'elle nous voulons paramétrer le protocole. Pour trouver les options disponible, il faut chercher dans le man, pour socket `man 7 socket` et pour tcp `man 7 tcp`.
+
+*optval* contient la valeur à la quel nous voulons set l'option *optname*. Souvent, la valeur est un int. si la valeur est un booléen, 0 veux dire false et n'importe quelle autre valeur veut dire true.
+
+### 1.19.3. setsockopt() - Exemple
+
+```cpp
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+#include <sys/un.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+
+#include <iostream>
+#include <cerrno>
+#include <cstring>
+
+#define LISTEN_BACKLOG 42
+
+int main () {
+	struct addrinfo hints;
+	struct addrinfo *res;
+	struct addrinfo *rp;
+	int fd_socket;
+	int s;
+
+	std::memset(&hints, 0, sizeof(hints));
+	hints.ai_family = AF_INET;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_flags = AI_PASSIVE;
+
+	s = getaddrinfo("127.0.0.1", "8080", &hints, &res);
+	if (s != 0)
+	{
+		std::cerr << "[!] -> " << gai_strerror(s) << std::endl;
+		return 1;
+	}
+
+	for (rp = res; rp != NULL; rp = rp->ai_next)
+	{
+		fd_socket = socket(rp->ai_family, rp->ai_socktype, res->ai_protocol);
+		if (fd_socket == -1)
+			continue;
+
+		int enable = 1;
+		if(setsockopt(fd_socket, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) == -1)
+		{
+			std::cerr << "[!] -> " << std::strerror(errno) << std::endl;
+			return 2;
+		}
+
+		if (bind(fd_socket, rp->ai_addr, rp->ai_addrlen) != -1 && listen(fd_socket, LISTEN_BACKLOG) != -1)
+			break;
+		close(fd_socket);
+	}
+
+	freeaddrinfo(res);
+
+	if (rp == NULL)
+	{
+		std::cerr << "[!] -> " << std::strerror(errno) << std::endl;
+		return 3;
+	}
+	std::cout << "Server is running on localhost on port 8080" << std::endl;
+
+	struct sockaddr_in socket_infos;
+	socklen_t socket_infos_len = sizeof(socket_infos);
+	if (getsockname(fd_socket, (struct sockaddr *) &socket_infos, &socket_infos_len) == -1)
+	{
+		std::cerr << "[!] -> " << std::strerror(errno) << std::endl;
+		return 4;
+	}
+	std::cout << "Socket IP : "
+						<< (unsigned int)(socket_infos.sin_addr.s_addr & 0xFF) << "."
+						<< (unsigned int)((socket_infos.sin_addr.s_addr & 0xFF00) >> 8) << "."
+						<< (unsigned int)((socket_infos.sin_addr.s_addr & 0xFF0000) >> 16) << "."
+						<< (unsigned int)((socket_infos.sin_addr.s_addr & 0xFF000000) >> 24) << std::endl;
+	std::cout << "Socket port : " << ntohs(socket_infos.sin_port) << std::endl;
+
+	close(fd_socket);
+	return 0;
+}
+```
+
+## 1.20. socketpair
