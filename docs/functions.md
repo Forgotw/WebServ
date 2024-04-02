@@ -76,9 +76,12 @@
 		- [1.17.1. getsockname() - Prototype](#1171-getsockname---prototype)
 		- [1.17.2. getsockname() - Explications](#1172-getsockname---explications)
 		- [1.17.3. getsockname() - Exemple](#1173-getsockname---exemple)
-	- [1.18. socketpair](#118-socketpair)
-	- [1.19. setsockopt](#119-setsockopt)
-	- [1.20. getprotobyname](#120-getprotobyname)
+	- [1.18. getprotobyname()](#118-getprotobyname)
+		- [1.18.1. getprotobyname() - Prototype](#1181-getprotobyname---prototype)
+		- [1.18.2. getprotobyname() - Explications](#1182-getprotobyname---explications)
+		- [1.18.3. getprotobyname() - Exemple](#1183-getprotobyname---exemple)
+	- [1.19. socketpair](#119-socketpair)
+	- [1.20. setsockopt](#120-setsockopt)
 
 ## 1.2. socket()
 
@@ -1466,9 +1469,76 @@ Server is running on localhost on port 8080
 Socket IP : 127.0.0.1
 Socket port : 8080
 ```
+## 1.18. getprotobyname()
 
-## 1.18. socketpair
+### 1.18.1. getprotobyname() - Prototype
 
-## 1.19. setsockopt
+```cpp
+#include <netdb.h>
 
-## 1.20. getprotobyname
+struct protoent *getprotobyname(const char *name);
+```
+
+### 1.18.2. getprotobyname() - Explications
+
+La fonction **getprotobyname()** retourne une structure *protoent* qui contient l'entrée de la base de donnée (*/etc/protocols*) qui matche avec le paramètre *name*.
+
+La structure *protoent* est définit dans *<netdb.h>* comme suite :
+
+```cpp
+struct protoent {
+	char	*p_name;		/* official protocol name */
+	char	**p_aliases;	/* alias list */
+	int		p_proto;		/* protocol number */
+}
+```
+
+La fonction **getprotobyname()** retourne un pointer vers une structure *protoent* staticement allouée, ou un pointeur NULL si une erreur arrive ou si le fin du fichier est atteint.
+
+### 1.18.3. getprotobyname() - Exemple
+
+```cpp
+#include <netdb.h>
+
+#include <iostream>
+#include <cerrno>
+#include <cstring>
+
+#define LISTEN_BACKLOG 42
+
+int main () {
+	struct protoent *protocol_infos;
+
+	protocol_infos = getprotobyname("tcp");
+	if (protocol_infos == NULL)
+	{
+		if (errno == 0)
+		{
+			std::cerr << "Protocol not found" << std::endl;
+			return 1;
+		}
+		std::cerr << "[!] -> " << std::strerror(errno) << std::endl;
+		return 2;
+	}
+	std::cout << "Protocol name : " << protocol_infos->p_name << std::endl;
+	std::cout << "Protocol aliases :\n";
+	for (int i = 0; protocol_infos->p_aliases[i] != NULL; i++)
+	{
+		std::cout << "\t- " << protocol_infos->p_aliases[i] << std::endl;
+	}
+	std::cout << "Protocol number : " << protocol_infos->p_proto << std::endl;
+	return 0;
+}
+```
+
+```bash
+Protocol name : tcp
+Protocol aliases :
+        - TCP
+Protocol number : 6
+```
+
+## 1.19. socketpair
+
+## 1.20. setsockopt
+
