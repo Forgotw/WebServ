@@ -84,7 +84,10 @@
 		- [1.19.1. setsockopt() - Prototype](#1191-setsockopt---prototype)
 		- [1.19.2. setsockopt() - Explications](#1192-setsockopt---explications)
 		- [1.19.3. setsockopt() - Exemple](#1193-setsockopt---exemple)
-	- [1.20. socketpair](#120-socketpair)
+	- [1.20. socketpair()](#120-socketpair)
+		- [1.20.1. socketpair() - Prototype](#1201-socketpair---prototype)
+		- [1.20.2. socketpair() - Explications](#1202-socketpair---explications)
+		- [1.20.3. socketpair() - Exemple](#1203-socketpair---exemple)
 
 ## 1.2. socket()
 
@@ -1643,4 +1646,77 @@ int main () {
 }
 ```
 
-## 1.20. socketpair
+## 1.20. socketpair()
+
+### 1.20.1. socketpair() - Prototype
+
+```cpp
+#include <sys/types.h>
+#include <sys/socket.h>
+
+int socketpair(int domain, int type, int protocol, int sv[2]);
+```
+
+### 1.20.2. socketpair() - Explications
+
+La fonction **socketpair()** créer deux socket identique qui ont le domain *domain*, le type *type* et le protocole *protocol*. Ces deux socket sont connectés et peuvent donc être utiliser comme un pipe bi-directionnel entre deux processus.
+
+### 1.20.3. socketpair() - Exemple
+
+```cpp
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+
+#include <iostream>
+#include <cerrno>
+#include <cstring>
+
+int main () {
+	int fd_sockets[2];
+
+	if (socketpair(AF_UNIX, SOCK_STREAM, 0, fd_sockets) == -1)
+	{
+		std::cerr << "[!] -> " << std::strerror(errno) << std::endl;
+		return 1;
+	}
+
+	pid_t pid = fork();
+	if (pid == -1)
+	{
+		std::cerr << "[!] -> " << std::strerror(errno) << std::endl;
+		return 2;
+	}
+	if (pid == 0) // Child
+	{
+		close(fd_sockets[0]);
+		char buffer[256];
+		ssize_t bytes_read = read(fd_sockets[1], buffer, sizeof(buffer));
+		if (bytes_read == -1)
+		{
+			std::cerr << "[!] -> " << std::strerror(errno) << std::endl;
+			return 3;
+		}
+		std::cout << "Message reçu par l'enfant : " << buffer << std::endl;
+		close(fd_sockets[1]);
+	}
+	else // Parent
+	{
+		close(fd_sockets[1]);
+		const char *message = "Hello from the parent !";
+		ssize_t bytes_written = write(fd_sockets[0], message, std::strlen(message));
+		if (bytes_written == -1)
+		{
+			std::cerr << "[!] -> " << std::strerror(errno) << std::endl;
+			return 4;
+		}
+		close(fd_sockets[0]);
+	}
+	return 0;
+}
+```
+
+```bash
+Message reçu par l'enfant : Hello from the parent !
+```
