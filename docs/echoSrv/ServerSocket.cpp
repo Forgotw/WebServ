@@ -33,7 +33,7 @@ ServerSocket::ServerSocket(std::string const &ip, std::string const &port) {
 		if (this->_sockfd == -1) {
 			continue;
 		}
-		if (bind(this->_sockfd, rp->ai_addr, rp->ai_addrlen) != 1) {
+		if (bind(this->_sockfd, rp->ai_addr, rp->ai_addrlen) != -1) {
 			break;
 		}
 		close(this->_sockfd);

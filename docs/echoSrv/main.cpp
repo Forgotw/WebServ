@@ -1,17 +1,14 @@
-#include "ServerSocket.hpp"
+#include "WebSrv.hpp"
 
 #include <iostream>
 #include <ios>
-#include <vector>
 
 int main() {
-
-	std::vector<ServerSocket> serverSockets;
-
-	serverSockets.push_back(ServerSocket("127.0.0.1", "4242"));
-	serverSockets.push_back(ServerSocket("127.0.0.1", "2121"));
-
-	serverSockets[0].run();
-	serverSockets[1].run();
+	WebSrv websrv("127.0.0.1", "4242");
+	websrv.addServer("127.0.0.1", "2121");
+	websrv.addServer("127.0.0.1", "8080");
+	websrv.addServer("127.0.0.1", "8081");
+	websrv.startServers();
+	websrv.showServers();
 	return 0;
 }
