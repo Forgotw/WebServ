@@ -8,6 +8,10 @@ int main() {
 	websrv.addServer("127.0.0.1", "2121");
 	websrv.addServer("127.0.0.1", "8080");
 	websrv.addServer("127.0.0.1", "8081");
-	websrv.start();
+	try {
+		websrv.start();
+	} catch (std::exception &err) {
+		std::cout << err.what() << std::endl;
+	}
 	return 0;
 }

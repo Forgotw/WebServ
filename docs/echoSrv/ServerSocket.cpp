@@ -27,7 +27,7 @@ ServerSocket::ServerSocket(std::string const &ip, std::string const &port) {
 
 	err = getaddrinfo(ip.c_str(), port.c_str(), &hints, &resp);
 	if (err != 0) {
-		std::runtime_error("getaddrinfo");
+		throw std::runtime_error("getaddrinfo");
 	}
 
 	for (rp = resp; rp != NULL; rp = rp->ai_next) {
@@ -42,7 +42,7 @@ ServerSocket::ServerSocket(std::string const &ip, std::string const &port) {
 	}
 	freeaddrinfo(resp);
 	if (rp == NULL) {
-		std::runtime_error("Unable to make socket");
+		throw std::runtime_error("Unable to make socket");
 	}
 	this->_ip = ip;
 	this->_port = std::stoi(port);
@@ -55,7 +55,7 @@ ServerSocket::~ServerSocket() {
 
 void ServerSocket::run() {
 	if (listen(this->_sockfd, LISTEN_BACKLOG) == -1) {
-		std::runtime_error("listen");
+		throw std::runtime_error("listen");
 	}
 	this->_isRunning = true;
 	std::cout << "Server running on socket: " << this->_sockfd

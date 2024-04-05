@@ -35,7 +35,7 @@ void WebSrv::start() {
 		addPeerToReadSet();
 		activity = select(FD_SETSIZE, &this->_readfds, NULL, NULL, 0);
 		if (activity < 0) {
-			std::runtime_error("select");
+			throw std::runtime_error("select");
 		}
 		if (activity > 0) {
 			handleNewConnection();
@@ -82,7 +82,7 @@ void WebSrv::handleNewConnection() {
 			struct sockaddr_in peerSocketAddr;
 			int peerSocketAddrLen = sizeof(peerSocketAddr);
 			if ((newSocket = accept((*it)->getSocket(), (struct sockaddr *) &peerSocketAddr, (socklen_t *) &peerSocketAddrLen)) < 0) {
-				std::runtime_error("accept");
+				throw std::runtime_error("accept");
 			}
 			std::cout << "New connection !" << std::endl;
 			for (int i = 0; i < FD_SETSIZE; i++) {
@@ -112,12 +112,15 @@ void WebSrv::handlePeerRequest() {
 				this->_peerSockets[i] = 0;
 			} else {
 				buffer[bytesRead] = '\0';
+				if (std::strncmp(buffer, "exit --force\n", bytesRead) == 0) {
+					throw std::runtime_error("quit");
+				}
 				int byteWritten = write(this->_peerSockets[i], buffer, std::strlen(buffer));
 				if (byteWritten < 0) {
 					if (errno == EWOULDBLOCK || errno == EAGAIN) {
 						continue;
 					}
-					std::runtime_error("write");
+					throw std::runtime_error("write");
 				}
 			}
 		}
