@@ -12,11 +12,21 @@ public:
 	~WebSrv();
 	ServerSocket *operator[](size_t index);
 
+	void start();
+
 	void addServer(std::string const &ip, std::string const &port);
-	void startServers();
 	void showServers() const;
 private:
 	std::vector<ServerSocket *> _serverSockets;
+	fd_set _readfds;
+	int _peerSockets[FD_SETSIZE];
+
+	void startServers();
+	void addServerToReadSet();
+	void addPeerToReadSet();
+
+	void handleNewConnection();
+	void handlePeerRequest();
 };
 
 #endif

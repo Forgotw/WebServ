@@ -4,6 +4,8 @@
 #include <sys/socket.h>
 #include <netdb.h>
 #include <unistd.h>
+#include <netdb.h>
+#include <arpa/inet.h>
 
 #include <string>
 #include <cstring>
