@@ -21,6 +21,11 @@ WebSrv::~WebSrv() {
 	for (;it != this->_serverSockets.end(); it++) {
 		delete *it;
 	}
+	for (int i = 0; i < FD_SETSIZE; i++) {
+		if (this->_peerSockets[i] > 0) {
+			close (this->_peerSockets[i]);
+		}
+	}
 }
 ServerSocket *WebSrv::operator[](size_t index) {
 	return this->_serverSockets[index];
