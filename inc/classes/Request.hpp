@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/06 18:52:20 by lsohler           #+#    #+#             */
-/*   Updated: 2024/04/07 13:30:07 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/04/08 14:46:52 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,6 +39,7 @@ class Request {
 		std::string							_rawURI;
 		URI									_URI;
 		std::map<std::string, std::string>	_headers;
+		std::string							_body; // Juste pour POST et peut etre DELETE
 
 
 	public:
