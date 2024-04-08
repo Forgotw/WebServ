@@ -6,95 +6,148 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/11 15:54:52 by lsohler           #+#    #+#             */
-/*   Updated: 2024/04/02 15:29:38 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/04/08 14:39:16 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "WebServ.hpp"
 #include "ServerConfig.hpp"
 #include "Socket.hpp"
-
-// std::vector<std::string>	configFileTokenizer(std::string filename);
-std::map<std::string, WebServ>	configFileParser(std::string filename);
-
 #include <iostream>
-#include <cstring>
-#include <netinet/in.h>
 #include <sstream>
-#include <bitset>
-#include <arpa/inet.h>
+#include <string>
+#include <vector>
 
-void convertIPtoBinary(const std::string& ipAddress, struct in_addr& result) {
-	uint32_t binaryIP = 0;
-	uint32_t octet = 0;
-	int shift = 24;
-	
-	for (size_t i = 0; i < ipAddress.size(); ++i) {
-		if (ipAddress[i] == '.') {
-			if (octet > 255) {
-				std::cerr << "Adresse IP invalide." << std::endl;
-				return;
-			}
-			binaryIP |= (octet << shift);
-			octet = 0;
-			shift -= 8;
-		}
-		else if (isdigit(ipAddress[i])) {
-			octet = octet * 10 + (ipAddress[i] - '0');
-		}
-		else {
-			std::cerr << "Adresse IP invalide." << std::endl;
-			return;
-		}
+
+struct HTTPRequest {
+	std::string method;
+	std::string uri;
+	std::string version;
+	std::map<std::string, std::string> headers;
+	std::string body;
+};
+
+std::vector<std::string> splitLines(const std::string& input) {
+	std::vector<std::string> lines;
+	std::istringstream stream(input);
+	std::string line;
+	while (getline(stream, line)) {
+		std::cout << "Raw line: " << line << std::endl;
+		lines.push_back(line);
 	}
-	if (octet > 255) {
-		std::cerr << "Adresse IP invalide." << std::endl;
-		return;
-	}
-	binaryIP |= (octet << shift);
-	result.s_addr = htonl(binaryIP);
+	return lines;
 }
 
-std::string uint32ToIP(uint32_t ip) {
-	std::ostringstream oss;
-	oss << ((ip >> 24) & 0xFF) << '.'
-		<< ((ip >> 16) & 0xFF) << '.'
-		<< ((ip >> 8) & 0xFF) << '.'
-		<< (ip & 0xFF);
-	return oss.str();
+HTTPRequest parseHTTPRequest(const std::string& request) {
+	HTTPRequest httpRequest;
+	std::vector<std::string> lines = splitLines(request);
+
+	std::istringstream firstLineStream(lines[0]);
+	firstLineStream >> httpRequest.method >> httpRequest.uri >> httpRequest.version;
+
+	for (size_t i = 1; i < lines.size(); ++i) {
+		size_t colonPos = lines[i].find(':');
+		if (colonPos != std::string::npos) {
+			std::string headerName = lines[i].substr(0, colonPos);
+			std::string headerValue = lines[i].substr(colonPos + 2);
+			httpRequest.headers.insert(make_pair(headerName, headerValue));
+		}
+	}
+
+	size_t emptyLineIndex = request.find("\r\n\r\n");
+	if (emptyLineIndex != std::string::npos) {
+		httpRequest.body = request.substr(emptyLineIndex + 4);
+	}
+
+	return httpRequest;
 }
 
-// int main(int ac, char **av) {
-// 	(void)ac;
-// 	(void)av;
-// 	const char *ipv4Str = "199872.168.1.1";
-// 	struct in_addr ipv4Addr;
+void printHTTPRequest(const HTTPRequest& httpRequest) {
+	std::cout<< "Method: " << httpRequest.method << std::endl;
+	std::cout<< "URI: " << httpRequest.uri << std::endl;
+	std::cout<< "HTTP Version: " << httpRequest.version << std::endl;
+	std::cout<< "Headers:" << std::endl;
+	for (std::map<std::string, std::string>::const_iterator it = httpRequest.headers.begin(); it != httpRequest.headers.end(); ++it) {
+		std::cout<< it->first << ": " << it->second << std::endl;
+	}
+	std::cout<< "Body: " << httpRequest.body << std::endl;
+}
 
-// 	convertIPtoBinary(ipv4Str, ipv4Addr);
-// 	if (ipv4Addr.s_addr == 0) {
-// 		std::cerr << "Conversion de l'adresse IP a échoué." << std::endl;
-// 		return 1;
-// 	}
-// 	std::cout << "Adresse IP en binaire de " << ipv4Str << " : " << ntohl(ipv4Addr.s_addr) << std::endl;
-// 	std::cout << "Ip Reel: " << uint32ToIP(ntohl(ipv4Addr.s_addr)) << std::endl;
-// 	return 0;
-// }
+struct URI {
+	std::string scheme;
+	std::string authority;
+	std::string path;
+	std::string query;
+	std::string fragment;
+};
+
+URI parseURI(const std::string &uriString) {
+	URI uri;
+
+	size_t schemeEnd = uriString.find("://");
+	if (schemeEnd != std::string::npos) {
+		uri.scheme = uriString.substr(0, schemeEnd);
+	}
+
+	size_t authorityStart = schemeEnd != std::string::npos ? schemeEnd + 3 : 0;
+	size_t pathStart = uriString.find("/", authorityStart);
+	if (pathStart != std::string::npos) {
+		uri.authority = uriString.substr(authorityStart, pathStart - authorityStart);
+	}
+	else {
+		uri.authority = uriString.substr(authorityStart);
+		return uri;
+	}
+
+	size_t queryStart = uriString.find("?", pathStart);
+	size_t fragmentStart = uriString.find("#", pathStart);
+	if (queryStart != std::string::npos) {
+		uri.path = uriString.substr(pathStart, queryStart - pathStart);
+	}
+	else if (fragmentStart != std::string::npos) {
+		uri.path = uriString.substr(pathStart, fragmentStart - pathStart);
+	}
+	else {
+		uri.path = uriString.substr(pathStart);
+	}
+
+	if (queryStart != std::string::npos) {
+		if (fragmentStart != std::string::npos) {
+			uri.query = uriString.substr(queryStart + 1, fragmentStart - queryStart - 1);
+		} else {
+			uri.query = uriString.substr(queryStart + 1);
+		}
+	}
+
+	if (fragmentStart != std::string::npos) {
+		uri.fragment = uriString.substr(fragmentStart + 1);
+	}
+
+	return uri;
+}
 
 int main() {
-    Socket serverSocket(8080);
+	std::string httpRequestString = "GET /index.html?q=term#section2 HTTP/1.1\r\n"
+								"Host: example.com\r\n"
+								"User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36\r\n"
+								"Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8\r\n"
+								"\r\n"
+								"This is the request body.\nlol\n"
+								"This is the request body.\nlol\n"
+								"This is the request body.\nlol\n"
+								"This is the request body.\nlol\n";
 
-    // Attendre et accepter les connexions entrantes
-    while (true) {
-        int clientSocket = serverSocket.acceptConnection();
-		std::cout << "clientSocket: " << clientSocket << std::endl;
-		std::string response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n";
-		response += "<html><body><h1>On va fumer ?!</h1></body></html>";
+	HTTPRequest parsedRequest = parseHTTPRequest(httpRequestString);
 
-		send(clientSocket, response.c_str(), response.size(), 0);
+	printHTTPRequest(parsedRequest);
 
-		// Fermer la connexion avec le client
-		close(clientSocket);
-	}
+	URI uri = parseURI(parsedRequest.uri);
 
+	std::cout<< "Scheme: " << uri.scheme << std::endl;
+	std::cout<< "Authority: " << uri.authority << std::endl;
+	std::cout<< "Path: " << uri.path << std::endl;
+	std::cout<< "Query: " << uri.query << std::endl;
+	std::cout<< "Fragment: " << uri.fragment << std::endl;
 	return 0;
 }
+
