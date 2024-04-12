@@ -5,6 +5,8 @@ SRCS 		:= $(addprefix src/, \
 	WebServ.cpp \
 	Peer.cpp \
 	Request.cpp \
+	ConfigParser.cpp \
+	ServerConfig.cpp \
 	main.cpp \
 )
 OBJS		:= $(SRCS:.cpp=.o)
