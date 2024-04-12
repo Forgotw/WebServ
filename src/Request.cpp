@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lray <lray@student.42lausanne.ch >         +#+  +:+       +#+        */
+/*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/06 18:51:50 by lsohler           #+#    #+#             */
-/*   Updated: 2024/04/12 18:15:17 by lray             ###   ########.fr       */
+/*   Updated: 2024/04/12 20:10:57 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,56 +96,56 @@ void fillErrorMap(ErrorMap& errorMap) {
 	errorMap[451] = "Unavailable For Legal Reasons";
 }
 
-// static const std::vector<std::string> header_fields = {
-// 		"Accept",
-// 		"Accept-Charset",
-// 		"Accept-Encoding",
-// 		"Accept-Language",
-// 		"Accept-Ranges",
-// 		"Age",
-// 		"Allow",
-// 		"Authorization",
-// 		"Cache-Control",
-// 		"Connection",
-// 		"Content-Encoding",
-// 		"Content-Language",
-// 		"Content-Length",
-// 		"Content-Location",
-// 		"Content-MD5",
-// 		"Content-Range",
-// 		"Content-Type",
-// 		"Date",
-// 		"ETag",
-// 		"Expect",
-// 		"Expires",
-// 		"From",
-// 		"Host",
-// 		"If-Match",
-// 		"If-Modified-Since",
-// 		"If-None-Match",
-// 		"If-Range",
-// 		"If-Unmodified-Since",
-// 		"Last-Modified",
-// 		"Location",
-// 		"Max-Forwards",
-// 		"Pragma",
-// 		"Proxy-Authenticate",
-// 		"Proxy-Authorization",
-// 		"Range",
-// 		"Referer",
-// 		"Retry-After",
-// 		"Server",
-// 		"TE",
-// 		"Trailer",
-// 		"Transfer-Encoding",
-// 		"Upgrade",
-// 		"User-Agent",
-// 		"Vary",
-// 		"Via",
-// 		"Warning",
-// 		"WWW-Authenticate",
-// 		"X-Forwarded-For"
-// };
+static const std::string header_fields[] = {
+		"Accept",
+		"Accept-Charset",
+		"Accept-Encoding",
+		"Accept-Language",
+		"Accept-Ranges",
+		"Age",
+		"Allow",
+		"Authorization",
+		"Cache-Control",
+		"Connection",
+		"Content-Encoding",
+		"Content-Language",
+		"Content-Length",
+		"Content-Location",
+		"Content-MD5",
+		"Content-Range",
+		"Content-Type",
+		"Date",
+		"ETag",
+		"Expect",
+		"Expires",
+		"From",
+		"Host",
+		"If-Match",
+		"If-Modified-Since",
+		"If-None-Match",
+		"If-Range",
+		"If-Unmodified-Since",
+		"Last-Modified",
+		"Location",
+		"Max-Forwards",
+		"Pragma",
+		"Proxy-Authenticate",
+		"Proxy-Authorization",
+		"Range",
+		"Referer",
+		"Retry-After",
+		"Server",
+		"TE",
+		"Trailer",
+		"Transfer-Encoding",
+		"Upgrade",
+		"User-Agent",
+		"Vary",
+		"Via",
+		"Warning",
+		"WWW-Authenticate",
+		"X-Forwarded-For"
+};
 
 static const std::string methods_syntax[] = {"GET", "POST", "DELETE"};
 
@@ -171,6 +171,7 @@ bool is_unreserved(char character) {
 	}
 	return false;
 }
+
 
 URI parseURI(const std::string &uriString) {
 	URI uri;
@@ -293,5 +294,4 @@ Request::Request(const std::string &httpRequestString) : _method(), _version(), 
 		_headers = httpRequest.headers;
 		_body = httpRequest.body;
 	}
-
 }
