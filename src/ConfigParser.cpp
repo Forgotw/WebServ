@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/10 11:14:07 by lsohler@stu       #+#    #+#             */
-/*   Updated: 2024/03/15 17:47:00 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/04/12 15:43:37 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@
 #include <string>
 #include <vector>
 #include <map>
-#include "WebServ.hpp"
+#include "Server.hpp"
 
 void	printTokens(std::vector<std::string> tokens) {
 	std::cout << "Tokens: ";
@@ -105,16 +105,20 @@ std::vector<std::vector<std::string> >	getTokensBlock(std::vector<std::string> t
 	return tokens_block;
 }
 
-std::map<std::string, WebServ>	configFileParser(std::string filename) {
+std::map<std::string, Server>	configFileParser(std::string filename) {
 	std::vector<std::vector<std::string> >	tokens_block = getTokensBlock(configFileTokenizer(filename));
-	std::map<std::string, WebServ>	servers;
+	std::map<std::string, Server>	servers;
 
 	for (std::vector<std::vector<std::string> >::iterator it = tokens_block.begin(); it != tokens_block.end(); it++) {
 		// std::cout << "Tokens server: ";
-		printTokens(*it);
-		std::cout << "------------New Server------------" << std::endl;
+		// printTokens(*it);
+		// std::cout << "------------New Server------------" << std::endl;
 		ServerConfig	new_config(*it);
-		new_config.printServerConfig();
+		// new_config.printServerConfig();
+		Server			new_server(new_config);
+		std::string		key = new_config.getServerName()[0];
+		std::cout << "KEy: " << key << std::endl;
+		servers.insert(std::make_pair(key, new_server));
 	}
 	return servers;
 }

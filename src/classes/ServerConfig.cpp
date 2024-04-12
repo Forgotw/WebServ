@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/12 16:26:12 by lsohler           #+#    #+#             */
-/*   Updated: 2024/03/26 14:14:45 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/04/12 15:21:14 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -272,7 +272,7 @@ bool keyExists(const std::string& key, std::map<std::string, caseHandler> map) {
 ServerConfig::ServerConfig(std::vector<std::string> tokens) : 
 	_port(),
 	_client_max_body_size(DEF_MAX_BODY_SIZE),
-	_server_name(""),
+	_server_name(),
 	_access_log(""),
 	_error_log(""),
 	_root(""),
@@ -295,7 +295,7 @@ ServerConfig::ServerConfig(std::vector<std::string> tokens) :
 ServerConfig::ServerConfig(void) : 
 	_port(),
 	_client_max_body_size(0),
-	_server_name(""),
+	_server_name(),
 	_access_log(""),
 	_error_log(""),
 	_root(""),
@@ -340,7 +340,11 @@ void	ServerConfig::printServerConfig(void) {
 	}
 	std::cout << std::endl;
 	std::cout << "Client Max Body Size: " << _client_max_body_size << std::endl;
-	std::cout << "Server Name: " << _server_name << std::endl;
+	std::cout << "Server Name: ";
+	for (std::vector<std::string>::const_iterator it = _server_name.begin(); it != _server_name.end(); ++it) {
+		std::cout << *it << " ";
+	}
+	std::cout << std::endl;
 	std::cout << "Access Log: " << _access_log << std::endl;
 	std::cout << "Error Log: " << _error_log << std::endl;
 	std::cout << "Root: " << _root << std::endl;

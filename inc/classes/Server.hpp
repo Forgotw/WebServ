@@ -1,38 +1,40 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   WebServ.cpp                                        :+:      :+:    :+:   */
+/*   Server.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/03/10 11:20:53 by lsohler@stu       #+#    #+#             */
-/*   Updated: 2024/03/12 18:49:49 by lsohler          ###   ########.fr       */
+/*   Created: 2024/03/10 11:20:44 by lsohler@stu       #+#    #+#             */
+/*   Updated: 2024/03/12 16:58:20 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#pragma once
 
-#include "WebServ.hpp"
+/*
+**==========================
+**		Include
+**==========================
+*/
+#include <iostream>
+#include <string>
+#include <vector>
+#include <map>
 #include "ServerConfig.hpp"
 
-WebServ::WebServ(void)  {
+class Server {
 
-}
+	private:
+		ServerConfig	_config;
 
-WebServ::WebServ(WebServ const &other) : _config(other._config) {
+	public:
+		Server(void);
+		Server(Server const &other);
+		Server(ServerConfig &new_config);
+		~Server(void);
+		Server	&operator=(Server const &other);
 
-}
-
-WebServ::WebServ(ServerConfig &new_config) {
-	_config = new_config;
-}
-
-WebServ::~WebServ(void) {
-
-}
-
-WebServ	&WebServ::operator=(WebServ const &other) {
-	if (this != &other) {
-		_config = other._config;
-	}
-	return *this;
-}
+		/*-----Get-----*/
+		ServerConfig& getConfig() { return _config; }
+};
