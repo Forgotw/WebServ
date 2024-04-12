@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/11 15:54:52 by lsohler           #+#    #+#             */
-/*   Updated: 2024/04/08 14:39:16 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/04/12 14:45:21 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -151,3 +151,85 @@ int main() {
 	return 0;
 }
 
+/*
+content lenght transfere encoding ensemble
+*/
+
+/*
+Voici une liste des en-têtes HTTP couramment utilisés dans les requêtes HTTP :
+
+1. `Accept`: Spécifie les types de contenu acceptables pour la réponse. OUI
+2. `Accept-Encoding`: Indique les encodages de contenu acceptables pour la réponse. OUI
+3. `Accept-Language`: Spécifie les langues préférées pour la réponse. OUI
+4. `Authorization`: Contient les informations d'identification requises pour accéder à la ressource. OUI
+5. `Cache-Control`: Spécifie les directives de contrôle du cache pour les caches le long de la chaîne de requête/réponse. OSEF
+6. `Connection`: Contrôle les options de connexion pour la requête. OUI
+7. `Content-Length`: Indique la taille du corps de la requête en octets. OUI
+8. `Content-Type`: Indique le type de contenu du corps de la requête. OUI
+9. `Cookie`: Contient des informations d'état de session. OUI
+10. `Host`: Spécifie l'hôte et le numéro de port du serveur. OUI
+11. `Origin`: Indique l'origine de la requête cross-origin. OUI
+12. `Referer` (ou `Referer`): Indique l'URL de la ressource provenant de laquelle la requête actuelle a été initiée. OUI
+13. `User-Agent`: Contient des informations sur l'agent utilisateur faisant la requête. PEUT ETRE BYE BYE
+
+Notez que la présence et la signification de certains en-têtes peuvent
+varier en fonction du contexte et des exigences spécifiques de l'application.
+Vous pouvez ajouter ou supprimer des en-têtes en fonction de vos besoins particuliers.
+*/
+
+/*
+La RFC HTTP 1.1 définit un ensemble d'en-têtes HTTP standardisés. Voici une liste exhaustive de ces en-têtes :
+
+1. `Accept`
+2. `Accept-Charset`
+3. `Accept-Encoding`
+4. `Accept-Language`
+5. `Accept-Ranges`
+6. `Age`
+7. `Allow`
+8. `Authorization`
+9. `Cache-Control`
+10. `Connection`
+11. `Content-Encoding`
+12. `Content-Language`
+13. `Content-Length`
+14. `Content-Location`
+15. `Content-MD5`
+16. `Content-Range`
+17. `Content-Type`
+18. `Date`
+19. `ETag`
+20. `Expect`
+21. `Expires`
+22. `From`
+23. `Host`
+24. `If-Match`
+25. `If-Modified-Since`
+26. `If-None-Match`
+27. `If-Range`
+28. `If-Unmodified-Since`
+29. `Last-Modified`
+30. `Location`
+31. `Max-Forwards`
+32. `Pragma`
+33. `Proxy-Authenticate`
+34. `Proxy-Authorization`
+35. `Range`
+36. `Referer`
+37. `Retry-After`
+38. `Server`
+39. `TE`
+40. `Trailer`
+41. `Transfer-Encoding`
+42. `Upgrade`
+43. `User-Agent`
+44. `Vary`
+45. `Via`
+46. `Warning`
+47. `WWW-Authenticate`
+48. `X-Forwarded-For`
+
+Ces en-têtes sont définis dans la RFC HTTP 1.1 et sont largement
+utilisés dans les applications web conformes à cette spécification.
+Ils fournissent un moyen standardisé de communiquer des informations entre les clients et les serveurs HTTP.
+*/

@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/06 18:52:20 by lsohler           #+#    #+#             */
-/*   Updated: 2024/04/08 14:46:52 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/04/12 14:32:45 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,8 @@
 #include <iostream>
 #include <string>
 #include <map>
+#include <vector>
+#include <sstream>
 
 struct	HTTPRequest;
 
@@ -44,7 +46,7 @@ class Request {
 
 	public:
 		Request() : _method(), _version(), _rawURI(), _URI(), _headers() {}
-		Request(HTTPRequest);
+		Request(const std::string& request);
 		~Request() {}
 
 };
