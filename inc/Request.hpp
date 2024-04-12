@@ -1,31 +1,53 @@
-#ifndef REQUEST_HPP
-#define REQUEST_HPP
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Request.hpp                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: lray <lray@student.42lausanne.ch >         +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/04/06 18:52:20 by lsohler           #+#    #+#             */
+/*   Updated: 2024/04/12 18:15:25 by lray             ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 
+#pragma once
+
+/*
+**==========================
+**		Include
+**==========================
+*/
+#include <iostream>
 #include <string>
 #include <map>
-#include <ostream>
+#include <vector>
+#include <sstream>
+
+struct	HTTPRequest;
+
+struct URI {
+	std::string scheme;		// Schéma (ex: "http", "https", etc.)
+	std::string authority;	// Autorité (ex: "example.com")
+	std::string path;		// Chemin (ex: "/index.html")
+	std::string query;		// Requête (ex: "q=term")
+	std::string fragment;	// Fragment (ex: "section2")
+};
 
 class Request {
-public:
-	Request(std::string const &buffer);
-	~Request();
 
-	std::string toString() const;
+	private:
+		std::string							_method; // GET | POST | DELETE
+		std::string							_version; // HTTP/1.1
+		std::string							_rawURI;
+		URI									_URI;
+		std::map<std::string, std::string>	_headers;
+		std::string							_body; // Juste pour POST et peut etre DELETE
 
-	std::string const &getMethod() const;
-	std::string const &getUri() const;
-	std::string const &getHttpVersion() const;
-	std::map<std::string, std::string> const &getHeaders() const;
 
-private:
-	std::string _method;
-	std::string _uri;
-	std::string _httpVersion;
-	std::map<std::string, std::string> _headers;
+	public:
+		Request() : _method(), _version(), _rawURI(), _URI(), _headers() {}
+		Request(const std::string& request);
+		~Request() {}
+		std::string toString() const;
 
-	void parseBuffer(std::string const &buffer);
-	void setHeader(std::string const &name, std::string const &value);
 };
-std::ostream &operator<<(std::ostream &os, Request const &ref);
-
-#endif

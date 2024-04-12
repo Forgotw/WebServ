@@ -15,9 +15,14 @@
 
 #define TIMEOUT 10
 
-WebServ::WebServ(std::string const &ip, std::string const &port) {
-	this->_serverSockets.push_back(new Server(ip, port));
+WebServ::WebServ(std::vector<ServerConfig>& serverConfigVector) {
+	std::cout << "Creating WebServ objet.\n";
+	for (std::vector<ServerConfig>::iterator it = serverConfigVector.begin(); it != serverConfigVector.end(); it++) {
+		(*it).printServerConfig();
+		this->_serverSockets.push_back(new Server(*it));
+	}
 }
+
 WebServ::~WebServ() {
 	std::vector<Server *>::iterator it = this->_serverSockets.begin();
 	for (; it != this->_serverSockets.end(); it++) {
@@ -25,9 +30,6 @@ WebServ::~WebServ() {
 	}
 }
 
-void WebServ::addServer(std::string const &ip, std::string const &port) {
-	this->_serverSockets.push_back(new Server(ip, port));
-}
 void WebServ::start() {
 	startServers();
 	int activity;
@@ -37,7 +39,7 @@ void WebServ::start() {
 	for (;;) {
 		checkTimeout();
 		setupSets();
-		activity = select(FD_SETSIZE + 1, &this->_readfds, &this->_writefds, &this->_exceptfds, &timeout);
+		activity = select(FD_SETSIZE, &this->_readfds, &this->_writefds, &this->_exceptfds, &timeout);
 		if (activity < 0) {
 			throw std::runtime_error(std::string("select: ") + std::strerror(errno));
 		}

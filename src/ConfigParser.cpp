@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ConfigParser.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
+/*   By: lray <lray@student.42lausanne.ch >         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/10 11:14:07 by lsohler@stu       #+#    #+#             */
-/*   Updated: 2024/04/12 15:43:37 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/04/12 18:46:53 by lray             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,7 +95,7 @@ std::vector<std::vector<std::string> >	getTokensBlock(std::vector<std::string> t
 			}
 			// std::cout << "End of Tok2" << std::endl;
 			if (!vector.empty()) {
-				// printTokens(vector);
+				printTokens(vector);
 				tokens_block.push_back(vector);
 			}
 			if (it == tokens.end())
@@ -105,20 +105,17 @@ std::vector<std::vector<std::string> >	getTokensBlock(std::vector<std::string> t
 	return tokens_block;
 }
 
-std::map<std::string, Server>	configFileParser(std::string filename) {
+std::vector<ServerConfig>	configFileParser(std::string filename) {
 	std::vector<std::vector<std::string> >	tokens_block = getTokensBlock(configFileTokenizer(filename));
-	std::map<std::string, Server>	servers;
+	std::vector<ServerConfig> serverConfigVector;
 
 	for (std::vector<std::vector<std::string> >::iterator it = tokens_block.begin(); it != tokens_block.end(); it++) {
-		// std::cout << "Tokens server: ";
-		// printTokens(*it);
-		// std::cout << "------------New Server------------" << std::endl;
-		ServerConfig	new_config(*it);
-		// new_config.printServerConfig();
-		Server			new_server(new_config);
-		std::string		key = new_config.getServerName()[0];
-		std::cout << "KEy: " << key << std::endl;
-		servers.insert(std::make_pair(key, new_server));
+		std::cout << "Creating ServerConfig\n";
+		ServerConfig	newConfig(*it);
+		// newConfig.printServerConfig();
+		std::cout << std::endl;
+		serverConfigVector.push_back(newConfig);
 	}
-	return servers;
+	std::cout << "Returning ServerConfig Vector\n";
+	return serverConfigVector;
 }

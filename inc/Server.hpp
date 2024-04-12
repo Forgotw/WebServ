@@ -3,24 +3,26 @@
 
 #include <string>
 #include <ostream>
+#include "ServerConfig.hpp"
 
 class Server {
 public:
-	Server(std::string const &ip, std::string const &port);
+	Server(ServerConfig &config);
 	~Server();
 
 	void run();
 
-	int getSocket() const;
-	std::string const &getIP() const;
-	int getPort() const;
-	bool isRunning() const;
+
+	/*-----Get-----*/
+	int getSocket() const { return _sockfd; }
+	bool isRunning() const { return _isRunning; }
+	const ServerConfig& getConfig() const { return _config; }
+
 
 private:
-	int			_sockfd;
-	std::string	_ip;
-	int			_port;
-	bool		_isRunning;
+	int				_sockfd;
+	bool			_isRunning;
+	ServerConfig	_config;
 };
 std::ostream &operator<<(std::ostream &os, Server const &ref);
 

@@ -12,10 +12,9 @@
 
 class WebServ {
 public:
-	WebServ(std::string const &ip, std::string const &port);
+	WebServ(std::vector<ServerConfig>& serverConfigVector);
 	~WebServ();
 
-	void addServer(std::string const &ip, std::string const &port);
 	void start();
 private:
 	std::vector<Server *> _serverSockets;

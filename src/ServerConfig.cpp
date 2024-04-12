@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerConfig.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
+/*   By: lray <lray@student.42lausanne.ch >         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/12 16:26:12 by lsohler           #+#    #+#             */
-/*   Updated: 2024/04/12 15:21:14 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/04/12 18:49:27 by lray             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,58 +65,38 @@ void tokenSetter(std::vector<std::string>& tokens, ServerConfig &config, SetterF
 
 void	handleListen(ServerConfig &config, std::vector<std::string> &tokens) {
 	tokenSetter(tokens, config, &ServerConfig::setPort);
-	// (void)config;
-	// std::cout << "handleListen: ";
-	// printTokenUntilSemicolon(tokens);
+}
+
+void	handleIP(ServerConfig &config, std::vector<std::string> &tokens) {
+	tokenSetter(tokens, config, &ServerConfig::setIP);
 }
 
 void	handleClientMaxBodySize(ServerConfig &config, std::vector<std::string> &tokens) {
 	tokenSetter(tokens, config, &ServerConfig::setClientMaxBodySize);
-	// (void)config;
-	// std::cout << "handleClientMaxBodySize";
-	// printTokenUntilSemicolon(tokens);
 }
 
 void	handleServerName(ServerConfig &config, std::vector<std::string> &tokens) {
 	tokenSetter(tokens, config, &ServerConfig::setServerName);
-	// (void)config;
-	// std::cout << "handleServerName";
-	// printTokenUntilSemicolon(tokens);
 }
 
 void	handleAccessLog(ServerConfig &config, std::vector<std::string> &tokens) {
 	tokenSetter(tokens, config, &ServerConfig::setAccessLog);
-	// (void)config;
-	// std::cout << "handleAccessLog";
-	// printTokenUntilSemicolon(tokens);
 }
 
 void	handleErrorLog(ServerConfig &config, std::vector<std::string> &tokens) {
 	tokenSetter(tokens, config, &ServerConfig::setErrorLog);
-	// (void)config;
-	// std::cout << "handleErrorLog";
-	// printTokenUntilSemicolon(tokens);
 }
 
 void	handleErrorPage(ServerConfig &config, std::vector<std::string> &tokens) {
 	tokenSetter(tokens, config, &ServerConfig::setErrorPage);
-	// (void)config;
-	// std::cout << "handleErrorPage";
-	// printTokenUntilSemicolon(tokens);
 }
 
 void	handleRoot(ServerConfig &config, std::vector<std::string> &tokens) {
 	tokenSetter(tokens, config, &ServerConfig::setRoot);
-	// (void)config;
-	// std::cout << "handleRoot";
-	// printTokenUntilSemicolon(tokens);
 }
 
 void	handleIndex(ServerConfig &config, std::vector<std::string> &tokens) {
-	tokenSetter(tokens, config, &ServerConfig::setServerName);	
-	// (void)config;
-	// std::cout << "handleIndex";
-	// printTokenUntilSemicolon(tokens);
+	tokenSetter(tokens, config, &ServerConfig::setServerName);
 }
 
 void	tokenNotRecognized(std::vector<std::string> &tokens) {
@@ -202,14 +182,14 @@ typedef void (*locationHandler)(Route&, std::vector<std::string>&);
 
 std::map<std::string, locationHandler> locationMap() {
 	std::map<std::string, locationHandler> myMap;
-	
+
 	myMap["methods"] = &locationHandleMethods;
 	myMap["root"] = &locationHandleRoot;
 	myMap["cgi"] = &locationHandleCgi;
 	myMap["upload"] = &locationHandleUpload;
 	myMap["access"] = &locationHandleAccess;
 
-	return myMap;	
+	return myMap;
 }
 
 void	handleLocation(ServerConfig &config, std::vector<std::string> &tokens) {
@@ -250,7 +230,8 @@ typedef void (*caseHandler)(ServerConfig&, std::vector<std::string>&);
 
 std::map<std::string, caseHandler> caseMap() {
 	std::map<std::string, caseHandler> myMap;
-	
+
+	myMap["ip"] = &handleIP;
 	myMap["listen"] = &handleListen;
 	myMap["server_name"] = &handleServerName;
 	myMap["access_log"] = &handleAccessLog;
@@ -261,15 +242,16 @@ std::map<std::string, caseHandler> caseMap() {
 	myMap["client_max_body_size"] = &handleClientMaxBodySize;
 	myMap["location"] = &handleLocation;
 
-	return myMap;	
-}	
+	return myMap;
+}
 
 /*-----------CONSTRUCTOR DESTRUCTOR------------*/
 bool keyExists(const std::string& key, std::map<std::string, caseHandler> map) {
 	return map.find(key) != map.end();
 }
 
-ServerConfig::ServerConfig(std::vector<std::string> tokens) : 
+ServerConfig::ServerConfig(std::vector<std::string> tokens) :
+	_ip(),
 	_port(),
 	_client_max_body_size(DEF_MAX_BODY_SIZE),
 	_server_name(),
@@ -292,7 +274,8 @@ ServerConfig::ServerConfig(std::vector<std::string> tokens) :
 	}
 }
 
-ServerConfig::ServerConfig(void) : 
+ServerConfig::ServerConfig(void) :
+	_ip(),
 	_port(),
 	_client_max_body_size(0),
 	_server_name(),
@@ -303,7 +286,8 @@ ServerConfig::ServerConfig(void) :
 	_routes() {
 }
 
-ServerConfig::ServerConfig(ServerConfig const &other) : 
+ServerConfig::ServerConfig(ServerConfig const &other) :
+	_ip(other._ip),
 	_port(other._port),
 	_client_max_body_size(other._client_max_body_size),
 	_server_name(other._server_name),
@@ -319,6 +303,7 @@ ServerConfig::~ServerConfig(void) {
 
 ServerConfig	&ServerConfig::operator=(ServerConfig const &other) {
 	if (this != &other) {
+		_ip = other._ip;
 		_port = other._port;
 		_client_max_body_size = other._client_max_body_size;
 		_server_name = other._server_name;
@@ -334,10 +319,8 @@ ServerConfig	&ServerConfig::operator=(ServerConfig const &other) {
 /*--------------TESTING FUNCTIONS--------------*/
 
 void	ServerConfig::printServerConfig(void) {
-	std::cout << "Port:";
-	for (size_t i = 0; i < _port.size(); ++i) {
-		std::cout << " " << _port[i];
-	}
+	std::cout << "IP:" << _ip << std::endl;
+	std::cout << "Port:" << _port << std::endl;
 	std::cout << std::endl;
 	std::cout << "Client Max Body Size: " << _client_max_body_size << std::endl;
 	std::cout << "Server Name: ";
