@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/12 16:25:31 by lsohler           #+#    #+#             */
-/*   Updated: 2024/04/13 18:18:52 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/04/13 20:04:02 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,8 +23,8 @@
 #include <map>
 
 #define DEF_MAX_BODY_SIZE 10 * 1024
-#define DEFAULT_ERROR_PAGE "./www/default_error/404.html"
-#define CRITICAL_ERROR_PAGE "./www/default_error/500.html"
+#define DEFAULT_ERROR_PAGE "www/default_error/404.html"
+#define CRITICAL_ERROR_PAGE "www/default_error/500.html"
 
 unsigned int	maxBodySizeConverter(const std::string &size);
 
@@ -48,7 +48,7 @@ class ServerConfig {
 		std::string						_error_log;
 		std::map<int, std::string>		_error_page;
 		std::string						_root;
-		std::vector<std::string>		_index;
+		std::string						_index;
 		std::map<std::string, Route>	_routes;
 
 	public:
@@ -67,7 +67,7 @@ class ServerConfig {
 		void	setErrorLog(const std::string &log) { _error_log = log; }
 		void	setErrorPage(const std::string &error) { _error_page.insert(std::make_pair(atoi(error.c_str()), "/" + error + ".html")); }
 		void	setRoot(const std::string &root) { _root = root; }
-		void	setIndex(const std::string &index) { _index.push_back(index); }
+		void	setIndex(const std::string &index) { _index = index; }
 		void	setRoutes(const Route &route) { _routes.insert(std::make_pair(route.location, route)); }
 
 		/*-----Get-----*/
@@ -79,7 +79,7 @@ class ServerConfig {
 		const std::string&					getErrorLog() const { return _error_log; }
 		const std::map<int, std::string>&	getErrorPage() const { return _error_page; }
 		const std::string&					getRoot() const { return _root; }
-		const std::vector<std::string>&		getIndex() const { return _index; }
+		const std::string&					getIndex() const { return _index; }
 		const std::map<std::string, Route>&	getRoutes() const { return _routes; }
 		/*-----Set Utils-----*/
 

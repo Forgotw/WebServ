@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/12 16:26:12 by lsohler           #+#    #+#             */
-/*   Updated: 2024/04/13 19:39:42 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/04/13 20:15:42 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,7 +96,7 @@ void	handleRoot(ServerConfig &config, std::vector<std::string> &tokens) {
 }
 
 void	handleIndex(ServerConfig &config, std::vector<std::string> &tokens) {
-	tokenSetter(tokens, config, &ServerConfig::setServerName);
+	tokenSetter(tokens, config, &ServerConfig::setIndex);
 }
 
 void	tokenNotRecognized(std::vector<std::string> &tokens) {
@@ -258,7 +258,7 @@ ServerConfig::ServerConfig(std::vector<std::string> tokens) :
 	_access_log(""),
 	_error_log(""),
 	_root(""),
-	_index(),
+	_index(""),
 	_routes() {
 	std::map<std::string, caseHandler> map = caseMap();
 	// for (std::vector<std::string>::iterator it = tokens.begin(); it != tokens.end(); ++it) {
@@ -283,7 +283,7 @@ ServerConfig::ServerConfig(void) :
 	_error_log(""),
 	_error_page(),
 	_root(""),
-	_index(),
+	_index(""),
 	_routes() {
 }
 
@@ -324,17 +324,12 @@ ServerConfig	&ServerConfig::operator=(ServerConfig const &other) {
 void	ServerConfig::printServerConfig(void) {
 	std::cout << "IP:" << _ip << std::endl;
 	std::cout << "Port:" << _port << std::endl;
-	std::cout << std::endl;
 	std::cout << "Client Max Body Size: " << _client_max_body_size << std::endl;
 	std::cout << "Server Name: " << _server_name << std::endl;
-	std::cout << std::endl;
 	std::cout << "Access Log: " << _access_log << std::endl;
 	std::cout << "Error Log: " << _error_log << std::endl;
 	std::cout << "Root: " << _root << std::endl;
-		std::cout << "Index:";
-	for (size_t i = 0; i < _index.size(); ++i) {
-		std::cout << " " << _index[i];
-	}
+	std::cout << "Index:" << _index << std::endl;
 	std::cout << std::endl;
 	std::cout << "Routes:" << std::endl;
 	for (std::map<std::string, Route>::const_iterator it = _routes.begin(); it != _routes.end(); ++it) {

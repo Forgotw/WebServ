@@ -75,6 +75,7 @@ unsigned int	Peer::treatRequest(std::string* filename) {
 	const std::map<std::string, Route>&	routes = config.getRoutes();
 	Route								routeFound;
 	unsigned int						requestCode = 200;
+	config.printServerConfig();
 	std::map<std::string, Route>::const_iterator it = routes.find(requestedFile);
 	if (it != routes.end()) {
 		routeFound = it->second;
@@ -95,8 +96,14 @@ unsigned int	Peer::treatRequest(std::string* filename) {
 		requestCode = 405;
 		return requestCode;
 	}
-	// *filename = config.getRoot() + routeFound.root + routeFound.location + requestedFile.substr(routeFound.location.size());
-	*filename = config.getRoot() + routeFound.root + requestedFile;
+	if (requestedFile == "/") {
+		*filename = config.getRoot() + config.getIndex();
+		std::cout << "Filename if /: " << *filename << std::endl;
+	} else {
+		*filename = config.getRoot() + routeFound.root + routeFound.location + requestedFile.substr(routeFound.location.size());
+		std::cout << "Filename else: " << *filename << std::endl;
+	}
+	// *filename = config.getRoot() + routeFound.root + requestedFile;
 	if (canOpenFile(*filename) == false) {
 		requestCode = 500;
 		*filename = CRITICAL_ERROR_PAGE;
@@ -155,7 +162,7 @@ std::string getContentType(const std::string& filename) {
 std::string Peer::generateResponseBody(const std::string& filename) {
 	std::string body;
 	std::string contentType = getContentType(filename);
-	std::cout << "Filename: " << filename << std::endl;
+	std::cout << "Filename generateResponseBody: " << filename << std::endl;
 	std::ifstream file(filename.c_str());
 	if (file.is_open()) {
 		std::stringstream buffer;
