@@ -12,6 +12,8 @@
 #include <cstring>
 #include <cerrno>
 #include <iostream>
+#include <fstream>
+
 
 #define TIMEOUT 10
 
@@ -119,7 +121,7 @@ void WebServ::handleNewConnection() {
 			int i = 0;
 			for (; i < FD_SETSIZE; i++) {
 				if (this->_peers[i].getStatus() == Peer::EMPTY) {
-					this->_peers[i].connect(newSocket, peerSocketAddr);
+					this->_peers[i].connect(newSocket, peerSocketAddr, *it);
 					this->_peers[i].setLastActivity();
 					break;
 				}
@@ -186,84 +188,16 @@ void WebServ::handleExcept() {
 		}
 	}
 }
-std::string body_example = 
-"<!DOCTYPE html>\n"
-"<html lang=\"en\">\n"
-"<head>\n"
-"    <meta charset=\"UTF-8\">\n"
-"    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n"
-"    <title>Test de réponse du serveur web</title>\n"
-"    <style>\n"
-"        body {\n"
-"            font-family: Arial, sans-serif;\n"
-"            margin: 0;\n"
-"            padding: 0;\n"
-"            background-color: #f0f0f0;\n"
-"            color: #333;\n"
-"        }\n"
-"        .container {\n"
-"            max-width: 800px;\n"
-"            margin: 50px auto;\n"
-"            padding: 20px;\n"
-"            background-color: #fff;\n"
-"            border-radius: 5px;\n"
-"            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);\n"
-"        }\n"
-"        h1 {\n"
-"            text-align: center;\n"
-"            margin-bottom: 20px;\n"
-"        }\n"
-"        p {\n"
-"            margin-bottom: 10px;\n"
-"        }\n"
-"        pre {\n"
-"            background-color: #f9f9f9;\n"
-"            border: 1px solid #ddd;\n"
-"            padding: 10px;\n"
-"            border-radius: 5px;\n"
-"            overflow-x: auto;\n"
-"        }\n"
-"    </style>\n"
-"</head>\n"
-"<body>\n"
-"    <div class=\"container\">\n"
-"        <h1>Test de réponse du serveur web</h1>\n"
-"        <p>Voici quelques exemples de réponses que vous pouvez tester :</p>\n"
-"        <h2>Réponse HTTP 200 OK</h2>\n"
-"        <pre>\n"
-"HTTP/1.1 200 OK\n"
-"Content-Type: text/html\n"
-"\n"
-"<!DOCTYPE html>\n"
-"<html>\n"
-"<head>\n"
-"    <title>Page d'accueil</title>\n"
-"</head>\n"
-"<body>\n"
-"    <h1>Bienvenue sur notre site web!</h1>\n"
-"    <p>Ceci est une page d'accueil.</p>\n"
-"</body>\n"
-"</html>\n"
-"        </pre>\n"
-"        <h2>Réponse HTTP 404 Not Found</h2>\n"
-"        <pre>\n"
-"HTTP/1.1 404 Not Found\n"
-"Content-Type: text/plain\n"
-"\n"
-"404 - Page non trouvée\n"
-"        </pre>\n"
-"        <!-- Ajoutez d'autres exemples de réponses ici -->\n"
-"    </div>\n"
-"</body>\n"
-"</html>";
 
 void WebServ::handleHttp() {
 	for (size_t i = 0; i < FD_SETSIZE; i++) {
 		if (this->_peers[i].getStatus() == Peer::WAITING_READ) {
-			std::string httpResponse = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n";
-			// std::string httpResponse = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\n";
-			// httpResponse += this->_peers[i].getRequest()->toString();
-			httpResponse += body_example;
+			std::string		filename;
+			unsigned int	requestCode = _peers[i].treatRequest(&filename);
+			std::string		httpResponse = "";
+
+			httpResponse += _peers[i].generateResponseHeader(requestCode);
+			httpResponse += _peers[i].generateResponseBody(filename);
 			this->_peers[i].setReponse(httpResponse);
 		}
 	}

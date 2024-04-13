@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerConfig.hpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lray <lray@student.42lausanne.ch >         +#+  +:+       +#+        */
+/*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/12 16:25:31 by lsohler           #+#    #+#             */
-/*   Updated: 2024/04/12 18:15:23 by lray             ###   ########.fr       */
+/*   Updated: 2024/04/13 18:18:52 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,8 @@
 #include <map>
 
 #define DEF_MAX_BODY_SIZE 10 * 1024
+#define DEFAULT_ERROR_PAGE "./www/default_error/404.html"
+#define CRITICAL_ERROR_PAGE "./www/default_error/500.html"
 
 unsigned int	maxBodySizeConverter(const std::string &size);
 
@@ -41,7 +43,7 @@ class ServerConfig {
 		std::string						_ip;
 		std::string						_port;
 		unsigned int					_client_max_body_size;
-		std::vector<std::string>		_server_name;
+		std::string						_server_name;
 		std::string						_access_log;
 		std::string						_error_log;
 		std::map<int, std::string>		_error_page;
@@ -60,7 +62,7 @@ class ServerConfig {
 		void	setIP(const std::string &ip) { _ip = ip; }
 		void	setPort(const std::string &port) { _port = port; }
 		void	setClientMaxBodySize(const std::string &size) { _client_max_body_size = maxBodySizeConverter(size); }
-		void	setServerName(const std::string &name) { _server_name.push_back(name); }
+		void	setServerName(const std::string &name) { _server_name = name; }
 		void	setAccessLog(const std::string &log) { _access_log = log; }
 		void	setErrorLog(const std::string &log) { _error_log = log; }
 		void	setErrorPage(const std::string &error) { _error_page.insert(std::make_pair(atoi(error.c_str()), "/" + error + ".html")); }
@@ -69,16 +71,16 @@ class ServerConfig {
 		void	setRoutes(const Route &route) { _routes.insert(std::make_pair(route.location, route)); }
 
 		/*-----Get-----*/
-		const std::string& getIP() const { return _ip; }
-		const std::string& getPort() const { return _port; }
-		unsigned int getClientMaxBodySize() const { return _client_max_body_size; }
-		const std::vector<std::string>& getServerName() const { return _server_name; }
-		const std::string& getAccessLog() const { return _access_log; }
-		const std::string& getErrorLog() const { return _error_log; }
-		const std::map<int, std::string>& getErrorPage() const { return _error_page; }
-		const std::string& getRoot() const { return _root; }
-		const std::vector<std::string>& getIndex() const { return _index; }
-		const std::map<std::string, Route>& getRoutes() const { return _routes; }
+		const std::string&					getIP() const { return _ip; }
+		const std::string&					getPort() const { return _port; }
+		unsigned int						getClientMaxBodySize() const { return _client_max_body_size; }
+		const std::string&					getServerName() const { return _server_name; }
+		const std::string&					getAccessLog() const { return _access_log; }
+		const std::string&					getErrorLog() const { return _error_log; }
+		const std::map<int, std::string>&	getErrorPage() const { return _error_page; }
+		const std::string&					getRoot() const { return _root; }
+		const std::vector<std::string>&		getIndex() const { return _index; }
+		const std::map<std::string, Route>&	getRoutes() const { return _routes; }
 		/*-----Set Utils-----*/
 
 		void	printServerConfig(void);

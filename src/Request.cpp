@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/06 18:51:50 by lsohler           #+#    #+#             */
-/*   Updated: 2024/04/12 20:10:57 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/04/13 18:23:19 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -227,7 +227,7 @@ std::vector<std::string> splitLines(const std::string& input) {
 	std::istringstream stream(input);
 	std::string line;
 	while (getline(stream, line)) {
-		std::cout << "Raw line: " << line << std::endl;
+		// std::cout << "Raw line: " << line << std::endl;
 		lines.push_back(line);
 	}
 	return lines;

@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   main.cpp                                           :+:      :+:    :+:   */
+/*   main2.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/11 15:54:52 by lsohler           #+#    #+#             */
-/*   Updated: 2024/04/12 15:22:26 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/04/13 18:23:13 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,7 @@ std::vector<std::string> splitLines(const std::string& input) {
 	std::istringstream stream(input);
 	std::string line;
 	while (getline(stream, line)) {
-		std::cout << "Raw line: " << line << std::endl;
+		// std::cout << "Raw line: " << line << std::endl;
 		lines.push_back(line);
 	}
 	return lines;

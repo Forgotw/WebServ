@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerConfig.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lray <lray@student.42lausanne.ch >         +#+  +:+       +#+        */
+/*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/12 16:26:12 by lsohler           #+#    #+#             */
-/*   Updated: 2024/04/12 18:49:27 by lray             ###   ########.fr       */
+/*   Updated: 2024/04/13 16:33:16 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -323,10 +323,7 @@ void	ServerConfig::printServerConfig(void) {
 	std::cout << "Port:" << _port << std::endl;
 	std::cout << std::endl;
 	std::cout << "Client Max Body Size: " << _client_max_body_size << std::endl;
-	std::cout << "Server Name: ";
-	for (std::vector<std::string>::const_iterator it = _server_name.begin(); it != _server_name.end(); ++it) {
-		std::cout << *it << " ";
-	}
+	std::cout << "Server Name: " << _server_name << std::endl;
 	std::cout << std::endl;
 	std::cout << "Access Log: " << _access_log << std::endl;
 	std::cout << "Error Log: " << _error_log << std::endl;
