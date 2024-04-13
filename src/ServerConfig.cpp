@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/12 16:26:12 by lsohler           #+#    #+#             */
-/*   Updated: 2024/04/13 16:33:16 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/04/13 19:39:42 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -281,6 +281,7 @@ ServerConfig::ServerConfig(void) :
 	_server_name(),
 	_access_log(""),
 	_error_log(""),
+	_error_page(),
 	_root(""),
 	_index(),
 	_routes() {
@@ -293,6 +294,7 @@ ServerConfig::ServerConfig(ServerConfig const &other) :
 	_server_name(other._server_name),
 	_access_log(other._access_log),
 	_error_log(other._error_log),
+	_error_page(other._error_page),
 	_root(other._root),
 	_index(other._index),
 	_routes(other._routes) {
@@ -309,6 +311,7 @@ ServerConfig	&ServerConfig::operator=(ServerConfig const &other) {
 		_server_name = other._server_name;
 		_access_log = other._access_log;
 		_error_log = other._error_log;
+		_error_page = other._error_page;
 		_root = other._root;
 		_index = other._index;
 		_routes = other._routes;

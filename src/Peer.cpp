@@ -53,7 +53,7 @@ std::string Peer::findErrorPage(unsigned int errorCode) const {
 	std::map<int, std::string>::const_iterator	it = error_page.find(errorCode);
 
 	if (it != error_page.end()) {
-		return " ." + _server->getConfig().getRoot() + it->second;
+		return _server->getConfig().getRoot() + it->second;
 	} else {
 		return DEFAULT_ERROR_PAGE;
 	}
@@ -155,6 +155,7 @@ std::string getContentType(const std::string& filename) {
 std::string Peer::generateResponseBody(const std::string& filename) {
 	std::string body;
 	std::string contentType = getContentType(filename);
+	std::cout << "Filename: " << filename << std::endl;
 	std::ifstream file(filename.c_str());
 	if (file.is_open()) {
 		std::stringstream buffer;
