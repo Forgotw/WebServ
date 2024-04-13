@@ -93,18 +93,18 @@ unsigned int	Peer::treatRequest(std::string* filename) {
 		}
 	}
 	if (!methodAllowed) {
-		*filename = this->findErrorPage(requestCode);
+		std::cout << "Test 405\n";
 		requestCode = 405;
+		*filename = this->findErrorPage(requestCode);
 		return requestCode;
 	}
-	if (requestedFile == "/") {
-		*filename = config.getRoot() + config.getIndex();
-		std::cout << "Filename if /: " << *filename << std::endl;
-	} else {
-		*filename = config.getRoot() + routeFound.root + routeFound.location + requestedFile.substr(routeFound.location.size());
-		std::cout << "Filename else: " << *filename << std::endl;
+	if (requestCode == 200) {
+		if (requestedFile == "/") {
+			*filename = config.getRoot() + config.getIndex();
+		} else {
+			*filename = config.getRoot() + routeFound.root + routeFound.location + requestedFile.substr(routeFound.location.size());
+		}
 	}
-	// *filename = config.getRoot() + routeFound.root + requestedFile;
 	if (canOpenFile(*filename) == false) {
 		requestCode = 500;
 		*filename = CRITICAL_ERROR_PAGE;
@@ -163,7 +163,6 @@ std::string getContentType(const std::string& filename) {
 std::string Peer::generateResponseBody(const std::string& filename) {
 	std::string body;
 	std::string contentType = getContentType(filename);
-	std::cout << "Filename generateResponseBody: " << filename << std::endl;
 	std::ifstream file(filename.c_str());
 	if (file.is_open()) {
 		std::stringstream buffer;
@@ -184,6 +183,7 @@ std::string Peer::generateResponseBody(const std::string& filename) {
 	std::string header = "";
 	header += "Content-Type: " + contentType + "\r\n";
 	header += "Content-Length: " + std::to_string(body.size()) + "\r\n";
+	header += "Link: </assets/favicon.jpg>; rel=\"icon\"\r\n";
 	header += "Server: " + _server->getConfig().getServerName() + "\r\n";
 	header += "\r\n";
 
