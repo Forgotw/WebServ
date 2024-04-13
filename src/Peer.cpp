@@ -75,7 +75,8 @@ unsigned int	Peer::treatRequest(std::string* filename) {
 	const std::map<std::string, Route>&	routes = config.getRoutes();
 	Route								routeFound;
 	unsigned int						requestCode = 200;
-	config.printServerConfig();
+	if (requestedFile == config.getIndex())
+		requestedFile = "/";
 	std::map<std::string, Route>::const_iterator it = routes.find(requestedFile);
 	if (it != routes.end()) {
 		routeFound = it->second;
