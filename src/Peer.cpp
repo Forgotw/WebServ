@@ -69,12 +69,26 @@ bool canOpenFile(const std::string& filename) {
 // fonction qui parse la request et qui renvoie un code de retour
 // si le code n'est pas 200 find error page
 // findErrorPage devrait aussi changer la valeur du pointeur filename pour une page d'erreur
+//
+//
+//
+//
+//	- Fonction qui separe la location demandé du fichier demandé
+// 			- Existe: Check method(si ! return 405) + Access(si ! return 403) else 200		/	No existe: return 404
+//	- Essayer d'ouvrir le fichier dans la location
+//			- file.is_open: continue 200	/	!file:  return 404	/	file.fail(): return 500 / is_dir: listing false(return 401) | true(ecrire page 200)
+//
+//	Switch pour la premiere ligne du header
+//	
 unsigned int	Peer::treatRequest(std::string* filename) {
 	std::string							requestedFile = _request->getURI().path;
 	ServerConfig						config = _server->getConfig();
 	const std::map<std::string, Route>&	routes = config.getRoutes();
-	Route								routeFound;
 	unsigned int						requestCode = 200;
+	Route								routeFound;
+	// if (findFileInLocations(filename, requestedFile, routes)) {
+
+	// }
 	if (requestedFile == config.getIndex())
 		requestedFile = "/";
 	std::map<std::string, Route>::const_iterator it = routes.find(requestedFile);
@@ -93,7 +107,6 @@ unsigned int	Peer::treatRequest(std::string* filename) {
 		}
 	}
 	if (!methodAllowed) {
-		std::cout << "Test 405\n";
 		requestCode = 405;
 		*filename = this->findErrorPage(requestCode);
 		return requestCode;

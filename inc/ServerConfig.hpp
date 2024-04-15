@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/12 16:25:31 by lsohler           #+#    #+#             */
-/*   Updated: 2024/04/13 20:04:02 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/04/15 20:26:33 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,9 @@ struct Route {
 	std::string					root;
 	std::string					cgi;
 	std::string					upload;
+	std::string					index;
 	bool						access;
+	bool						listing;
 };
 
 class ServerConfig {

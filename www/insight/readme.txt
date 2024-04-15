@@ -21,7 +21,7 @@ Fully Customizable
 Credits :
 -------
 => Design and developed: "WebThemez"  http://webthemez.com  
-=> Framework : http://getbootstrap.com
+=> Framework : 	
 => webthemez@gmail.com
 => Donate and remove back link in the footer
 

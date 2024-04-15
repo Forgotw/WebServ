@@ -25,6 +25,7 @@ public:
 	std::string 		findErrorPage(unsigned int errorCode) const;
 	std::string			generateResponseHeader(unsigned int requestReturn);
 	std::string			generateResponseBody(const std::string& filename);
+	unsigned int		findRequestLocation(void);
 
 	/*-----Set-----*/
 	void	setRequest(std::string const &buffer);

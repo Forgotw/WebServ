@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/12 16:26:12 by lsohler           #+#    #+#             */
-/*   Updated: 2024/04/13 20:15:42 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/04/15 20:27:31 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -161,6 +161,18 @@ void	locationHandleUpload(Route &route, std::vector<std::string> &tokens) {
 	}
 }
 
+void	locationHandleIndex(Route &route, std::vector<std::string> &tokens) {
+	tokens.erase(tokens.begin());
+	while (!tokens.empty()) {
+		if (*tokens.begin() == ";") {
+			tokens.erase(tokens.begin());
+			break;
+		}
+		route.index = *tokens.begin();
+		tokens.erase(tokens.begin());
+	}
+}
+
 void	locationHandleAccess(Route &route, std::vector<std::string> &tokens) {
 	tokens.erase(tokens.begin());
 	while (!tokens.empty()) {
@@ -168,11 +180,28 @@ void	locationHandleAccess(Route &route, std::vector<std::string> &tokens) {
 			tokens.erase(tokens.begin());
 			break;
 		}
-		if (*tokens.begin() == "true" || *tokens.begin() == "yes") {
+		if (*tokens.begin() == "true") {
 			route.access = true;
 		}
 		else {
 			route.access = false;
+		}
+		tokens.erase(tokens.begin());
+	}
+}
+
+void	locationHandleListing(Route &route, std::vector<std::string> &tokens) {
+	tokens.erase(tokens.begin());
+	while (!tokens.empty()) {
+		if (*tokens.begin() == ";") {
+			tokens.erase(tokens.begin());
+			break;
+		}
+		if (*tokens.begin() == "true") {
+			route.listing = true;
+		}
+		else {
+			route.listing = false;
 		}
 		tokens.erase(tokens.begin());
 	}
@@ -187,7 +216,9 @@ std::map<std::string, locationHandler> locationMap() {
 	myMap["root"] = &locationHandleRoot;
 	myMap["cgi"] = &locationHandleCgi;
 	myMap["upload"] = &locationHandleUpload;
+	myMap["index"] = &locationHandleIndex;
 	myMap["access"] = &locationHandleAccess;
+	myMap["listing"] = &locationHandleListing;
 
 	return myMap;
 }
@@ -343,6 +374,8 @@ void	ServerConfig::printServerConfig(void) {
 		std::cout << "	Root: " << route.root << std::endl;
 		std::cout << "	CGI: " << route.cgi << std::endl;
 		std::cout << "	Upload: " << route.upload << std::endl;
+		std::cout << "	Index: " << route.index << std::endl;
 		std::cout << "	Access: " << (route.access ? "true" : "false") << std::endl;
+		std::cout << "	Listing: " << (route.listing ? "true" : "false") << std::endl;
 	}
 }
