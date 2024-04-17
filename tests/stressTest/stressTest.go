@@ -7,7 +7,6 @@ import (
 	"math/rand"
 	"net/http"
 	"strings"
-	"sync"
 	"sync/atomic"
 	"time"
 
@@ -39,7 +38,6 @@ var client = &http.Client{
 		MaxIdleConnsPerHost: NUMROUTINE,
 	},
 }
-
 var (
 	totalRequest int64 = 0
 	totalError   int64 = 0
@@ -49,17 +47,14 @@ func main() {
 	payload := stringWithCharset()
 	endpoint := "http://" + config.IP + ":" + config.Port + "/" + payload
 	done := make(chan bool)
-	var wg sync.WaitGroup
-	wg.Add(NUMROUTINE)
 	bar := createProgressBar()
 	startTime := time.Now()
 	for i := 0; i < NUMROUTINE; i++ {
-		go sendRequest(endpoint, &wg, done)
+		go sendRequest(endpoint, done)
 	}
 	go updateProgressBar(done, startTime, bar)
 	time.Sleep(time.Duration(config.Duration) * time.Second)
 	close(done)
-	wg.Wait()
 	showResult()
 }
 
@@ -117,9 +112,7 @@ func updateProgressBar(done chan bool, startTime time.Time, bar *progressbar.Pro
 	}
 }
 
-func sendRequest(url string, wg *sync.WaitGroup, done chan bool) {
-	defer wg.Done()
-
+func sendRequest(url string, done chan bool) {
 	for {
 		select {
 		case <-done:
