@@ -12,6 +12,7 @@ typedef struct 		s_response {
 	unsigned int	requestcode;
 	std::string		pathToRespFile;
 	bool			list;
+	bool			isDir;
 }					t_response;
 
 std::string 		httpGetFormatter(unsigned int reqCode, std::string pathToFile);

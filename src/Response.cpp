@@ -6,12 +6,13 @@
 /*   By: efailla <efailla@42Lausanne.ch>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 16:44:57 by lsohler           #+#    #+#             */
-/*   Updated: 2024/04/18 21:50:46 by efailla          ###   ########.fr       */
+/*   Updated: 2024/04/18 22:27:54 by efailla          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../inc/Peer.hpp"
 #include <unistd.h>
+#include <dirent.h>
 
 // bool canOpen(const std::string& path) {
 //     // Vérifier si le chemin existe
@@ -248,9 +249,11 @@ void		findRequestLocation(t_response *response,Request const *request, Server co
 		response->requestcode = 405;
 		return;
 	}
-	bool isDirectory = (path == location);
+	response->isDir = (path == location);
+	if (response->isDir)
+		response->pathToRespFile = routeFound.root;
 	//std::cout << isDirectory << std::endl;
-	if (isDirectory && !routeFound.listing && routeFound.index.empty()) {
+	if (response->isDir && !routeFound.listing && routeFound.index.empty()) {
 		response->requestcode = 404;
 		return;
 	}
@@ -284,23 +287,26 @@ void		findFilePath(t_response *response,Request const *request, Server const *se
 	std::string		path = request->getURI().path;
 	ServerConfig	config = serv->getConfig();
 	std::string		location = truncateStringAtLastSlash(path);
-	std::string		file = getLastPathComponent(path);
 	Route			routeFound;
+	std::string		file;
 	const std::map<std::string, Route>&				routes = config.getRoutes();
 	std::map<std::string, Route>::const_iterator	it = routes.find(location);
 	
 	routeFound = it->second;
 
+	if (!response->isDir)
+		file = getLastPathComponent(path);
+	else if (response->isDir && routeFound.index.empty())
+	{
+		response->list = true;
+		return ;
+	}
+	else
+		file = routeFound.index;
 	if (!fileExistsInDirectory(routeFound.root, file))
 		response->requestcode = 404;
 	else
-	{
 		response->pathToRespFile = routeFound.root + "/" + file;
-		response->requestcode = 200;
-	}
-
-
-	
 }
 
 void handleErrors(t_response *response) {
@@ -312,6 +318,38 @@ void handleErrors(t_response *response) {
     }
 }
 
+std::string handleListing(const std::string& pathToDir) {
+    std::string httpResponse = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n";
+    httpResponse += "<!DOCTYPE html>\n";
+    httpResponse += "<html>\n";
+    httpResponse += "<head>\n";
+    httpResponse += "<title>File List</title>\n";
+    httpResponse += "</head>\n";
+    httpResponse += "<body>\n";
+    httpResponse += "<h1>File List</h1>\n";
+    httpResponse += "<ul>\n";
+
+    DIR *dir;
+    struct dirent *ent;
+    if ((dir = opendir(pathToDir.c_str())) != NULL) {
+        while ((ent = readdir(dir)) != NULL) {
+            if (ent->d_type == DT_REG) { // Check if it's a regular file
+                httpResponse += "<li>";
+                httpResponse += ent->d_name;
+                httpResponse += "</li>\n";
+            }
+        }
+        closedir(dir);
+    } else {
+        return "HTTP/1.1 404 Not Found\r\n\r\nDirectory not found!";
+    }
+
+    httpResponse += "</ul>\n";
+    httpResponse += "</body>\n";
+    httpResponse += "</html>\n";
+
+    return httpResponse;
+}
 
 std::string httpGetFormatter(unsigned int reqCode, std::string pathToFile)
 {
@@ -366,14 +404,23 @@ std::string treatRequest(Request const *request, Server const *serv)
 	std::memset(&response, 0, sizeof(t_response));
 	
 	findRequestLocation(&response, request, serv);
+
 	if (!response.requestcode)
 		findFilePath(&response, request, serv);
+	if (response.list)
+	{
+		std::cout << response.pathToRespFile << std::endl;
+		httpResponse = handleListing(response.pathToRespFile);
+		return httpResponse;
+	}
 	
 	// if (request->getMethod() == "GET")
 	// {
 	// 	handleErrors(&response);
 	// 	httpResponse = httpGetFormatter(response.requestcode, response.pathToRespFile);
 	// }
+	if (!response.requestcode)
+		response.requestcode = 200;
 	handleErrors(&response);
 	httpResponse = httpGetFormatter(response.requestcode, response.pathToRespFile);
 	return httpResponse;
