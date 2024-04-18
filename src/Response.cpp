@@ -6,7 +6,7 @@
 /*   By: efailla <efailla@42Lausanne.ch>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 16:44:57 by lsohler           #+#    #+#             */
-/*   Updated: 2024/04/18 22:27:54 by efailla          ###   ########.fr       */
+/*   Updated: 2024/04/18 22:39:08 by efailla          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -341,7 +341,7 @@ std::string handleListing(const std::string& pathToDir) {
         }
         closedir(dir);
     } else {
-        return "HTTP/1.1 404 Not Found\r\n\r\nDirectory not found!";
+        return "";
     }
 
     httpResponse += "</ul>\n";
@@ -411,7 +411,10 @@ std::string treatRequest(Request const *request, Server const *serv)
 	{
 		std::cout << response.pathToRespFile << std::endl;
 		httpResponse = handleListing(response.pathToRespFile);
-		return httpResponse;
+		if (!httpResponse.empty())
+			return httpResponse;
+		else
+			response.requestcode = 404;
 	}
 	
 	// if (request->getMethod() == "GET")
