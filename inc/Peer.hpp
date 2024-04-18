@@ -10,14 +10,16 @@
 
 typedef struct 		s_response {
 	unsigned int	requestcode;
-	std::string 	header;
-	std::string		body;
 	std::string		pathToRespFile;
 	bool			list;
 }					t_response;
 
 std::string 		httpGetFormatter(unsigned int reqCode, std::string pathToFile);
 void 				handleErrors(t_response *response);
+std::string 		treatRequest(Request const *Request, Server const *serv);
+void				findRequestLocation(t_response *response);
+
+
 class Peer {
 public:
 	enum PeerState {
@@ -35,8 +37,8 @@ public:
 	std::string 		findErrorPage(unsigned int errorCode) const;
 	std::string			generateResponseHeader(unsigned int requestReturn);
 	std::string			generateResponseBody(const std::string& filename);
-	void				findRequestLocation(t_response *response);
-	void				verifyFileAcess(bool isDirectory, Route& routeFound, t_response *response);
+	//void				findRequestLocation(t_response *response);
+	//void				verifyFileAcess(bool isDirectory, Route& routeFound, t_response *response);
 
 	/*-----Set-----*/
 	void	setRequest(std::string const &buffer);

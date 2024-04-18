@@ -6,7 +6,7 @@
 /*   By: efailla <efailla@42Lausanne.ch>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 16:44:57 by lsohler           #+#    #+#             */
-/*   Updated: 2024/04/18 18:52:53 by efailla          ###   ########.fr       */
+/*   Updated: 2024/04/18 21:50:46 by efailla          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -115,73 +115,192 @@ std::string apres_dernier_slash(const std::string& chemin)
     return chemin.substr(pos_dernier_slash + 1);
 }
 
-void		Peer::verifyFileAcess(bool isDirectory, Route& routeFound, t_response *response)
-{
-	if (isDirectory)
-	{
-		std::string indexPath = routeFound.root + routeFound.index;
-		if (access(indexPath.c_str(), R_OK) == 0)
-		{
-			response->requestcode = 200;
-			response->pathToRespFile = indexPath;
-			//renvoie index
-		}
-		else if (access(indexPath.c_str(), R_OK) == -1 && !routeFound.index.empty())
-		{
-			response->requestcode = 403;
+// void		Peer::verifyFileAcess(bool isDirectory, Route& routeFound, t_response *response)
+// {
+// 	if (isDirectory)
+// 	{
+// 		std::string indexPath = routeFound.root + routeFound.index;
+// 		if (access(indexPath.c_str(), R_OK) == 0)
+// 		{
+// 			response->requestcode = 200;
+// 			response->pathToRespFile = indexPath;
+// 			//renvoie index
+// 		}
+// 		else if (access(indexPath.c_str(), R_OK) == -1 && !routeFound.index.empty())
+// 		{
+// 			response->requestcode = 403;
 			
-		}
-		else
-		{
-			response->requestcode = 200;
-			response->list = true;
-			//renvoie listing
-		}
-	}
-		//verifie l'acces au fichier index du dossier/ sinon listing
-	else
-	{
-		std::string filePath = routeFound.root + apres_dernier_slash(_request->getURI().path);
-		if (access(filePath.c_str(), R_OK) == 0)
-		{
-			response->requestcode = 200;
-			response->pathToRespFile = filePath;
-		}	//renvoie fichier
-		else
-		{
-			response->requestcode = 403;
-		}
-	}
-}
+// 		}
+// 		else
+// 		{
+// 			response->requestcode = 200;
+// 			response->list = true;
+// 			//renvoie listing
+// 		}
+// 	}
+// 		//verifie l'acces au fichier index du dossier/ sinon listing
+// 	else
+// 	{
+// 		std::string filePath = routeFound.root + apres_dernier_slash(_request->getURI().path);
+// 		if (access(filePath.c_str(), R_OK) == 0)
+// 		{
+// 			response->requestcode = 200;
+// 			response->pathToRespFile = filePath;
+// 		}	//renvoie fichier
+// 		else
+// 		{
+// 			response->requestcode = 403;
+// 		}
+// 	}
+// }
 
-void		Peer::findRequestLocation(t_response *response)
+// void		Peer::findRequestLocation(t_response *response)
+// {
+// 	std::string		path = _request->getURI().path;
+// 	ServerConfig	config = _server->getConfig();
+// 	std::string		location = truncateStringAtLastSlash(path);
+// 	Route			routeFound;
+// 	const std::map<std::string, Route>&				routes = config.getRoutes();
+// 	std::map<std::string, Route>::const_iterator	it = routes.find(location);
+// 	if (it != routes.end()) {
+// 		routeFound = it->second;
+// 	} else {
+// 		response->requestcode = 404;
+// 		return;
+// 	}
+// 	if (routeFound.access == false) {
+// 		response->requestcode = 403;
+// 		return;
+// 	}
+// 	if (!isAllowedMethod(routeFound, _request->getMethod())) {
+// 		response->requestcode = 405;
+// 		return;
+// 	}
+// 	bool isDirectory = (path == location);
+// 	if (isDirectory && !routeFound.listing && routeFound.index.empty()) {
+// 		response->requestcode = 404;
+// 		return;
+// 	}
+// 	verifyFileAcess(isDirectory, routeFound, response);
+// }
+
+// void		verifyFileAcess(bool isDirectory, Route& routeFound, t_response *response)
+// {
+// 	if (isDirectory)
+// 	{
+// 		std::string indexPath = routeFound.root + routeFound.index;
+// 		if (access(indexPath.c_str(), R_OK) == 0)
+// 		{
+// 			response->requestcode = 200;
+// 			response->pathToRespFile = indexPath;
+// 			//renvoie index
+// 		}
+// 		else if (access(indexPath.c_str(), R_OK) == -1 && !routeFound.index.empty())
+// 		{
+// 			response->requestcode = 403;
+			
+// 		}
+// 		else
+// 		{
+// 			response->requestcode = 200;
+// 			response->list = true;
+// 			//renvoie listing
+// 		}
+// 	}
+// 		//verifie l'acces au fichier index du dossier/ sinon listing
+// 	else
+// 	{
+// 		std::string filePath = routeFound.root + apres_dernier_slash(_request->getURI().path);
+// 		if (access(filePath.c_str(), R_OK) == 0)
+// 		{
+// 			response->requestcode = 200;
+// 			response->pathToRespFile = filePath;
+// 		}	//renvoie fichier
+// 		else
+// 		{
+// 			response->requestcode = 403;
+// 		}
+// 	}
+// }
+
+void		findRequestLocation(t_response *response,Request const *request, Server const *serv)
 {
-	std::string		path = _request->getURI().path;
-	ServerConfig	config = _server->getConfig();
+	std::string		path = request->getURI().path;
+	ServerConfig	config = serv->getConfig();
 	std::string		location = truncateStringAtLastSlash(path);
 	Route			routeFound;
 	const std::map<std::string, Route>&				routes = config.getRoutes();
 	std::map<std::string, Route>::const_iterator	it = routes.find(location);
+
 	if (it != routes.end()) {
 		routeFound = it->second;
 	} else {
 		response->requestcode = 404;
 		return;
 	}
+	// std::cout << path << std::endl;
+	// std::cout << routeFound.root << std::endl;
 	if (routeFound.access == false) {
 		response->requestcode = 403;
 		return;
 	}
-	if (!isAllowedMethod(routeFound, _request->getMethod())) {
+	if (!isAllowedMethod(routeFound, request->getMethod())) {
 		response->requestcode = 405;
 		return;
 	}
 	bool isDirectory = (path == location);
+	//std::cout << isDirectory << std::endl;
 	if (isDirectory && !routeFound.listing && routeFound.index.empty()) {
 		response->requestcode = 404;
 		return;
 	}
-	verifyFileAcess(isDirectory, routeFound, response);
+}
+
+std::string getLastPathComponent(const std::string path)
+{
+    size_t lastSlashIndex = path.find_last_of('/');
+    
+	if (lastSlashIndex != std::string::npos && lastSlashIndex != path.length() - 1)
+	{
+        return path.substr(lastSlashIndex + 1);
+    }
+    return path;
+}
+
+bool fileExistsInDirectory(const std::string directoryPath, const std::string filename)
+{
+    std::string filePath = directoryPath + "/" + filename;
+    std::ifstream file(filePath.c_str());
+   
+    if (file.is_open()) {
+        file.close();
+        return true;
+    }
+    return false;
+}
+
+void		findFilePath(t_response *response,Request const *request, Server const *serv)
+{
+	std::string		path = request->getURI().path;
+	ServerConfig	config = serv->getConfig();
+	std::string		location = truncateStringAtLastSlash(path);
+	std::string		file = getLastPathComponent(path);
+	Route			routeFound;
+	const std::map<std::string, Route>&				routes = config.getRoutes();
+	std::map<std::string, Route>::const_iterator	it = routes.find(location);
+	
+	routeFound = it->second;
+
+	if (!fileExistsInDirectory(routeFound.root, file))
+		response->requestcode = 404;
+	else
+	{
+		response->pathToRespFile = routeFound.root + "/" + file;
+		response->requestcode = 200;
+	}
+
+
+	
 }
 
 void handleErrors(t_response *response) {
@@ -192,6 +311,7 @@ void handleErrors(t_response *response) {
         response->pathToRespFile = errorFilePath;
     }
 }
+
 
 std::string httpGetFormatter(unsigned int reqCode, std::string pathToFile)
 {
@@ -239,6 +359,25 @@ std::string httpGetFormatter(unsigned int reqCode, std::string pathToFile)
     return response.str();
 }
 
+std::string treatRequest(Request const *request, Server const *serv)
+{
+	t_response		response;
+	std::string		httpResponse = "";
+	std::memset(&response, 0, sizeof(t_response));
+	
+	findRequestLocation(&response, request, serv);
+	if (!response.requestcode)
+		findFilePath(&response, request, serv);
+	
+	// if (request->getMethod() == "GET")
+	// {
+	// 	handleErrors(&response);
+	// 	httpResponse = httpGetFormatter(response.requestcode, response.pathToRespFile);
+	// }
+	handleErrors(&response);
+	httpResponse = httpGetFormatter(response.requestcode, response.pathToRespFile);
+	return httpResponse;
+}
 
 // checker 
 
