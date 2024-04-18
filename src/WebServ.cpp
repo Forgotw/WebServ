@@ -193,11 +193,16 @@ void WebServ::handleHttp() {
 	for (size_t i = 0; i < FD_SETSIZE; i++) {
 		if (this->_peers[i].getStatus() == Peer::WAITING_READ) {
 			std::string		filename;
-			unsigned int	requestCode = _peers[i].treatRequest(&filename);
+			t_response		response;
+			std::memset(&response, 0, sizeof(t_response));
 			std::string		httpResponse = "";
-
-			httpResponse += _peers[i].generateResponseHeader(requestCode);
-			httpResponse += _peers[i].generateResponseBody(filename);
+			
+			_peers[i].findRequestLocation(&response);
+			handleErrors(&response);
+			httpResponse = httpGetFormatter(response.requestcode, response.pathToRespFile);
+			//unsigned int	requestCode = _peers[i].treatRequest(&filename);
+			// httpResponse += _peers[i].generateResponseHeader(requestCode);
+			// httpResponse += _peers[i].generateResponseBody(filename);
 			this->_peers[i].setReponse(httpResponse);
 		}
 	}

@@ -44,6 +44,9 @@ void Peer::reset() {
 	std::memset(&this->_addr, 0, sizeof(this->_addr));
 	delete this->_request;
 	this->_request = NULL;
+	// this->_response.requestcode = 0;
+	// this->_response.header.clear();
+	// this->_response.body.clear();
 	this->_response.clear();
 	this->_lastActivity = 0;
 }
@@ -80,50 +83,51 @@ bool canOpenFile(const std::string& filename) {
 //
 //	Switch pour la premiere ligne du header
 //	
-unsigned int	Peer::treatRequest(std::string* filename) {
-	std::string							requestedFile = _request->getURI().path;
-	ServerConfig						config = _server->getConfig();
-	const std::map<std::string, Route>&	routes = config.getRoutes();
-	unsigned int						requestCode = 200;
-	Route								routeFound;
-	// if (findFileInLocations(filename, requestedFile, routes)) {
+// unsigned int	Peer::treatRequest(std::string* filename) {
+// 	std::string							requestedFile = _request->getURI().path;
+// 	ServerConfig						config = _server->getConfig();
+// 	const std::map<std::string, Route>&	routes = config.getRoutes();
+// 	unsigned int						requestCode = 200;
+// 	Route								routeFound;
+// 	// if (findFileInLocations(filename, requestedFile, routes)) {
 
-	// }
-	if (requestedFile == config.getIndex())
-		requestedFile = "/";
-	std::map<std::string, Route>::const_iterator it = routes.find(requestedFile);
-	if (it != routes.end()) {
-		routeFound = it->second;
-	} else {
-		requestCode = 404;
-		*filename = this->findErrorPage(requestCode);
-		return requestCode;
-	}
-	bool methodAllowed = false;
-	for (size_t i = 0; i < routeFound.methods.size(); ++i) {
-		if (routeFound.methods[i] == _request->getMethod()) {
-			methodAllowed = true;
-			break;
-		}
-	}
-	if (!methodAllowed) {
-		requestCode = 405;
-		*filename = this->findErrorPage(requestCode);
-		return requestCode;
-	}
-	if (requestCode == 200) {
-		if (requestedFile == "/") {
-			*filename = config.getRoot() + config.getIndex();
-		} else {
-			*filename = config.getRoot() + routeFound.root + routeFound.location + requestedFile.substr(routeFound.location.size());
-		}
-	}
-	if (canOpenFile(*filename) == false) {
-		requestCode = 500;
-		*filename = CRITICAL_ERROR_PAGE;
-	}
-	return requestCode;
-}
+// 	// }
+// 	findRequestLocation();
+// 	if (requestedFile == config.getIndex())
+// 		requestedFile = "/";
+// 	std::map<std::string, Route>::const_iterator it = routes.find(requestedFile);
+// 	if (it != routes.end()) {
+// 		routeFound = it->second;
+// 	} else {
+// 		requestCode = 404;
+// 		*filename = this->findErrorPage(requestCode);
+// 		return requestCode;
+// 	}
+// 	bool methodAllowed = false;
+// 	for (size_t i = 0; i < routeFound.methods.size(); ++i) {
+// 		if (routeFound.methods[i] == _request->getMethod()) {
+// 			methodAllowed = true;
+// 			break;
+// 		}
+// 	}
+// 	if (!methodAllowed) {
+// 		requestCode = 405;
+// 		*filename = this->findErrorPage(requestCode);
+// 		return requestCode;
+// 	}
+// 	if (requestCode == 200) {
+// 		if (requestedFile == "/") {
+// 			*filename = config.getRoot() + config.getIndex();
+// 		} else {
+// 			*filename = config.getRoot() + routeFound.root + routeFound.location + requestedFile.substr(routeFound.location.size());
+// 		}
+// 	}
+// 	if (canOpenFile(*filename) == false) {
+// 		requestCode = 500;
+// 		*filename = CRITICAL_ERROR_PAGE;
+// 	}
+// 	return requestCode;
+// }
 
 std::string		Peer::generateResponseHeader(unsigned int requestCode) {
 	std::string header;
