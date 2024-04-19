@@ -15,6 +15,14 @@ typedef struct 		s_response {
 	bool			isDir;
 }					t_response;
 
+typedef struct		s_data {
+	std::string		path;
+	ServerConfig	config;
+	std::string		location;
+	Route			routeFound;
+}					t_data;
+
+
 std::string 		httpGetFormatter(unsigned int reqCode, std::string pathToFile);
 void 				handleErrors(t_response *response);
 std::string 		treatRequest(Request const *Request, Server const *serv);

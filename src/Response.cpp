@@ -6,7 +6,7 @@
 /*   By: efailla <efailla@42Lausanne.ch>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 16:44:57 by lsohler           #+#    #+#             */
-/*   Updated: 2024/04/18 22:39:08 by efailla          ###   ########.fr       */
+/*   Updated: 2024/04/19 05:13:15 by efailla          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -224,36 +224,28 @@ std::string apres_dernier_slash(const std::string& chemin)
 // 	}
 // }
 
-void		findRequestLocation(t_response *response,Request const *request, Server const *serv)
+void		findRequestLocation(t_response *response,t_data *data, Request const *request)
 {
-	std::string		path = request->getURI().path;
-	ServerConfig	config = serv->getConfig();
-	std::string		location = truncateStringAtLastSlash(path);
-	Route			routeFound;
-	const std::map<std::string, Route>&				routes = config.getRoutes();
-	std::map<std::string, Route>::const_iterator	it = routes.find(location);
-
-	if (it != routes.end()) {
-		routeFound = it->second;
-	} else {
+	if (data->routeFound.location.empty()) 
+	{
 		response->requestcode = 404;
 		return;
 	}
 	// std::cout << path << std::endl;
 	// std::cout << routeFound.root << std::endl;
-	if (routeFound.access == false) {
+	if (data->routeFound.access == false) {
 		response->requestcode = 403;
 		return;
 	}
-	if (!isAllowedMethod(routeFound, request->getMethod())) {
+	if (!isAllowedMethod(data->routeFound, request->getMethod())) {
 		response->requestcode = 405;
 		return;
 	}
-	response->isDir = (path == location);
+	response->isDir = (data->path == data->location);
 	if (response->isDir)
-		response->pathToRespFile = routeFound.root;
+		response->pathToRespFile = data->routeFound.root;
 	//std::cout << isDirectory << std::endl;
-	if (response->isDir && !routeFound.listing && routeFound.index.empty()) {
+	if (response->isDir && !data->routeFound.listing && data->routeFound.index.empty()) {
 		response->requestcode = 404;
 		return;
 	}
@@ -282,31 +274,22 @@ bool fileExistsInDirectory(const std::string directoryPath, const std::string fi
     return false;
 }
 
-void		findFilePath(t_response *response,Request const *request, Server const *serv)
+void		findFilePath(t_response *response, t_data *data)
 {
-	std::string		path = request->getURI().path;
-	ServerConfig	config = serv->getConfig();
-	std::string		location = truncateStringAtLastSlash(path);
-	Route			routeFound;
 	std::string		file;
-	const std::map<std::string, Route>&				routes = config.getRoutes();
-	std::map<std::string, Route>::const_iterator	it = routes.find(location);
-	
-	routeFound = it->second;
-
 	if (!response->isDir)
-		file = getLastPathComponent(path);
-	else if (response->isDir && routeFound.index.empty())
+		file = getLastPathComponent(data->path);
+	else if (response->isDir && data->routeFound.index.empty())
 	{
 		response->list = true;
 		return ;
 	}
 	else
-		file = routeFound.index;
-	if (!fileExistsInDirectory(routeFound.root, file))
+		file = data->routeFound.index;
+	if (!fileExistsInDirectory(data->routeFound.root, file))
 		response->requestcode = 404;
 	else
-		response->pathToRespFile = routeFound.root + "/" + file;
+		response->pathToRespFile = data->routeFound.root + "/" + file;
 }
 
 void handleErrors(t_response *response) {
@@ -397,16 +380,45 @@ std::string httpGetFormatter(unsigned int reqCode, std::string pathToFile)
     return response.str();
 }
 
+void	fillDataStruct(t_data *data, Request const *request, Server const *serv)
+{
+	data->path = request->getURI().path;
+	data->config = serv->getConfig();
+	data->location = truncateStringAtLastSlash(data->path);
+
+	std::string dumbUser = "/" + getLastPathComponent(data->path) + "/";
+
+	const std::map<std::string, Route>&				routes = data->config.getRoutes();
+	std::map<std::string, Route>::const_iterator	it = routes.find(dumbUser);
+
+	std::cout << dumbUser <<std::endl;
+
+	if (it != routes.end()) {
+		data->routeFound = it->second;
+		std::cout << data->routeFound.root <<std::endl;
+		data->location = dumbUser;
+		return ;
+	}
+	std::cout << dumbUser <<std::endl;
+	it = routes.begin();
+	it = routes.find(data->location);
+	if (it != routes.end()) {
+		data->routeFound = it->second;
+	}
+}
+
 std::string treatRequest(Request const *request, Server const *serv)
 {
 	t_response		response;
+	t_data			data;
 	std::string		httpResponse = "";
 	std::memset(&response, 0, sizeof(t_response));
 	
-	findRequestLocation(&response, request, serv);
+	fillDataStruct(&data, request, serv);
+	findRequestLocation(&response, &data, request);
 
 	if (!response.requestcode)
-		findFilePath(&response, request, serv);
+		findFilePath(&response, &data);
 	if (response.list)
 	{
 		std::cout << response.pathToRespFile << std::endl;
