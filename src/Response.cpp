@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: efailla <efailla@42Lausanne.ch>            +#+  +:+       +#+        */
+/*   By: efailla <efailla@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 16:44:57 by lsohler           #+#    #+#             */
-/*   Updated: 2024/04/19 05:13:15 by efailla          ###   ########.fr       */
+/*   Updated: 2024/04/19 18:08:33 by efailla          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -316,9 +316,16 @@ std::string handleListing(const std::string& pathToDir) {
     struct dirent *ent;
     if ((dir = opendir(pathToDir.c_str())) != NULL) {
         while ((ent = readdir(dir)) != NULL) {
-            if (ent->d_type == DT_REG) { // Check if it's a regular file
+            // if ((ent->d_type == DT_REG || ent->d_type == DT_DIR)
+			// 	&& !(ent->d_name == ".." || ent->d_name == "."))
+			if ((ent->d_type == DT_REG || ent->d_type == DT_DIR)
+   				 && strcmp(ent->d_name, "..") != 0 && strcmp(ent->d_name, ".") != 0) {
                 httpResponse += "<li>";
+				httpResponse += "<a href=\"";
+				httpResponse += ent->d_name;
+				httpResponse += "\">";
                 httpResponse += ent->d_name;
+				httpResponse += "</a>";
                 httpResponse += "</li>\n";
             }
         }
@@ -386,22 +393,10 @@ void	fillDataStruct(t_data *data, Request const *request, Server const *serv)
 	data->config = serv->getConfig();
 	data->location = truncateStringAtLastSlash(data->path);
 
-	std::string dumbUser = "/" + getLastPathComponent(data->path) + "/";
-
+	std::cout << getLastPathComponent(data->path) <<std::endl;
 	const std::map<std::string, Route>&				routes = data->config.getRoutes();
-	std::map<std::string, Route>::const_iterator	it = routes.find(dumbUser);
+	std::map<std::string, Route>::const_iterator	it = routes.find(data->location);
 
-	std::cout << dumbUser <<std::endl;
-
-	if (it != routes.end()) {
-		data->routeFound = it->second;
-		std::cout << data->routeFound.root <<std::endl;
-		data->location = dumbUser;
-		return ;
-	}
-	std::cout << dumbUser <<std::endl;
-	it = routes.begin();
-	it = routes.find(data->location);
 	if (it != routes.end()) {
 		data->routeFound = it->second;
 	}
@@ -413,6 +408,7 @@ std::string treatRequest(Request const *request, Server const *serv)
 	t_data			data;
 	std::string		httpResponse = "";
 	std::memset(&response, 0, sizeof(t_response));
+	std::memset(&data, 0, sizeof(t_data));
 	
 	fillDataStruct(&data, request, serv);
 	findRequestLocation(&response, &data, request);
@@ -428,12 +424,6 @@ std::string treatRequest(Request const *request, Server const *serv)
 		else
 			response.requestcode = 404;
 	}
-	
-	// if (request->getMethod() == "GET")
-	// {
-	// 	handleErrors(&response);
-	// 	httpResponse = httpGetFormatter(response.requestcode, response.pathToRespFile);
-	// }
 	if (!response.requestcode)
 		response.requestcode = 200;
 	handleErrors(&response);
