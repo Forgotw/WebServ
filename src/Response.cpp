@@ -6,7 +6,7 @@
 /*   By: efailla <efailla@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 16:44:57 by lsohler           #+#    #+#             */
-/*   Updated: 2024/04/19 18:08:33 by efailla          ###   ########.fr       */
+/*   Updated: 2024/04/19 18:37:08 by efailla          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -251,15 +251,13 @@ void		findRequestLocation(t_response *response,t_data *data, Request const *requ
 	}
 }
 
-std::string getLastPathComponent(const std::string path)
-{
+std::string getLastPathComponent(const std::string& path) {
     size_t lastSlashIndex = path.find_last_of('/');
-    
-	if (lastSlashIndex != std::string::npos && lastSlashIndex != path.length() - 1)
-	{
+
+    if (lastSlashIndex != std::string::npos && lastSlashIndex != path.length() - 1) {
         return path.substr(lastSlashIndex + 1);
     }
-    return path;
+    return "";
 }
 
 bool fileExistsInDirectory(const std::string directoryPath, const std::string filename)
@@ -387,8 +385,26 @@ std::string httpGetFormatter(unsigned int reqCode, std::string pathToFile)
     return response.str();
 }
 
+std::string addTrailingSlashIfNoExtension(const std::string& str) {
+    size_t dotIndex = str.find_last_of('.');
+    size_t slashIndex = str.find_last_of('/');
+
+    if (!str.empty() && str.back() == '/') {
+        return str;
+    }
+
+    if (dotIndex == std::string::npos || (slashIndex != std::string::npos && dotIndex < slashIndex)) {
+        return str + "/";
+    } else {
+        return str;
+    }
+}
+
 void	fillDataStruct(t_data *data, Request const *request, Server const *serv)
 {
+	// data->path = addTrailingSlashIfNoExtension(request->getURI().path);
+	// a fix 
+
 	data->path = request->getURI().path;
 	data->config = serv->getConfig();
 	data->location = truncateStringAtLastSlash(data->path);
