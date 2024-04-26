@@ -12,6 +12,8 @@
 #include <cstring>
 #include <cerrno>
 #include <iostream>
+#include <fstream>
+
 
 #define TIMEOUT 10
 
@@ -119,7 +121,7 @@ void WebServ::handleNewConnection() {
 			int i = 0;
 			for (; i < FD_SETSIZE; i++) {
 				if (this->_peers[i].getStatus() == Peer::EMPTY) {
-					this->_peers[i].connect(newSocket, peerSocketAddr);
+					this->_peers[i].connect(newSocket, peerSocketAddr, *it);
 					this->_peers[i].setLastActivity();
 					break;
 				}
@@ -157,8 +159,13 @@ void WebServ::handlePeerRequest() {
 void WebServ::handlePeerResponse() {
 	for (size_t i = 0; i < FD_SETSIZE; i++) {
 		if (FD_ISSET(this->_peers[i].getSocket(), &this->_writefds)) {
-			ssize_t httpReponseLen = std::strlen(this->_peers[i].getResponse().c_str());
+			// ssize_t httpReponseLen = std::strlen(this->_peers[i].getResponse().c_str());
+			// const char	*response = _peers[i].getResponse().c_str();
+			ssize_t httpReponseLen = _peers[i].getResponse().size();
 			ssize_t totalByteWritten = 0;
+			// std::cout << "\n\n------------Response-------------\n";
+			// std::cout << response << "\n\n\n";
+			// std::cout << "Size: " << httpReponseLen << std::endl;
 			for (;;) {
 				ssize_t byteWritten = send(this->_peers[i].getSocket(), this->_peers[i].getResponse().c_str() + totalByteWritten, httpReponseLen - totalByteWritten, MSG_DONTWAIT);
 				if (byteWritten < 0) {
@@ -186,11 +193,23 @@ void WebServ::handleExcept() {
 		}
 	}
 }
+
 void WebServ::handleHttp() {
 	for (size_t i = 0; i < FD_SETSIZE; i++) {
 		if (this->_peers[i].getStatus() == Peer::WAITING_READ) {
-			std::string httpResponse = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\n";
-			httpResponse += this->_peers[i].getRequest()->toString();
+			std::string		filename;
+			// t_response		response;
+			// std::memset(&response, 0, sizeof(t_response));
+			std::string		httpResponse = "";
+
+			httpResponse = treatRequest(_peers[i].getRequest(), _peers[i].getServer());
+
+			//_peers[i].findRequestLocation(&response);
+			// handleErrors(&response);
+			// httpResponse = httpGetFormatter(response.requestcode, response.pathToRespFile);
+			//unsigned int	requestCode = _peers[i].treatRequest(&filename);
+			// httpResponse += _peers[i].generateResponseHeader(requestCode);
+			// httpResponse += _peers[i].generateResponseBody(filename);
 			this->_peers[i].setReponse(httpResponse);
 		}
 	}

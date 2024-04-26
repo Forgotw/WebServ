@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soleil</title>
+    <style>
+        /* Style pour le cercle jaune */
+        .soleil {
+            width: 200px;
+            height: 200px;
+            background-color: yellow;
+            border-radius: 50%;
+        }
+
+        /* Style pour les rayons du soleil */
+        .rayon {
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-bottom: 50px solid yellow;
+            transform: rotate(45deg);
+        }
+        .rayon:nth-child(1) {
+            top: 50px;
+            left: 50px;
+        }
+        .rayon:nth-child(2) {
+            top: 50px;
+            left: 85px;
+        }
+        .rayon:nth-child(3) {
+            top: 50px;
+            left: 120px;
+        }
+        .rayon:nth-child(4) {
+            top: 85px;
+            left: 50px;
+        }
+        .rayon:nth-child(5) {
+            top: 120px;
+            left: 50px;
+        }
+        .rayon:nth-child(6) {
+            top: 120px;
+            left: 85px;
+        }
+        .rayon:nth-child(7) {
+            top: 85px;
+            left: 120px;
+        }
+        .rayon:nth-child(8) {
+            top: 85px;
+            left: 155px;
+        }
+        .rayon:nth-child(9) {
+            top: 120px;
+            left: 190px;
+        }
+        .rayon:nth-child(10) {
+            top: 50px;
+            left: 155px;
+        }
+        .rayon:nth-child(11) {
+            top: 15px;
+            left: 120px;
+        }
+        .rayon:nth-child(12) {
+            top: 15px;
+            left: 85px;
+        }
+        .rayon:nth-child(13) {
+            top: 50px;
+            left: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="soleil">
+        <!-- Rayons du soleil -->
+        <div class="rayon"></div>
+        <div class="rayon"></div>
+        <div class="rayon"></div>
+        <div class="rayon"></div>
+        <div class="rayon"></div>
+        <div class="rayon"></div>
+        <div class="rayon"></div>
+        <div class="rayon"></div>
+        <div class="rayon"></div>
+        <div class="rayon"></div>
+        <div class="rayon"></div>
+        <div class="rayon"></div>
+        <div class="rayon"></div>
+    </div>
+</body>
+</html>

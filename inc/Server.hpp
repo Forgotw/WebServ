@@ -14,9 +14,9 @@ public:
 
 
 	/*-----Get-----*/
-	int getSocket() const { return _sockfd; }
-	bool isRunning() const { return _isRunning; }
-	const ServerConfig& getConfig() const { return _config; }
+	int					getSocket() const { return _sockfd; }
+	bool				isRunning() const { return _isRunning; }
+	const ServerConfig&	getConfig() const { return _config; }
 
 
 private:

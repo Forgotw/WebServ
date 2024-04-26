@@ -8,6 +8,7 @@ SRCS 		:= $(addprefix src/, \
 	ConfigParser.cpp \
 	ServerConfig.cpp \
 	main.cpp \
+	Response.cpp \
 )
 OBJS		:= $(SRCS:.cpp=.o)
 

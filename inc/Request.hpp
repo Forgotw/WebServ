@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lray <lray@student.42lausanne.ch >         +#+  +:+       +#+        */
+/*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/06 18:52:20 by lsohler           #+#    #+#             */
-/*   Updated: 2024/04/12 18:15:25 by lray             ###   ########.fr       */
+/*   Updated: 2024/04/15 19:27:50 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,4 +50,11 @@ class Request {
 		~Request() {}
 		std::string toString() const;
 
+		/*-----Get-----*/
+		const std::string&							getMethod() const { return _method; }
+		const std::string&							getVersion() const { return _version; }
+		const std::string&							getRawURI() const { return _rawURI; }
+		const URI&									getURI() const { return _URI; }
+		const std::map<std::string, std::string>&	getHeaders() const { return _headers; }
+		const std::string&							getBody() const { return _body; }
 };
