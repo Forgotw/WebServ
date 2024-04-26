@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: efailla <efailla@student.42.fr>            +#+  +:+       +#+        */
+/*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 16:44:57 by lsohler           #+#    #+#             */
-/*   Updated: 2024/04/19 18:37:08 by efailla          ###   ########.fr       */
+/*   Updated: 2024/04/26 14:29:56 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,46 +26,46 @@
 //     return false;
 // }
 
-// std::string getContentType(const std::string& filename) {
-//     if (filename.find(".html") != std::string::npos || 
-//         filename.find(".htm") != std::string::npos) {
-//         return "text/html";
-//     } 
-//     else if (filename.find(".css") != std::string::npos) {
-//         return "text/css";
-//     }
-//     else if (filename.find(".js") != std::string::npos) {
-//         return "application/javascript";
-//     }
-//     else if (filename.find(".xml") != std::string::npos) {
-//         return "application/xml";
-//     }
-//     else if (filename.find(".json") != std::string::npos) {
-//         return "application/json";
-//     }
-//     else if (filename.find(".jpg") != std::string::npos || 
-//              filename.find(".jpeg") != std::string::npos) {
-//         return "image/jpeg";
-//     }
-//     else if (filename.find(".png") != std::string::npos) {
-//         return "image/png";
-//     }
-//     else if (filename.find(".gif") != std::string::npos) {
-//         return "image/gif";
-//     }
-//     else if (filename.find(".ico") != std::string::npos) {
-//         return "image/x-icon";
-//     }
-//     else if (filename.find(".pdf") != std::string::npos) {
-//         return "application/pdf";
-//     }
-//     else if (filename.find(".txt") != std::string::npos) {
-//         return "text/plain";
-//     }
-//     else {
-//         return "application/octet-stream";
-//     }
-// }
+std::string getContentType(const std::string& filename) {
+    if (filename.find(".html") != std::string::npos || 
+        filename.find(".htm") != std::string::npos) {
+        return "text/html";
+    } 
+    else if (filename.find(".css") != std::string::npos) {
+        return "text/css";
+    }
+    else if (filename.find(".js") != std::string::npos) {
+        return "application/javascript";
+    }
+    else if (filename.find(".xml") != std::string::npos) {
+        return "application/xml";
+    }
+    else if (filename.find(".json") != std::string::npos) {
+        return "application/json";
+    }
+    else if (filename.find(".jpg") != std::string::npos || 
+             filename.find(".jpeg") != std::string::npos) {
+        return "image/jpeg";
+    }
+    else if (filename.find(".png") != std::string::npos) {
+        return "image/png";
+    }
+    else if (filename.find(".gif") != std::string::npos) {
+        return "image/gif";
+    }
+    else if (filename.find(".ico") != std::string::npos) {
+        return "image/x-icon";
+    }
+    else if (filename.find(".pdf") != std::string::npos) {
+        return "application/pdf";
+    }
+    else if (filename.find(".txt") != std::string::npos) {
+        return "text/plain";
+    }
+    else {
+        return "application/octet-stream";
+    }
+}
 
 std::string	treatRequestedFile(const ServerConfig& config, const Request& request) {
 	std::string		requestedPath = request.getURI().path;
@@ -300,7 +300,11 @@ void handleErrors(t_response *response) {
 }
 
 std::string handleListing(const std::string& pathToDir) {
-    std::string httpResponse = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n";
+    std::string	header;
+	header += "HTTP/1.1 200 OK\r\n";
+	header += "Content-Type: text/html\r\n";
+	header += "\r\n";
+	std::string httpResponse = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n";
     httpResponse += "<!DOCTYPE html>\n";
     httpResponse += "<html>\n";
     httpResponse += "<head>\n";
@@ -377,7 +381,7 @@ std::string httpGetFormatter(unsigned int reqCode, std::string pathToFile)
 			break;
     }
     response << "\r\n";
-    response << "Content-Type: text/html\r\n";
+    response << "Content-Type: " + getContentType(pathToFile) + "\r\n";
     response << "Content-Length: " << htmlContent.length() << "\r\n";
     response << "\r\n";
     response << htmlContent;
