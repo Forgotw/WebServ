@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 16:44:57 by lsohler           #+#    #+#             */
-/*   Updated: 2024/04/26 14:29:56 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/04/26 15:35:42 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,7 @@
 //     return false;
 // }
 
-std::string getContentType(const std::string& filename) {
+static std::string getContentType(const std::string& filename) {
     if (filename.find(".html") != std::string::npos || 
         filename.find(".htm") != std::string::npos) {
         return "text/html";
@@ -345,11 +345,18 @@ std::string handleListing(const std::string& pathToDir) {
 
 std::string httpGetFormatter(unsigned int reqCode, std::string pathToFile)
 {
-    std::ifstream file(pathToFile);
-    std::stringstream buffer;
-    buffer << file.rdbuf();
-    std::string htmlContent = buffer.str();
+    std::ifstream file(pathToFile, std::ios::binary);
     std::stringstream response;
+    // Obtenir la taille du fichier
+    file.seekg(0, std::ios::end);
+    std::streampos fileSize = file.tellg();
+    file.seekg(0, std::ios::beg);
+
+    // Allouer une chaîne de la taille du fichier
+    std::string fileContent(fileSize, '\0');
+
+    // Lire le contenu du fichier dans la chaîne
+    file.read(&fileContent[0], fileSize);
     response << "HTTP/1.1 " << reqCode << " ";
     switch (reqCode) {
         case 200:
@@ -382,9 +389,9 @@ std::string httpGetFormatter(unsigned int reqCode, std::string pathToFile)
     }
     response << "\r\n";
     response << "Content-Type: " + getContentType(pathToFile) + "\r\n";
-    response << "Content-Length: " << htmlContent.length() << "\r\n";
+    response << "Content-Length: " <<  static_cast<long long int>(fileSize) << "\r\n";
     response << "\r\n";
-    response << htmlContent;
+    response << fileContent;
 
     return response.str();
 }
