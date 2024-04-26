@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
+/*   By: lray <lray@student.42lausanne.ch >         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 16:44:57 by lsohler           #+#    #+#             */
-/*   Updated: 2024/04/26 15:35:42 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/04/26 15:57:49 by lray             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,15 +22,15 @@
 //             return true;
 //         }
 //     }
-    
+
 //     return false;
 // }
 
 static std::string getContentType(const std::string& filename) {
-    if (filename.find(".html") != std::string::npos || 
+    if (filename.find(".html") != std::string::npos ||
         filename.find(".htm") != std::string::npos) {
         return "text/html";
-    } 
+    }
     else if (filename.find(".css") != std::string::npos) {
         return "text/css";
     }
@@ -43,7 +43,7 @@ static std::string getContentType(const std::string& filename) {
     else if (filename.find(".json") != std::string::npos) {
         return "application/json";
     }
-    else if (filename.find(".jpg") != std::string::npos || 
+    else if (filename.find(".jpg") != std::string::npos ||
              filename.find(".jpeg") != std::string::npos) {
         return "image/jpeg";
     }
@@ -87,12 +87,12 @@ std::string truncateStringAtLastSlash(const std::string& input) {
 
 std::string getStringAfter(const std::string& str, const std::string& delimiter) {
     std::string::size_type pos = str.find(delimiter);
-    
+
     if (pos != std::string::npos) {
         // Extraire la sous-chaîne après le délimiteur
         return str.substr(pos + delimiter.length());
     }
-    
+
     return ""; // Retourner une chaîne vide si le délimiteur n'est pas trouvé
 }
 
@@ -130,7 +130,7 @@ std::string apres_dernier_slash(const std::string& chemin)
 // 		else if (access(indexPath.c_str(), R_OK) == -1 && !routeFound.index.empty())
 // 		{
 // 			response->requestcode = 403;
-			
+
 // 		}
 // 		else
 // 		{
@@ -199,7 +199,7 @@ std::string apres_dernier_slash(const std::string& chemin)
 // 		else if (access(indexPath.c_str(), R_OK) == -1 && !routeFound.index.empty())
 // 		{
 // 			response->requestcode = 403;
-			
+
 // 		}
 // 		else
 // 		{
@@ -226,7 +226,7 @@ std::string apres_dernier_slash(const std::string& chemin)
 
 void		findRequestLocation(t_response *response,t_data *data, Request const *request)
 {
-	if (data->routeFound.location.empty()) 
+	if (data->routeFound.location.empty())
 	{
 		response->requestcode = 404;
 		return;
@@ -264,7 +264,7 @@ bool fileExistsInDirectory(const std::string directoryPath, const std::string fi
 {
     std::string filePath = directoryPath + "/" + filename;
     std::ifstream file(filePath.c_str());
-   
+
     if (file.is_open()) {
         file.close();
         return true;
@@ -392,7 +392,6 @@ std::string httpGetFormatter(unsigned int reqCode, std::string pathToFile)
     response << "Content-Length: " <<  static_cast<long long int>(fileSize) << "\r\n";
     response << "\r\n";
     response << fileContent;
-
     return response.str();
 }
 
@@ -414,7 +413,7 @@ std::string addTrailingSlashIfNoExtension(const std::string& str) {
 void	fillDataStruct(t_data *data, Request const *request, Server const *serv)
 {
 	// data->path = addTrailingSlashIfNoExtension(request->getURI().path);
-	// a fix 
+	// a fix
 
 	data->path = request->getURI().path;
 	data->config = serv->getConfig();
@@ -436,7 +435,7 @@ std::string treatRequest(Request const *request, Server const *serv)
 	std::string		httpResponse = "";
 	std::memset(&response, 0, sizeof(t_response));
 	std::memset(&data, 0, sizeof(t_data));
-	
+
 	fillDataStruct(&data, request, serv);
 	findRequestLocation(&response, &data, request);
 
@@ -458,13 +457,13 @@ std::string treatRequest(Request const *request, Server const *serv)
 	return httpResponse;
 }
 
-// checker 
+// checker
 
 
 	// bool isDirectory = (path == location);
 	// std::string	realPath;
 	// if (isDirectory == false) {
-		
+
 	// }
 	// realPath = routeFound.root + getStringAfter(path, location);
 	// if (canOpen())

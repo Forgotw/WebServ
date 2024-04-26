@@ -31,7 +31,7 @@ void Peer::setRequest(std::string const &buffer) {
 	this->_status = WAITING_READ;
 }
 void Peer::setReponse(std::string const &response) {
-	this->_response = response.c_str();
+	this->_response = response;
 	this->_status = WAITING_WRITE;
 }
 void Peer::setLastActivity() {
@@ -82,7 +82,7 @@ bool canOpenFile(const std::string& filename) {
 //			- file.is_open: continue 200	/	!file:  return 404	/	file.fail(): return 500 / is_dir: listing false(return 401) | true(ecrire page 200)
 //
 //	Switch pour la premiere ligne du header
-//	
+//
 // unsigned int	Peer::treatRequest(std::string* filename) {
 // 	std::string							requestedFile = _request->getURI().path;
 // 	ServerConfig						config = _server->getConfig();
@@ -165,12 +165,12 @@ std::string		Peer::generateResponseHeader(unsigned int requestCode) {
 }
 
 bool isContentTypeHtml(const std::string& content) {
-	return (content.find("<html") != std::string::npos || 
+	return (content.find("<html") != std::string::npos ||
 			content.find("<!DOCTYPE html>") != std::string::npos);
 }
 
 std::string getContentType(const std::string& filename) {
-	if (filename.find(".html") != std::string::npos || 
+	if (filename.find(".html") != std::string::npos ||
 		filename.find(".htm") != std::string::npos) {
 		return "text/html";
 	}
