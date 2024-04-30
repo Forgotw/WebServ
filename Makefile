@@ -5,6 +5,7 @@ SRCS 		:= $(addprefix src/, \
 	WebServ.cpp \
 	Peer.cpp \
 	Request.cpp \
+	Response.cpp\
 	ConfigParser.cpp \
 	ServerConfig.cpp \
 	main.cpp \

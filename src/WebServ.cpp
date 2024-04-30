@@ -1,6 +1,7 @@
 #include "WebServ.hpp"
 #include "Server.hpp"
 #include "Peer.hpp"
+#include "Response.hpp"
 
 #include <unistd.h>
 #include <sys/types.h>
@@ -192,13 +193,17 @@ void WebServ::handleExcept() {
 void WebServ::handleHttp() {
 	for (size_t i = 0; i < FD_SETSIZE; i++) {
 		if (this->_peers[i].getStatus() == Peer::WAITING_READ) {
-			std::string		filename;
-			unsigned int	requestCode = _peers[i].treatRequest(&filename);
-			std::string		httpResponse = "";
+			// std::string		filename;
+			// unsigned int	requestCode = _peers[i].treatRequest(&filename);
+			// std::string		httpResponse = "";
 
-			httpResponse += _peers[i].generateResponseHeader(requestCode);
-			httpResponse += _peers[i].generateResponseBody(filename);
-			this->_peers[i].setReponse(httpResponse);
+			// httpResponse += _peers[i].generateResponseHeader(requestCode);
+			// httpResponse += _peers[i].generateResponseBody(filename);
+			// this->_peers[i].setReponse(httpResponse);
+			const Server *server = _peers[i].getServer();
+			const ServerConfig config = server->getConfig();
+			const Request		request = *(_peers[i].getRequest());
+			Response	response(config, request);
 		}
 	}
 }

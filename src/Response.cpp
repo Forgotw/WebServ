@@ -6,22 +6,28 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 16:44:57 by lsohler           #+#    #+#             */
-/*   Updated: 2024/04/15 20:36:09 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/04/30 18:51:55 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Peer.hpp"
+#include "Response.hpp"
 
 bool canOpen(const std::string& path) {
-    // Vérifier si le chemin existe
-    if (pathExists(path)) {
-        // Vérifier si on peut ouvrir le fichier ou le répertoire
-        if (access(path.c_str(), R_OK | W_OK) == 0) {
-            return true;
-        }
+    std::ifstream file(path);
+    if (file.is_open()) {
+        file.close();
+        return true;
     }
-    
     return false;
+}
+
+std::string searchFindReplace(std::string& toSearch, const std::string& toFind, const std::string& toReplace) {
+    size_t pos = toSearch.find(toFind);
+    if (pos == std::string::npos)
+        return toSearch;
+
+    toSearch.replace(pos, toFind.length(), toReplace);
+    return toSearch;
 }
 
 std::string getContentType(const std::string& filename) {
@@ -65,22 +71,30 @@ std::string getContentType(const std::string& filename) {
     }
 }
 
-std::string	treatRequestedFile(const ServerConfig& config, const Request& request) {
-	std::string		requestedPath = request.getURI().path;
-	if (requestedPath == "/") { // request Asking index
-		return config.getRoot()+  "/" + config.getIndex();
-	}
-
+std::string trimLastLoctation(std::string chaine) {
+    if (chaine.empty())
+        return chaine;
+    
+    size_t pos = chaine.rfind('/');
+    if (pos == std::string::npos)
+        return "/";
+    
+    if (pos == 0)
+        return "/";
+    
+    return chaine.substr(0, pos) + "/";
 }
 
-std::string truncateStringAtLastSlash(const std::string& input) {
-    std::string::size_type lastSlashPos = input.rfind('/'); // Trouver la dernière position du slash
+void	Response::splitSearchedURI(const std::string& input) {
+	std::string::size_type lastSlashPos = input.rfind('/');
 
-    if (lastSlashPos != std::string::npos) {
-        return input.substr(0, lastSlashPos + 1); // Tronquer la chaîne jusqu'au dernier slash en incluant le slash
-    }
-
-    return input; // Retourner la chaîne originale si aucun slash n'est trouvé
+	if (lastSlashPos != std::string::npos) {
+		_searchedPage = input.substr(lastSlashPos + 1);
+		_searchedLocation = input.substr(0, lastSlashPos + 1);
+	} else {
+		_searchedPage = "";
+		_searchedLocation = input;
+	}
 }
 
 std::string getStringAfter(const std::string& str, const std::string& delimiter) {
@@ -102,42 +116,231 @@ bool				isAllowedMethod(Route routeFound, std::string method) {
 			break;
 		}
 	}
+	return methodAllowed;
 }
 
-unsigned int		Peer::findRequestLocation(void)
+unsigned int		Response::findLocation(void)
 {
-	std::string		path = _request->getURI().path;
-	ServerConfig	config = _server->getConfig();
-	std::string		location = truncateStringAtLastSlash(path);
-	Route			routeFound;
-	const std::map<std::string, Route>&				routes = config.getRoutes();
-	std::map<std::string, Route>::const_iterator	it = routes.find(location);
-	if (it != routes.end()) {
-		routeFound = it->second;
-	} else {
-		return 404;
+	const std::map<std::string, Route>&				routes = _config.getRoutes();
+	// boucle qui find _searchedLocation, si it = routes.end() appeler trimLastLocation
+	unsigned int	redir = 0;
+	std::string	searchedLocation = _searchedLocation;
+	while (true) {
+		std::map<std::string, Route>::const_iterator	it = routes.find(searchedLocation);
+		if (it != routes.end()) {
+			if (it->second._return.first != 0) {
+				if (it->second._return.first == 404) {
+					return 404;
+				}
+				_route = (routes.find(_route._return.second))->second;
+				redir = it->second._return.first;
+				break;
+			} else {
+				_route = it->second;
+				break;
+			}
+		} else {
+			searchedLocation = trimLastLoctation(searchedLocation);
+			it = routes.find(searchedLocation);
+		}
+		if (searchedLocation == "/" && routes.find(searchedLocation) == routes.end()) {
+			return 404;
+		}
 	}
-	if (routeFound.access == false) {
+	if (_route.access == false) {
 		return 403;
 	}
-	if (!isAllowedMethod(routeFound, _request->getMethod())) {
+	if (!isAllowedMethod(_route, _request.getMethod())) {
 		return 405;
 	}
-	bool isDirectory = (path == location);
-	if (isDirectory && !routeFound.listing && routeFound.index.empty()) {
+	_isDir = (_request.getURI().path == _searchedLocation);
+	if (_isDir && !_route.listing && _route.index.empty()) {
+		_isDir = false;
 		return 404;
+	} else if (_isDir && !_route.listing && !_route.index.empty()) {
+		_isDir = false;
+		_searchedPage = _route.index;
 	}
+	if (redir)
+		return redir;
 	// fonction verifier acces au fichier, et peut etre dossier
 	return 200;
 }
+/*
+	if (data->routeFound.location.empty()) 
+	{
+		response->requestcode = 404;
+		return;
+	}
+	// std::cout << path << std::endl;
+	// std::cout << routeFound.root << std::endl;
+	if (data->routeFound.access == false) {
+		response->requestcode = 403;
+		return;
+	}
+	if (!isAllowedMethod(data->routeFound, request->getMethod())) {
+		response->requestcode = 405;
+		return;
+	}
+	response->isDir = (data->path == data->location);
+	if (response->isDir)
+		response->pathToRespFile = data->routeFound.root;
+	//std::cout << isDirectory << std::endl;
+	if (response->isDir && !data->routeFound.listing && data->routeFound.index.empty()) {
+		response->requestcode = 404;
+		return;
+	}
+*/
+void	Response::findErrorPage() {
+	std::map<int, std::string>					error_page = _config.getErrorPage();
+	std::map<int, std::string>::const_iterator	it = error_page.find(_returnCode);
 
-// checker 
+	if (it != error_page.end()) {
+		_realPath = _config.getRoot() + it->second;
+	} else {
+		_realPath =  DEFAULT_ERROR_PAGE;
+	}
+}
+
+void	Response::writeListingPage() {
+    std::string	header;
+	header += "HTTP/1.1 200 OK\r\n";
+	header += "Content-Type: text/html\r\n";
+	header += "\r\n";
+	std::string httpResponse = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n";
+    httpResponse += "<!DOCTYPE html>\n";
+    httpResponse += "<html>\n";
+    httpResponse += "<head>\n";
+    httpResponse += "<title>File List</title>\n";
+    httpResponse += "</head>\n";
+    httpResponse += "<body>\n";
+    httpResponse += "<h1>File List</h1>\n";
+    httpResponse += "<ul>\n";
+
+    DIR *dir;
+    struct dirent *ent;
+    if ((dir = opendir(_realPath.c_str())) != NULL) {
+        while ((ent = readdir(dir)) != NULL) {
+            // if ((ent->d_type == DT_REG || ent->d_type == DT_DIR)
+			// 	&& !(ent->d_name == ".." || ent->d_name == "."))
+			if ((ent->d_type == DT_REG || ent->d_type == DT_DIR)
+   				 && strcmp(ent->d_name, "..") != 0 && strcmp(ent->d_name, ".") != 0) {
+                httpResponse += "<li>";
+				httpResponse += "<a href=\"";
+				httpResponse += ent->d_name;
+				httpResponse += "\">";
+                httpResponse += ent->d_name;
+				httpResponse += "</a>";
+                httpResponse += "</li>\n";
+            }
+        }
+        closedir(dir);
+    } else {
+        return ;
+    }
+    httpResponse += "</ul>\n";
+    httpResponse += "</body>\n";
+    httpResponse += "</html>\n";
+	_header = header;
+	_body = httpResponse;
+}
 
 
-	// bool isDirectory = (path == location);
-	// std::string	realPath;
-	// if (isDirectory == false) {
-		
-	// }
-	// realPath = routeFound.root + getStringAfter(path, location);
-	// if (canOpen())
+void	Response::httpGetFormatter() {
+    std::ifstream file(_realPath);
+    std::stringstream buffer;
+    buffer << file.rdbuf();
+    std::string htmlContent = buffer.str();
+    std::stringstream response;
+    // Obtenir la taille du fichier
+    file.seekg(0, std::ios::end);
+    std::streampos fileSize = file.tellg();
+    file.seekg(0, std::ios::beg);
+
+    // Allouer une chaîne de la taille du fichier
+    std::string fileContent(fileSize, '\0');
+
+    // Lire le contenu du fichier dans la chaîne
+    file.read(&fileContent[0], fileSize);
+    response << "HTTP/1.1 " << _returnCode << " ";
+    switch (_returnCode) {
+        case 200:
+            response << "OK";
+            break;
+		case 400:
+			response << "Bad Request";
+			break;
+		case 401:
+			response << "Unauthorized";
+			break;
+		case 403:
+			response << "Forbidden";
+			break;
+        case 404:
+            response << "Not Found";
+            break;
+		case 405:
+			response << "Method Not Allowed";
+			break;
+		case 500:
+			response << "Internal Server Error";
+			break;
+		case 501:
+			response << "Not Implemented";
+			break;
+		default:
+			response << "Internal Server Error";
+			break;
+    }
+    response << "\r\n";
+    response << "Content-Type: " + getContentType(_realPath) + "\r\n";
+    response << "Content-Length: " << htmlContent.length() << "\r\n";
+    response << "\r\n";
+	_header = response.str();
+	response.clear();
+    response << htmlContent;
+}
+
+Response::Response(const ServerConfig &config, const Request &request) : 
+	_config(config),
+	_request(request),
+	_contentType(""),
+	_realPath(""),
+	_filePath(""),
+	_searchedPage(""),
+	_searchedLocation(""),
+	_returnCode(0),
+	_header(""),
+	_body(""),
+	_route() {
+	//		generate response:
+	//findLocation();
+	splitSearchedURI(_request.getURI().path);
+	_returnCode = findLocation();
+	if (_returnCode >= 403 || _returnCode == 0) {
+		findErrorPage();
+		httpGetFormatter();
+	} else {
+		if (_route.location != _searchedLocation) {
+			_realPath = searchFindReplace(_searchedLocation, _route.location, _route.root) + _searchedPage;
+		} else {
+			_realPath = _route.root + _searchedPage;
+		}
+		if (_isDir) {
+			writeListingPage();
+		} else {
+			// trouver le path reel, si la searched location /bonjour/salut/ et que la route trouvée est /bonjour/
+			// remplacer /bonjour/ par root dans /bojour/salut/, et ensuite rajouter _searchedPage;
+			if (canOpen(_realPath)) {
+				httpGetFormatter();
+			} else {
+				_returnCode = 404;
+				findErrorPage();
+				httpGetFormatter();
+			}
+		}
+	}
+	//checkListing();
+	//checkFileType();
+	//
+}

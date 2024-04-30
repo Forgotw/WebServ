@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/12 16:26:12 by lsohler           #+#    #+#             */
-/*   Updated: 2024/04/15 20:27:31 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/04/30 16:37:11 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <cstdlib>
 #include "ServerConfig.hpp"
 
 
@@ -173,6 +174,24 @@ void	locationHandleIndex(Route &route, std::vector<std::string> &tokens) {
 	}
 }
 
+void	locationHandleReturn(Route &route, std::vector<std::string> &tokens) {
+	tokens.erase(tokens.begin());
+	while (!tokens.empty()) {
+		if (*tokens.begin() == ";") {
+			tokens.erase(tokens.begin());
+			break;
+		}
+		route._return.first = atoi((*tokens.begin()).c_str());
+		if (*tokens.begin() == ";") {
+			route._return.second = "";
+			tokens.erase(tokens.begin());
+			break;
+		}
+		tokens.erase(tokens.begin());
+		route._return.second = (*tokens.begin());
+	}
+}
+
 void	locationHandleAccess(Route &route, std::vector<std::string> &tokens) {
 	tokens.erase(tokens.begin());
 	while (!tokens.empty()) {
@@ -217,6 +236,7 @@ std::map<std::string, locationHandler> locationMap() {
 	myMap["cgi"] = &locationHandleCgi;
 	myMap["upload"] = &locationHandleUpload;
 	myMap["index"] = &locationHandleIndex;
+	myMap["return"] = &locationHandleReturn;
 	myMap["access"] = &locationHandleAccess;
 	myMap["listing"] = &locationHandleListing;
 
@@ -230,7 +250,11 @@ void	handleLocation(ServerConfig &config, std::vector<std::string> &tokens) {
 	new_route.root = "";
 	new_route.cgi = "";
 	new_route.upload = "";
+	new_route.index = "";
+	new_route._return.first = 0;
+	new_route._return.second = "";
 	new_route.access = true;
+	new_route.listing = false;
 	tokens.erase(tokens.begin());
 	if (*tokens.begin() != "{") {
 		new_route.location = *tokens.begin();
