@@ -28,7 +28,7 @@ void Peer::connect(int sockfd, struct sockaddr_in addr, Server* server) {
 }
 void Peer::setRequest(std::string const &buffer) {
 	this->_request = new Request(buffer);
-	std::cout << "Request: " << buffer << std::endl;
+	// std::cout << "\n\n------------Request-------------\n" << buffer << "\n------------------\n" << std::endl;
 	this->_status = WAITING_READ;
 }
 void Peer::setReponse(std::string const &response) {

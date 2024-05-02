@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 16:44:57 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/02 17:46:57 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/02 18:33:24 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -89,19 +89,25 @@ std::string trimLastLoctation(std::string chaine) {
 }
 
 void	Response::splitSearchedURI(const std::string& input) {
-	std::string::size_type lastSlashPos = input.rfind('/');
+	std::cout << "\n\nsplitSearchURI: " << input << "\n";
+	if (input.find('.') != std::string::npos) {
+		std::string::size_type lastSlashPos = input.rfind('/');
 
-	std::cout << "Request URI: " << input << std::endl;
-	//opendir()
-	if (lastSlashPos != std::string::npos || input.find('.') == std::string::npos) {
-		_searchedPage = input.substr(lastSlashPos + 1);
-		_searchedLocation = input.substr(0, lastSlashPos + 1);
+		std::cout << "Request URI: " << input << std::endl;
+		//opendir()
+		if (lastSlashPos != std::string::npos) {
+			_searchedPage = input.substr(lastSlashPos + 1);
+			_searchedLocation = input.substr(0, lastSlashPos + 1);
+		} else {
+			_searchedPage = "";
+			_searchedLocation = input;
+		}
+		std::cout << "_searchedPage: " << _searchedPage << std::endl;
+		std::cout << "_searchedLocation: " << _searchedLocation << std::endl;
 	} else {
 		_searchedPage = "";
 		_searchedLocation = input;
 	}
-	std::cout << "_searchedPage: " << _searchedPage << std::endl;
-	std::cout << "_searchedLocation: " << _searchedLocation << std::endl;
 }
 
 std::string getStringAfter(const std::string& str, const std::string& delimiter) {
@@ -182,9 +188,9 @@ unsigned int		Response::findLocation(void)
 	else {
 		_isDir = true;
 		closedir(dir);
-		// if (_realPath[_realPath.size()] != '/') {
-		// 	_realPath += '/';
-		// }
+		if (_realPath[_realPath.size() - 1] != '/') {
+			_realPath += '/';
+		}
 		if (!_route.listing) {
 			_isDir = false;
 			_realPath += _route.index;
@@ -217,10 +223,10 @@ void	Response::findErrorPage() {
 }
 
 void	Response::writeListingPage() {
-    std::string	header;
-	header += "HTTP/1.1 200 OK\r\n";
-	header += "Content-Type: text/html\r\n";
-	header += "\r\n";
+    // std::string	header;
+	// header += "HTTP/1.1 200 OK\r\n";
+	// header += "Content-Type: text/html\r\n";
+	// header += "\r\n";
 	std::string httpResponse = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n";
     httpResponse += "<!DOCTYPE html>\n";
     httpResponse += "<html>\n";
@@ -258,7 +264,6 @@ void	Response::writeListingPage() {
     httpResponse += "</ul>\n";
     httpResponse += "</body>\n";
     httpResponse += "</html>\n";
-	_header = header;
 	_body = httpResponse;
 }
 
