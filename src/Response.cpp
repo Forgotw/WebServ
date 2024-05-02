@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 16:44:57 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/02 17:42:25 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/02 17:46:57 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -204,31 +204,7 @@ unsigned int		Response::findLocation(void)
 	// fonction verifier acces au fichier, et peut etre dossier
 	return 200;
 }
-/*
-	if (data->routeFound.location.empty()) 
-	{
-		response->requestcode = 404;
-		return;
-	}
-	// std::cout << path << std::endl;
-	// std::cout << routeFound.root << std::endl;
-	if (data->routeFound.access == false) {
-		response->requestcode = 403;
-		return;
-	}
-	if (!isAllowedMethod(data->routeFound, request->getMethod())) {
-		response->requestcode = 405;
-		return;
-	}
-	response->isDir = (data->path == data->location);
-	if (response->isDir)
-		response->pathToRespFile = data->routeFound.root;
-	//std::cout << isDirectory << std::endl;
-	if (response->isDir && !data->routeFound.listing && data->routeFound.index.empty()) {
-		response->requestcode = 404;
-		return;
-	}
-*/
+
 void	Response::findErrorPage() {
 	std::map<int, std::string>					error_page = _config.getErrorPage();
 	std::map<int, std::string>::const_iterator	it = error_page.find(_returnCode);
