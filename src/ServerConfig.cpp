@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/12 16:26:12 by lsohler           #+#    #+#             */
-/*   Updated: 2024/04/30 16:37:11 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/02 15:35:41 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -375,6 +375,20 @@ ServerConfig	&ServerConfig::operator=(ServerConfig const &other) {
 }
 
 /*--------------TESTING FUNCTIONS--------------*/
+void	ServerConfig::printRoute(const Route& route) {
+	std::cout << "  Location: " << route.location << std::endl;
+	std::cout << "	Methods:";
+	for (size_t i = 0; i < route.methods.size(); ++i) {
+			std::cout << " " << route.methods[i];
+	}
+	std::cout << std::endl;
+	std::cout << "	Root: " << route.root << std::endl;
+	std::cout << "	CGI: " << route.cgi << std::endl;
+	std::cout << "	Upload: " << route.upload << std::endl;
+	std::cout << "	Index: " << route.index << std::endl;
+	std::cout << "	Access: " << (route.access ? "true" : "false") << std::endl;
+	std::cout << "	Listing: " << (route.listing ? "true" : "false") << std::endl;
+}
 
 void	ServerConfig::printServerConfig(void) {
 	std::cout << "IP:" << _ip << std::endl;
@@ -389,17 +403,6 @@ void	ServerConfig::printServerConfig(void) {
 	std::cout << "Routes:" << std::endl;
 	for (std::map<std::string, Route>::const_iterator it = _routes.begin(); it != _routes.end(); ++it) {
 		const Route& route = it->second;
-		std::cout << "  Location: " << it->first << std::endl;
-		std::cout << "	Methods:";
-		for (size_t i = 0; i < route.methods.size(); ++i) {
-			std::cout << " " << route.methods[i];
-		}
-		std::cout << std::endl;
-		std::cout << "	Root: " << route.root << std::endl;
-		std::cout << "	CGI: " << route.cgi << std::endl;
-		std::cout << "	Upload: " << route.upload << std::endl;
-		std::cout << "	Index: " << route.index << std::endl;
-		std::cout << "	Access: " << (route.access ? "true" : "false") << std::endl;
-		std::cout << "	Listing: " << (route.listing ? "true" : "false") << std::endl;
+		printRoute(route);
 	}
 }

@@ -204,6 +204,8 @@ void WebServ::handleHttp() {
 			const ServerConfig config = server->getConfig();
 			const Request		request = *(_peers[i].getRequest());
 			Response	response(config, request);
+			this->_peers[i].setReponse(response.getResponse());
+			// std::cout << response.getResponse();
 		}
 	}
 }

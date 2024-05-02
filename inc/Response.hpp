@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/26 11:05:57 by lsohler           #+#    #+#             */
-/*   Updated: 2024/04/30 18:26:04 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/04/30 19:04:44 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,5 +60,7 @@ class Response {
 		Response(const ServerConfig &config, const Request &request);
 		Response(const std::string& Response);
 		~Response() {}
+
+		std::string getResponse() const { return _header + _body;}
 
 };

@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/12 16:25:31 by lsohler           #+#    #+#             */
-/*   Updated: 2024/04/30 16:25:47 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/02 15:34:46 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,7 +68,7 @@ class ServerConfig {
 		void	setServerName(const std::string &name) { _server_name = name; }
 		void	setAccessLog(const std::string &log) { _access_log = log; }
 		void	setErrorLog(const std::string &log) { _error_log = log; }
-		void	setErrorPage(const std::string &error) { _error_page.insert(std::make_pair(atoi(error.c_str()), "/" + error + ".html")); }
+		void	setErrorPage(const std::string &error) { _error_page.insert(std::make_pair(atoi(error.c_str()), error + ".html")); }
 		void	setRoot(const std::string &root) { _root = root; }
 		void	setIndex(const std::string &index) { _index = index; }
 		void	setRoutes(const Route &route) { _routes.insert(std::make_pair(route.location, route)); }
@@ -88,5 +88,5 @@ class ServerConfig {
 
 		void	printServerConfig(void);
 		void	printServerConfigRoutes(void);
-
+		void	printRoute(const Route& route);
 };

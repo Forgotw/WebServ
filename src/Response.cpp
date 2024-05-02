@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 16:44:57 by lsohler           #+#    #+#             */
-/*   Updated: 2024/04/30 18:51:55 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/02 16:14:41 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,12 +74,14 @@ std::string getContentType(const std::string& filename) {
 std::string trimLastLoctation(std::string chaine) {
     if (chaine.empty())
         return chaine;
-    
+
     size_t pos = chaine.rfind('/');
+    if (pos == chaine.size() - 1 && chaine.size() != 1)
+        return chaine.substr(0, pos);
     if (pos == std::string::npos)
         return "/";
     
-    if (pos == 0)
+    if (pos == 0 && chaine.size() == 1)
         return "/";
     
     return chaine.substr(0, pos) + "/";
@@ -88,13 +90,17 @@ std::string trimLastLoctation(std::string chaine) {
 void	Response::splitSearchedURI(const std::string& input) {
 	std::string::size_type lastSlashPos = input.rfind('/');
 
-	if (lastSlashPos != std::string::npos) {
+	std::cout << "Request URI: " << input << std::endl;
+	//opendir()
+	if (lastSlashPos != std::string::npos || input.find('.') == std::string::npos) {
 		_searchedPage = input.substr(lastSlashPos + 1);
 		_searchedLocation = input.substr(0, lastSlashPos + 1);
 	} else {
 		_searchedPage = "";
 		_searchedLocation = input;
 	}
+	std::cout << "_searchedPage: " << _searchedPage << std::endl;
+	std::cout << "_searchedLocation: " << _searchedLocation << std::endl;
 }
 
 std::string getStringAfter(const std::string& str, const std::string& delimiter) {
@@ -140,20 +146,49 @@ unsigned int		Response::findLocation(void)
 				break;
 			}
 		} else {
+			std::cout << "searchLocation 1: " << searchedLocation << std::endl;
 			searchedLocation = trimLastLoctation(searchedLocation);
+			std::cout << "searchLocation 2: " << searchedLocation << std::endl;
 			it = routes.find(searchedLocation);
 		}
 		if (searchedLocation == "/" && routes.find(searchedLocation) == routes.end()) {
 			return 404;
 		}
 	}
+	_config.printRoute(_route);
 	if (_route.access == false) {
 		return 403;
 	}
 	if (!isAllowedMethod(_route, _request.getMethod())) {
 		return 405;
 	}
-	_isDir = (_request.getURI().path == _searchedLocation);
+	if (_route.location != _searchedLocation) {
+		_realPath = searchFindReplace(_searchedLocation, _route.location, _route.root) + _searchedPage;
+		std::cout << "IF 1: " << _realPath << std::endl;
+	} else {
+		_realPath = _route.root + _searchedPage;
+		std::cout << "ELSE: " << _realPath << std::endl;
+	}
+	// if opendir()jspquoi == -1 -> fichier
+	// else directory
+	DIR*	dir;
+
+	dir = opendir(_realPath.c_str());
+	if (dir == NULL)
+	{
+		_isDir = false;
+		std::cout << "it is not dir\n";
+	}
+	else
+	{
+		_isDir = true;
+		free(dir);
+		if (_realPath[_realPath.size()] != '/') {
+			_realPath += '/';
+		}
+		std::cout << "_realPath(is dir): " << _realPath << std::endl;
+	}
+	// _isDir = (_request.getURI().path == _searchedLocation);
 	if (_isDir && !_route.listing && _route.index.empty()) {
 		_isDir = false;
 		return 404;
@@ -196,7 +231,7 @@ void	Response::findErrorPage() {
 	std::map<int, std::string>::const_iterator	it = error_page.find(_returnCode);
 
 	if (it != error_page.end()) {
-		_realPath = _config.getRoot() + it->second;
+		_realPath = _config.getRoot() + "default_error/" + it->second;
 	} else {
 		_realPath =  DEFAULT_ERROR_PAGE;
 	}
@@ -228,6 +263,9 @@ void	Response::writeListingPage() {
                 httpResponse += "<li>";
 				httpResponse += "<a href=\"";
 				httpResponse += ent->d_name;
+				if (ent->d_type == DT_DIR) {
+					httpResponse += "/";
+				}
 				httpResponse += "\">";
                 httpResponse += ent->d_name;
 				httpResponse += "</a>";
@@ -297,8 +335,7 @@ void	Response::httpGetFormatter() {
     response << "Content-Length: " << htmlContent.length() << "\r\n";
     response << "\r\n";
 	_header = response.str();
-	response.clear();
-    response << htmlContent;
+	_body = htmlContent;
 }
 
 Response::Response(const ServerConfig &config, const Request &request) : 
@@ -313,33 +350,43 @@ Response::Response(const ServerConfig &config, const Request &request) :
 	_header(""),
 	_body(""),
 	_route() {
+	std::cout << "New Response object\n";
 	//		generate response:
 	//findLocation();
 	splitSearchedURI(_request.getURI().path);
 	_returnCode = findLocation();
+	std::cout << "_returnCode: " << _returnCode << std::endl;
+	std::cout << "_isDir: " << _isDir << std::endl;
 	if (_returnCode >= 403 || _returnCode == 0) {
 		findErrorPage();
 		httpGetFormatter();
 	} else {
-		if (_route.location != _searchedLocation) {
-			_realPath = searchFindReplace(_searchedLocation, _route.location, _route.root) + _searchedPage;
-		} else {
-			_realPath = _route.root + _searchedPage;
-		}
+		// if (_route.location != _searchedLocation) {
+		// 	_realPath = searchFindReplace(_searchedLocation, _route.location, _route.root) + _searchedPage;
+		// 	std::cout << "IF 1: " << _realPath << std::endl;
+		// } else {
+		// 	_realPath = _route.root + _searchedPage;
+		// 	std::cout << "ELSE: " << _realPath << std::endl;
+		// }
 		if (_isDir) {
+			std::cout << "IS DIR\n";
 			writeListingPage();
 		} else {
+			std::cout << "IS not DIR\n";
 			// trouver le path reel, si la searched location /bonjour/salut/ et que la route trouvée est /bonjour/
 			// remplacer /bonjour/ par root dans /bojour/salut/, et ensuite rajouter _searchedPage;
 			if (canOpen(_realPath)) {
+				std::cout << "CAN OPEN\n";
 				httpGetFormatter();
 			} else {
 				_returnCode = 404;
 				findErrorPage();
+				std::cout << "CANNOT OPEN: " << _realPath << std::endl;
 				httpGetFormatter();
 			}
 		}
 	}
+	std::cout << "New Response object finish\n";
 	//checkListing();
 	//checkFileType();
 	//
