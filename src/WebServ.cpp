@@ -1,6 +1,7 @@
 #include "WebServ.hpp"
 #include "Server.hpp"
 #include "Peer.hpp"
+#include "Response.hpp"
 
 #include <unistd.h>
 #include <sys/types.h>
@@ -202,15 +203,13 @@ void WebServ::handleHttp() {
 			// std::memset(&response, 0, sizeof(t_response));
 			std::string		httpResponse = "";
 
-			httpResponse = treatRequest(_peers[i].getRequest(), _peers[i].getServer());
-
-			//_peers[i].findRequestLocation(&response);
-			// handleErrors(&response);
-			// httpResponse = httpGetFormatter(response.requestcode, response.pathToRespFile);
-			//unsigned int	requestCode = _peers[i].treatRequest(&filename);
-			// httpResponse += _peers[i].generateResponseHeader(requestCode);
-			// httpResponse += _peers[i].generateResponseBody(filename);
-			this->_peers[i].setReponse(httpResponse);
+			const Server *server = _peers[i].getServer();
+			const ServerConfig config = server->getConfig();
+			const Request		request = *(_peers[i].getRequest());
+			Response	response(config, request);
+			this->_peers[i].setReponse(response.getResponse());
 		}
 	}
 }
+
+
