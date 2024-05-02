@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 16:44:57 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/02 16:14:41 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/02 17:42:25 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,7 +77,8 @@ std::string trimLastLoctation(std::string chaine) {
 
     size_t pos = chaine.rfind('/');
     if (pos == chaine.size() - 1 && chaine.size() != 1)
-        return chaine.substr(0, pos);
+        chaine = chaine.substr(0, pos);
+	pos = chaine.rfind('/');
     if (pos == std::string::npos)
         return "/";
     
@@ -174,17 +175,19 @@ unsigned int		Response::findLocation(void)
 	DIR*	dir;
 
 	dir = opendir(_realPath.c_str());
-	if (dir == NULL)
-	{
+	if (dir == NULL) {
 		_isDir = false;
 		std::cout << "it is not dir\n";
 	}
-	else
-	{
+	else {
 		_isDir = true;
-		free(dir);
-		if (_realPath[_realPath.size()] != '/') {
-			_realPath += '/';
+		closedir(dir);
+		// if (_realPath[_realPath.size()] != '/') {
+		// 	_realPath += '/';
+		// }
+		if (!_route.listing) {
+			_isDir = false;
+			_realPath += _route.index;
 		}
 		std::cout << "_realPath(is dir): " << _realPath << std::endl;
 	}
