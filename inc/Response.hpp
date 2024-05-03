@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/26 11:05:57 by lsohler           #+#    #+#             */
-/*   Updated: 2024/04/30 19:04:44 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/03 20:48:07 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,9 +38,7 @@ class Response {
 	private:
 			ServerConfig					_config;
 			Request							_request;
-			std::string						_contentType;
 			std::string						_realPath;
-			std::string						_filePath;
 			std::string						_searchedPage;
 			std::string						_searchedLocation;
 			unsigned int					_returnCode;
@@ -54,10 +52,12 @@ class Response {
 			unsigned int	findLocation(void);
 			void			findErrorPage(void);
 			void			writeListingPage(void);
+			unsigned int	recursiveSearchLocation(void);
 
 	public:
 		Response() {}
 		Response(const ServerConfig &config, const Request &request);
+		Response(const Route* foundRoute, std::string responseFilePath, unsigned int responseCode, const Request& request);
 		Response(const std::string& Response);
 		~Response() {}
 

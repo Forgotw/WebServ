@@ -1,7 +1,8 @@
 #include "Server.hpp"
 
-#include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <netdb.h>
 #include <unistd.h>
 
@@ -87,4 +88,131 @@ std::ostream &operator<<(std::ostream &os, Server const &ref) {
 	   << ", running: " << std::boolalpha << ref.isRunning() << std::noboolalpha
 	   << " }";
 	return os;
+}
+
+static std::string trimLastLoctation(std::string chaine) {
+    if (chaine.empty())
+        return chaine;
+
+    size_t pos = chaine.rfind('/');
+    if (pos == chaine.size() - 1 && chaine.size() != 1)
+        chaine = chaine.substr(0, pos);
+	pos = chaine.rfind('/');
+    if (pos == std::string::npos)
+        return "/";
+
+    if (pos == 0 && chaine.size() == 1)
+        return "/";
+
+    return chaine.substr(0, pos) + "/";
+}
+
+const Route*		Server::findLocation(std::string path) const {
+	const Route*		foundRoute = NULL;
+	const std::map<std::string, Route>&				routes = _config.getRoutes();
+	// std::string	searchedLocation = _searchedLocation;
+	while (true) {
+		std::map<std::string, Route>::const_iterator	it = routes.find(path);
+		if (it != routes.end()) {
+			if (it->second._return.first != 0) {
+				if (it->second._return.first == 404) {
+					// return 404;
+					return NULL;
+				}
+				// std::cout << "\n\nRoute rediction found:\n";
+				// _config.printRoute(it->second);
+				// std::cout << "foundRoute._return.second: " << foundRoute._return.second << std::endl;
+				foundRoute = &(routes.find(it->second._return.second))->second;
+				return foundRoute;
+				// redir = it->second._return.first;
+				// _config.printRoute(foundRoute);
+				// _realPath = searchFindReplace(_searchedLocation, foundRoute.location, foundRoute.root);
+				// return 301;
+			} else {
+				foundRoute = &it->second;
+				break;
+			}
+		} else {
+			std::cout << "searchLocation 1: " << path << std::endl;
+			path = trimLastLoctation(path);
+			std::cout << "searchLocation 2: " << path << std::endl;
+			it = routes.find(path);
+		}
+		if (path == "/" && routes.find(path) == routes.end()) {
+			// return 404;
+			return NULL;
+		}
+	}
+	return foundRoute;
+}
+
+std::string searchFindReplace(std::string& toSearch, const std::string& toFind, const std::string& toReplace) {
+    size_t pos = toSearch.find(toFind);
+    if (pos == std::string::npos)
+        return toSearch;
+
+    toSearch.replace(pos, toFind.length(), toReplace);
+    return toSearch;
+}
+
+std::string		Server::findRequestedPath(const Route* route, std::string path) const {
+	if (!route) {
+		return "";
+	}
+	std::string	realPath = route->root;
+	// if (route->_return.first == 301) {
+	// 	realPath = searchFindReplace(path, route->location, route->_return.second);
+	// }
+	if (route->location != path) {
+		realPath = searchFindReplace(path, route->location, route->root);
+		std::cout << "IF 1: " << realPath << std::endl;
+	}
+	struct stat	sb;
+	if (stat(realPath.c_str(), &sb) == -1) {
+		return "";
+		// throw std::runtime_error(std::string("stat: ") + std::strerror(errno));
+	}
+	//TODO: checker nginx
+	if (S_ISDIR(sb.st_mode) && !route->listing) {
+		realPath += route->index;
+	}
+	return realPath;
+}
+
+static bool	isAllowedMethod(std::vector<std::string> methods, std::string method) {
+	return std::find(methods.begin(), methods.end(), method) != methods.end();
+}
+
+static bool haveAccess(bool _access, std::string realPath) {
+	return _access && access(realPath.c_str(), R_OK) != -1;
+}
+
+unsigned int	Server::generateResponseCode(const Route* route, std::string realPath, const Request& request) const {
+	if (!route || realPath.empty()) {
+		return 404;
+	}
+	if (!haveAccess(route->access, realPath)) {
+		return 403;
+	}
+	if (!isAllowedMethod(route->methods, request.getMethod())) {
+		return 405;
+	}
+	return 200;
+}
+
+
+std::string		Server::generateReponseFilePath(unsigned int responseCode, std::string realPath) const {
+	std::string responseFilePath = realPath;
+
+	if (responseCode >= 400) {
+		std::map<int, std::string>					error_pages = _config.getErrorPage();
+		std::map<int, std::string>::const_iterator	it = error_pages.find(responseCode);
+
+		if (it != error_pages.end()) {
+			responseFilePath = _config.getRoot() + "default_error/" + it->second;
+		} else {
+			responseFilePath =  DEFAULT_ERROR_PAGE;
+		}
+	}
+	return responseFilePath;
 }

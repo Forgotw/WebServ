@@ -4,6 +4,9 @@
 #include <string>
 #include <ostream>
 #include "ServerConfig.hpp"
+#include "Request.hpp"
+
+struct Route;
 
 class Server {
 public:
@@ -17,8 +20,10 @@ public:
 	int					getSocket() const { return _sockfd; }
 	bool				isRunning() const { return _isRunning; }
 	const ServerConfig&	getConfig() const { return _config; }
-
-
+	const Route*		findLocation(std::string path) const;
+	std::string			findRequestedPath(const Route* route, std::string path) const;
+	unsigned int		generateResponseCode(const Route* route, std::string realPath, const Request& request) const;
+	std::string			generateReponseFilePath(unsigned int responseCode, std::string realPath) const;
 private:
 	int				_sockfd;
 	bool			_isRunning;

@@ -203,13 +203,19 @@ void WebServ::handleHttp() {
 			// std::memset(&response, 0, sizeof(t_response));
 			std::string		httpResponse = "";
 
-			const Server *server = _peers[i].getServer();
-			const ServerConfig config = server->getConfig();
+			const Server		*server = _peers[i].getServer();
+			const ServerConfig	config = server->getConfig();
 			const Request		request = *(_peers[i].getRequest());
-			Response	response(config, request);
-			this->_peers[i].setReponse(response.getResponse());
+			const Route*		foundRoute = server->findLocation(request.getURI().path);
+			std::string			realPath = server->findRequestedPath(foundRoute, request.getURI().path);
+			std::cout << "realPath: " << realPath << std::endl;
+			unsigned int		responseCode = server->generateResponseCode(foundRoute, realPath, request);
+			std::cout << "responseCode: " << responseCode << std::endl;
+			std::string			responseFilePath = server->generateReponseFilePath(responseCode, realPath);
+			Response			response(foundRoute, responseFilePath, responseCode, request);
+			_peers[i].setReponse(response.getResponse());
+			// Response	response(config, request);
+			// this->_peers[i].setReponse(response.getResponse());
 		}
 	}
 }
-
-

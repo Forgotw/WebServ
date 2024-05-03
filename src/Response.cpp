@@ -3,14 +3,17 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lray <lray@student.42lausanne.ch >         +#+  +:+       +#+        */
+/*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 16:44:57 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/03 17:41:52 by lray             ###   ########.fr       */
+/*   Updated: 2024/05/03 21:22:39 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Response.hpp"
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 bool canOpen(const std::string& path) {
     std::ifstream file(path);
@@ -21,7 +24,7 @@ bool canOpen(const std::string& path) {
     return false;
 }
 
-std::string searchFindReplace(std::string& toSearch, const std::string& toFind, const std::string& toReplace) {
+static std::string searchFindReplace(std::string& toSearch, const std::string& toFind, const std::string& toReplace) {
     size_t pos = toSearch.find(toFind);
     if (pos == std::string::npos)
         return toSearch;
@@ -133,8 +136,9 @@ bool				isAllowedMethod(Route routeFound, std::string method) {
 	return methodAllowed;
 }
 
-unsigned int		Response::findLocation(void)
-{
+unsigned int		Response::findLocation(void) {
+	//-----------------recursive Search Location-----------------
+	//
 	const std::map<std::string, Route>&				routes = _config.getRoutes();
 	unsigned int	redir = 0;
 	std::string	searchedLocation = _searchedLocation;
@@ -167,6 +171,7 @@ unsigned int		Response::findLocation(void)
 			return 404;
 		}
 	}
+	//---------------------------------------------------
 	_config.printRoute(_route);
 	if (_route.access == false) {
 		return 403;
@@ -341,9 +346,7 @@ Location: http://localhost:8081/dossier/
 Response::Response(const ServerConfig &config, const Request &request) :
 	_config(config),
 	_request(request),
-	_contentType(""),
 	_realPath(""),
-	_filePath(""),
 	_searchedPage(""),
 	_searchedLocation(""),
 	_returnCode(0),
@@ -376,4 +379,34 @@ Response::Response(const ServerConfig &config, const Request &request) :
 		}
 	}
 	std::cout << "New Response object finish\n";
+}
+
+bool	isListing(const Route* foundRoute, std::string responseFilePath) {
+	struct stat	sb;
+	if (stat(responseFilePath.c_str(), &sb) == -1) {
+		throw std::runtime_error(std::string("stat: ") + std::strerror(errno));
+	}
+	//TODO: checker nginx
+	if (S_ISDIR(sb.st_mode) && foundRoute->listing) {
+		return true;
+	}
+	return false;
+}
+//			Response			response(foundRoute, responseFilePath, responseCode, request);
+Response::Response(const Route* foundRoute, std::string responseFilePath, unsigned int responseCode, const Request& request) {
+	(void)foundRoute;
+	_request = request;
+
+	_realPath = responseFilePath;
+	_returnCode = responseCode;
+	if (_returnCode == 301) {
+		_header += "HTTP/1.1 301 Moved Permanently\r\n";
+		_header += "Location: ";
+		_header += foundRoute->_return.second;
+		_header += "\r\n";
+	} else if (isListing(foundRoute, responseFilePath)) {
+		writeListingPage();
+	} else {
+		httpGetFormatter();
+	}
 }

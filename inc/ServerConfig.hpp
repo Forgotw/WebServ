@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerConfig.hpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lray <lray@student.42lausanne.ch >         +#+  +:+       +#+        */
+/*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/12 16:25:31 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/03 16:23:09 by lray             ###   ########.fr       */
+/*   Updated: 2024/05/03 19:08:16 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,6 +86,7 @@ class ServerConfig {
 		const std::map<std::string, Route>&	getRoutes() const { return _routes; }
 		/*-----Set Utils-----*/
 
+		/*--------- Debugging --------*/
 		void	printServerConfig(void);
 		void	printServerConfigRoutes(void);
 		void	printRoute(const Route& route);
