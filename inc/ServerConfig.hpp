@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerConfig.hpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
+/*   By: efailla <efailla@42Lausanne.ch>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/12 16:25:31 by lsohler           #+#    #+#             */
-/*   Updated: 2024/04/15 20:26:33 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/02 20:38:25 by efailla          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,14 +29,15 @@
 unsigned int	maxBodySizeConverter(const std::string &size);
 
 struct Route {
-	std::string					location;
-	std::vector<std::string>	methods;
-	std::string					root;
-	std::string					cgi;
-	std::string					upload;
-	std::string					index;
-	bool						access;
-	bool						listing;
+	std::string								location;
+	std::vector<std::string>				methods;
+	std::string								root;
+	std::string								cgi;
+	std::string								upload;
+	std::string								index;
+	std::pair<unsigned int, std::string>	_return;
+	bool									access;
+	bool									listing;
 };
 
 class ServerConfig {
@@ -87,5 +88,6 @@ class ServerConfig {
 
 		void	printServerConfig(void);
 		void	printServerConfigRoutes(void);
+		void	printRoute(const Route& route);
 
 };

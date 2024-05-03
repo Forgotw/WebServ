@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerConfig.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
+/*   By: efailla <efailla@42Lausanne.ch>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/12 16:26:12 by lsohler           #+#    #+#             */
-/*   Updated: 2024/04/15 20:27:31 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/02 20:37:36 by efailla          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -378,4 +378,19 @@ void	ServerConfig::printServerConfig(void) {
 		std::cout << "	Access: " << (route.access ? "true" : "false") << std::endl;
 		std::cout << "	Listing: " << (route.listing ? "true" : "false") << std::endl;
 	}
+}
+
+void	ServerConfig::printRoute(const Route& route) {
+	std::cout << "  Location: " << route.location << std::endl;
+	std::cout << "	Methods:";
+	for (size_t i = 0; i < route.methods.size(); ++i) {
+			std::cout << " " << route.methods[i];
+	}
+	std::cout << std::endl;
+	std::cout << "	Root: " << route.root << std::endl;
+	std::cout << "	CGI: " << route.cgi << std::endl;
+	std::cout << "	Upload: " << route.upload << std::endl;
+	std::cout << "	Index: " << route.index << std::endl;
+	std::cout << "	Access: " << (route.access ? "true" : "false") << std::endl;
+	std::cout << "	Listing: " << (route.listing ? "true" : "false") << std::endl;
 }
