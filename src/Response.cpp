@@ -6,7 +6,7 @@
 /*   By: lray <lray@student.42lausanne.ch >         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 16:44:57 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/03 17:21:00 by lray             ###   ########.fr       */
+/*   Updated: 2024/05/03 17:41:52 by lray             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -326,7 +326,7 @@ Location: http://localhost:8081/dossier/
 	*/
 	if (_returnCode == 301) {
 		response << "\r\n";
-		response << "Location: http://localhost:8080/database/\r\n";
+		response << "Location: /database/\r\n";
 		response << "\r\n";
 	} else {
 		response << "\r\n";
@@ -355,7 +355,7 @@ Response::Response(const ServerConfig &config, const Request &request) :
 	_returnCode = findLocation();
 	std::cout << "_returnCode: " << _returnCode << std::endl;
 	std::cout << "_isDir: " << _isDir << std::endl;
-	if (_returnCode >= 403 || _returnCode == 0) {
+	if (_returnCode >= 400 || _returnCode == 0) {
 		findErrorPage();
 		httpGetFormatter();
 	} else {
