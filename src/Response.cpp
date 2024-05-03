@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 16:44:57 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/02 18:33:24 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/03 14:27:27 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -145,7 +145,10 @@ unsigned int		Response::findLocation(void)
 				if (it->second._return.first == 404) {
 					return 404;
 				}
-				_route = (routes.find(_route._return.second))->second;
+				// std::cout << "\n\nRoute rediction found:\n";
+				// _config.printRoute(it->second);
+				// std::cout << "_route._return.second: " << _route._return.second << std::endl;
+				_route = (routes.find(it->second._return.second))->second;
 				redir = it->second._return.first;
 				break;
 			} else {

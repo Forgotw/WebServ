@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/12 16:26:12 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/02 15:35:41 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/03 14:18:46 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -175,12 +175,14 @@ void	locationHandleIndex(Route &route, std::vector<std::string> &tokens) {
 }
 
 void	locationHandleReturn(Route &route, std::vector<std::string> &tokens) {
+	std::cout << "Location Handle Return:   ";
 	tokens.erase(tokens.begin());
 	while (!tokens.empty()) {
 		if (*tokens.begin() == ";") {
 			tokens.erase(tokens.begin());
 			break;
 		}
+		std::cout << *tokens.begin();
 		route._return.first = atoi((*tokens.begin()).c_str());
 		if (*tokens.begin() == ";") {
 			route._return.second = "";
@@ -188,7 +190,9 @@ void	locationHandleReturn(Route &route, std::vector<std::string> &tokens) {
 			break;
 		}
 		tokens.erase(tokens.begin());
+		std::cout << *tokens.begin();
 		route._return.second = (*tokens.begin());
+		tokens.erase(tokens.begin());
 	}
 }
 
@@ -388,6 +392,7 @@ void	ServerConfig::printRoute(const Route& route) {
 	std::cout << "	Index: " << route.index << std::endl;
 	std::cout << "	Access: " << (route.access ? "true" : "false") << std::endl;
 	std::cout << "	Listing: " << (route.listing ? "true" : "false") << std::endl;
+	std::cout << "	Return: " << route._return.first << " " << route._return.second << std::endl;
 }
 
 void	ServerConfig::printServerConfig(void) {
