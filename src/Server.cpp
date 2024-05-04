@@ -122,16 +122,18 @@ const Route*		Server::findLocation(std::string path) const {
 				// std::cout << "\n\nRoute rediction found:\n";
 				// _config.printRoute(it->second);
 				// std::cout << "foundRoute._return.second: " << foundRoute._return.second << std::endl;
-				foundRoute = &(routes.find(it->second._return.second))->second;
-				return foundRoute;
+				// foundRoute = &(routes.find(it->second._return.second))->second;
+				foundRoute = &it->second;
+				break ;
 				// redir = it->second._return.first;
 				// _config.printRoute(foundRoute);
 				// _realPath = searchFindReplace(_searchedLocation, foundRoute.location, foundRoute.root);
 				// return 301;
-			} else {
-				foundRoute = &it->second;
-				break;
-			}
+			} 
+			// else {
+			// 	foundRoute = &it->second;
+			// 	break;
+			// }
 		} else {
 			std::cout << "searchLocation 1: " << path << std::endl;
 			path = trimLastLoctation(path);
@@ -188,6 +190,9 @@ static bool haveAccess(bool _access, std::string realPath) {
 }
 
 unsigned int	Server::generateResponseCode(const Route* route, std::string realPath, const Request& request) const {
+	if (route && route->_return.first == 301) {
+		return 301;
+	}
 	if (!route || realPath.empty()) {
 		return 404;
 	}

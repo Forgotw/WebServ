@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerConfig.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lray <lray@student.42lausanne.ch >         +#+  +:+       +#+        */
+/*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/12 16:26:12 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/03 16:23:06 by lray             ###   ########.fr       */
+/*   Updated: 2024/05/04 13:06:00 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,7 +52,7 @@ void	printTokenUntilSemicolon(std::vector<std::string> &tokens) {
 
 typedef void (ServerConfig::*SetterFunction)(const std::string&);
 
-void tokenSetter(std::vector<std::string>& tokens, ServerConfig &config, SetterFunction setter) {
+static void tokenSetter(std::vector<std::string>& tokens, ServerConfig &config, SetterFunction setter) {
 	tokens.erase(tokens.begin());
 	while (!tokens.empty()) {
 		if (*tokens.begin() == ";") {
@@ -175,7 +175,6 @@ void	locationHandleIndex(Route &route, std::vector<std::string> &tokens) {
 }
 
 void	locationHandleReturn(Route &route, std::vector<std::string> &tokens) {
-	std::cout << "Location Handle Return:   ";
 	tokens.erase(tokens.begin());
 	while (!tokens.empty()) {
 		if (*tokens.begin() == ";") {
@@ -282,6 +281,7 @@ void	handleLocation(ServerConfig &config, std::vector<std::string> &tokens) {
 			tokenNotRecognized(tokens);
 		}
 	}
+	Location	newLocation()
 	config.setRoutes(new_route);
 }
 

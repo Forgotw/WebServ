@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/12 16:25:31 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/03 19:08:16 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/04 13:03:44 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <Location.hpp>
 
 #define DEF_MAX_BODY_SIZE 10 * 1024
 #define DEFAULT_ERROR_PAGE "www/default_error/404.html"
@@ -53,6 +54,7 @@ class ServerConfig {
 		std::string						_root;
 		std::string						_index;
 		std::map<std::string, Route>	_routes;
+		std::map<std::string, Location>	_locations;
 
 	public:
 		ServerConfig(void);
@@ -72,6 +74,7 @@ class ServerConfig {
 		void	setRoot(const std::string &root) { _root = root; }
 		void	setIndex(const std::string &index) { _index = index; }
 		void	setRoutes(const Route &route) { _routes.insert(std::make_pair(route.location, route)); }
+		void	setLocations(const Location &location) { _locations.insert(std::make_pair(location.getLocationName(), location)); }
 
 		/*-----Get-----*/
 		const std::string&					getIP() const { return _ip; }

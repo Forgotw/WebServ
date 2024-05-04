@@ -204,11 +204,14 @@ void WebServ::handleHttp() {
 			std::string		httpResponse = "";
 
 			const Server		*server = _peers[i].getServer();
-			const ServerConfig	config = server->getConfig();
+			ServerConfig	config = server->getConfig();
 			const Request		request = *(_peers[i].getRequest());
 			const Route*		foundRoute = server->findLocation(request.getURI().path);
+			std::cout << "foundRoute:\n";
+			config.printRoute(*foundRoute);
 			std::string			realPath = server->findRequestedPath(foundRoute, request.getURI().path);
 			std::cout << "realPath: " << realPath << std::endl;
+			std::cout << "Return: " << foundRoute->_return.first << " " << foundRoute->_return.second << std::endl;
 			unsigned int		responseCode = server->generateResponseCode(foundRoute, realPath, request);
 			std::cout << "responseCode: " << responseCode << std::endl;
 			std::string			responseFilePath = server->generateReponseFilePath(responseCode, realPath);
