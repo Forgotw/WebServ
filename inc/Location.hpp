@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/04 11:24:57 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/04 14:13:16 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/04 16:30:02 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,10 +35,12 @@ class Location {
 		std::pair<unsigned int, std::string>	_return;
 		bool									_access;
 		bool									_listing;
+		bool									_allocated;
 
 	public:
 
 		Location(void);
+		Location(unsigned int redirCode, std::string redirPath);
 		Location(const Location& other);
 		Location(std::vector<std::string> &tokens);
 		~Location(void);
@@ -65,6 +67,7 @@ class Location {
 		const std::pair<unsigned int, std::string>& getReturn() const { return _return; }
 		bool getAccess() const { return _access; }
 		bool getListing() const { return _listing; }
+		bool getAllocated() const { return _allocated; }
 
 		/*-----Debug-----*/
 		void	printLocation(void) const;

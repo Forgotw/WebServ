@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 16:44:57 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/04 14:05:46 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/04 16:56:56 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -158,13 +158,13 @@ void	Response::httpGetFormatter() {
 	_body = htmlContent;
 }
 
-bool	isListing(const Location* foundLocation, std::string responseFilePath) {
+bool	isListing(const Location* foundLocation, std::string& responseFilePath) {
 	struct stat	sb;
 	if (stat(responseFilePath.c_str(), &sb) == -1) {
 		throw std::runtime_error(std::string("stat: ") + std::strerror(errno));
 	}
 	//TODO: checker nginx
-	if (S_ISDIR(sb.st_mode) && foundLocation->getListing()) {
+	if (S_ISDIR(sb.st_mode) && foundLocation->getListing() && foundLocation->getIndex().empty()) {
 		return true;
 	}
 	return false;
@@ -180,6 +180,9 @@ Response::Response(const Location* foundLocation, std::string responseFilePath, 
 		_header += "Location: ";
 		_header += foundLocation->getReturn().second;
 		_header += "\r\n";
+		if (foundLocation->getAllocated()) {
+			delete foundLocation;
+		}
 	} else if (isListing(foundLocation, responseFilePath)) {
 		writeListingPage();
 	} else {

@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/04 11:25:41 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/04 14:17:50 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/04 16:26:57 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,8 +20,8 @@ Location::Location() :
 	_upload(""),
 	_index(""),
 	_return(std::make_pair(0, "")),
-	_access(""),
-	_listing() {
+	_access(true),
+	_listing(false) {
 }
 
 Location::Location(const Location& other) :
@@ -49,6 +49,7 @@ Location	&Location::operator=(const Location& other) {
 		_return = other._return;
 		_access = other._access;
 		_listing = other._listing;
+		_allocated = other._allocated;
 	}
 	return *this;
 }
@@ -148,6 +149,19 @@ void	tokenLocationNotRecognized(std::vector<std::string> &tokens) {
 	std::cerr << std::endl;
 }
 
+Location::Location(unsigned int redirCode, std::string redirPath) :
+	_locationName(""),
+	_methods(),
+	_root(""),
+	_cgi(""),
+	_upload(""),
+	_index(""),
+	_return(std::make_pair(redirCode, redirPath)),
+	_access(true),
+	_listing(false),
+	_allocated(true) {
+}
+
 Location::Location(std::vector<std::string> &tokens): 
 	_locationName(""),
 	_methods(),
@@ -156,10 +170,10 @@ Location::Location(std::vector<std::string> &tokens):
 	_upload(""),
 	_index(""),
 	_return(std::make_pair(0, "")),
-	_access(""),
-	_listing() 
+	_access(true),
+	_listing(false),
+	_allocated(false) 
 {
-	std::cout << "Locations Constructor\n";
 	std::map<std::string, locationHandler> map = locationMap();
 
 	tokens.erase(tokens.begin());

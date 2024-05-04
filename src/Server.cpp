@@ -108,18 +108,37 @@ static std::string trimLastLoctation(std::string chaine) {
 }
 
 const Location*		Server::findLocation(std::string path) const {
-	_config.printServerConfig();
 	const std::map<std::string, Location>&				locations = _config.getLocations();
 	while (true) {
 		std::map<std::string, Location>::const_iterator	it = locations.find(path);
+		if (path == "/" && it == locations.end()) {
+			return NULL;
+		}
+		std::cout << "Searching: " << path << std::endl;
 		if (it != locations.end()) {
 			return &it->second;
 		} else {
-			path = trimLastLoctation(path);
-			it = locations.find(path);
-		}
-		if (path == "/" && locations.find(path) == locations.end()) {
-			return NULL;
+			// Check si / a la fin de find avec un slash et inversement
+			bool	checkAlternatePath = false;
+			std::cout << "Path check: " << path << std::endl;
+			if (path[path.size() - 1] == '/') {
+				std::cout << "Path fini par /\n";
+				path.erase(path.size() - 1);
+				checkAlternatePath = true;
+			} else {
+				std::cout << "Path ne fini PAS par /\n";
+				path += "/";
+				checkAlternatePath = true;
+			}
+			std::cout << "New Path after atlernate: " << path << std::endl;
+			if (locations.find(path) != locations.end()) {
+				std::cout << "WARNING: new !\n";
+				return new Location(301, path);
+			} else {
+				path = trimLastLoctation(path);
+				std::cout << "Path after trim: " << path << std::endl;
+			}
+			// it = locations.find(path);
 		}
 	}
 	return NULL;
@@ -148,7 +167,7 @@ std::string		Server::findRequestedPath(const Location* location, std::string pat
 		return "";
 	}
 	//TODO: checker nginx
-	if (S_ISDIR(sb.st_mode) && !location->getListing()) {
+	if (S_ISDIR(sb.st_mode) && location->getListing() && !location->getIndex().empty()) {
 		realPath += location->getIndex();
 	}
 	return realPath;
