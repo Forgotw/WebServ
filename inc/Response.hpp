@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/26 11:05:57 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/03 20:48:07 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/04 14:07:58 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,10 +29,6 @@
 #include <dirent.h>
 #include <unistd.h>
 
-struct Route;
-// _request.getURI().path = /bonjour/salut/
-// _searchedPage = "";
-// _searchedLocation = /bonjour/salut/
 class Response {
 
 	private:
@@ -44,7 +40,8 @@ class Response {
 			unsigned int					_returnCode;
 			std::string						_header;
 			std::string						_body;
-			Route							_route;
+			// Route							_route;
+			// Location						_location;
 			bool							_isDir;
 
 			void			splitSearchedURI(const std::string& input);
@@ -57,7 +54,7 @@ class Response {
 	public:
 		Response() {}
 		Response(const ServerConfig &config, const Request &request);
-		Response(const Route* foundRoute, std::string responseFilePath, unsigned int responseCode, const Request& request);
+		Response(const Location* foundLocation, std::string responseFilePath, unsigned int responseCode, const Request& request);
 		Response(const std::string& Response);
 		~Response() {}
 

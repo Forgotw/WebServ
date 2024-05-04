@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/04 11:25:41 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/04 13:05:02 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/04 14:17:50 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -159,6 +159,7 @@ Location::Location(std::vector<std::string> &tokens):
 	_access(""),
 	_listing() 
 {
+	std::cout << "Locations Constructor\n";
 	std::map<std::string, locationHandler> map = locationMap();
 
 	tokens.erase(tokens.begin());
@@ -186,7 +187,7 @@ Location::Location(std::vector<std::string> &tokens):
 	}
 }
 
-void	Location::printLocation() {
+void	Location::printLocation() const {
 	std::cout << "  Location: " << _locationName << std::endl;
 	std::cout << "	Methods:";
 	for (size_t i = 0; i < _methods.size(); ++i) {

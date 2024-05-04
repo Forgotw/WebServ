@@ -91,92 +91,65 @@ std::ostream &operator<<(std::ostream &os, Server const &ref) {
 }
 
 static std::string trimLastLoctation(std::string chaine) {
-    if (chaine.empty())
-        return chaine;
+	if (chaine.empty())
+		return chaine;
 
-    size_t pos = chaine.rfind('/');
-    if (pos == chaine.size() - 1 && chaine.size() != 1)
-        chaine = chaine.substr(0, pos);
+	size_t pos = chaine.rfind('/');
+	if (pos == chaine.size() - 1 && chaine.size() != 1)
+		chaine = chaine.substr(0, pos);
 	pos = chaine.rfind('/');
-    if (pos == std::string::npos)
-        return "/";
+	if (pos == std::string::npos)
+		return "/";
 
-    if (pos == 0 && chaine.size() == 1)
-        return "/";
+	if (pos == 0 && chaine.size() == 1)
+		return "/";
 
-    return chaine.substr(0, pos) + "/";
+	return chaine.substr(0, pos) + "/";
 }
 
-const Route*		Server::findLocation(std::string path) const {
-	const Route*		foundRoute = NULL;
-	const std::map<std::string, Route>&				routes = _config.getRoutes();
-	// std::string	searchedLocation = _searchedLocation;
+const Location*		Server::findLocation(std::string path) const {
+	_config.printServerConfig();
+	const std::map<std::string, Location>&				locations = _config.getLocations();
 	while (true) {
-		std::map<std::string, Route>::const_iterator	it = routes.find(path);
-		if (it != routes.end()) {
-			if (it->second._return.first != 0) {
-				if (it->second._return.first == 404) {
-					// return 404;
-					return NULL;
-				}
-				// std::cout << "\n\nRoute rediction found:\n";
-				// _config.printRoute(it->second);
-				// std::cout << "foundRoute._return.second: " << foundRoute._return.second << std::endl;
-				// foundRoute = &(routes.find(it->second._return.second))->second;
-				foundRoute = &it->second;
-				break ;
-				// redir = it->second._return.first;
-				// _config.printRoute(foundRoute);
-				// _realPath = searchFindReplace(_searchedLocation, foundRoute.location, foundRoute.root);
-				// return 301;
-			} 
-			// else {
-			// 	foundRoute = &it->second;
-			// 	break;
-			// }
+		std::map<std::string, Location>::const_iterator	it = locations.find(path);
+		if (it != locations.end()) {
+			return &it->second;
 		} else {
-			std::cout << "searchLocation 1: " << path << std::endl;
 			path = trimLastLoctation(path);
-			std::cout << "searchLocation 2: " << path << std::endl;
-			it = routes.find(path);
+			it = locations.find(path);
 		}
-		if (path == "/" && routes.find(path) == routes.end()) {
-			// return 404;
+		if (path == "/" && locations.find(path) == locations.end()) {
 			return NULL;
 		}
 	}
-	return foundRoute;
+	return NULL;
 }
 
 std::string searchFindReplace(std::string& toSearch, const std::string& toFind, const std::string& toReplace) {
-    size_t pos = toSearch.find(toFind);
-    if (pos == std::string::npos)
-        return toSearch;
+	size_t pos = toSearch.find(toFind);
+	if (pos == std::string::npos)
+		return toSearch;
 
-    toSearch.replace(pos, toFind.length(), toReplace);
-    return toSearch;
+	toSearch.replace(pos, toFind.length(), toReplace);
+	return toSearch;
 }
 
-std::string		Server::findRequestedPath(const Route* route, std::string path) const {
-	if (!route) {
+std::string		Server::findRequestedPath(const Location* location, std::string path) const {
+	if (!location) {
 		return "";
 	}
-	std::string	realPath = route->root;
-	// if (route->_return.first == 301) {
-	// 	realPath = searchFindReplace(path, route->location, route->_return.second);
-	// }
-	if (route->location != path) {
-		realPath = searchFindReplace(path, route->location, route->root);
+	std::string	realPath = location->getRoot();
+	if (location->getLocationName() != path) {
+		realPath = searchFindReplace(path, location->getLocationName(), location->getRoot());
 		std::cout << "IF 1: " << realPath << std::endl;
 	}
 	struct stat	sb;
 	if (stat(realPath.c_str(), &sb) == -1) {
 		return "";
-		// throw std::runtime_error(std::string("stat: ") + std::strerror(errno));
 	}
 	//TODO: checker nginx
-	if (S_ISDIR(sb.st_mode) && !route->listing) {
-		realPath += route->index;
+	if (S_ISDIR(sb.st_mode) && !location->getListing()) {
+		realPath += location->getIndex();
 	}
 	return realPath;
 }
@@ -189,17 +162,25 @@ static bool haveAccess(bool _access, std::string realPath) {
 	return _access && access(realPath.c_str(), R_OK) != -1;
 }
 
-unsigned int	Server::generateResponseCode(const Route* route, std::string realPath, const Request& request) const {
-	if (route && route->_return.first == 301) {
-		return 301;
+static bool urlContainRelativePath(std::string realPath) {
+	return realPath.find("/.") != std::string::npos || realPath.find("../") != std::string::npos || realPath.find("./") != std::string::npos;
+}
+
+unsigned int	Server::generateResponseCode(const Location* location, std::string realPath, const Request& request) const {
+	if (location && location->getReturn().first > 0) {
+		return location->getReturn().first;
 	}
-	if (!route || realPath.empty()) {
+	if (urlContainRelativePath(request.getURI().path)) {
+		std::cout << "Shenanigans detected !\n";
+		return 401;
+	}
+	if (!location || realPath.empty()) {
 		return 404;
 	}
-	if (!haveAccess(route->access, realPath)) {
+	if (!haveAccess(location->getAccess(), realPath)) {
 		return 403;
 	}
-	if (!isAllowedMethod(route->methods, request.getMethod())) {
+	if (!isAllowedMethod(location->getMethods(), request.getMethod())) {
 		return 405;
 	}
 	return 200;

@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/12 16:26:12 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/04 13:06:00 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/04 14:27:46 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -113,176 +113,9 @@ void	tokenNotRecognized(std::vector<std::string> &tokens) {
 	std::cerr << std::endl;
 }
 
-/*------Handle Location------------*/
-void	locationHandleMethods(Route &route, std::vector<std::string> &tokens) {
-	tokens.erase(tokens.begin());
-	while (!tokens.empty()) {
-		if (*tokens.begin() == ";") {
-			tokens.erase(tokens.begin());
-			break;
-		}
-		route.methods.push_back(*tokens.begin());
-		tokens.erase(tokens.begin());
-	}
-}
-
-void	locationHandleRoot(Route &route, std::vector<std::string> &tokens) {
-	tokens.erase(tokens.begin());
-	while (!tokens.empty()) {
-		if (*tokens.begin() == ";") {
-			tokens.erase(tokens.begin());
-			break;
-		}
-		route.root = *tokens.begin();
-		tokens.erase(tokens.begin());
-	}
-}
-
-void	locationHandleCgi(Route &route, std::vector<std::string> &tokens) {
-	tokens.erase(tokens.begin());
-	while (!tokens.empty()) {
-		if (*tokens.begin() == ";") {
-			tokens.erase(tokens.begin());
-			break;
-		}
-		route.cgi = *tokens.begin();
-		tokens.erase(tokens.begin());
-	}
-}
-
-void	locationHandleUpload(Route &route, std::vector<std::string> &tokens) {
-	tokens.erase(tokens.begin());
-	while (!tokens.empty()) {
-		if (*tokens.begin() == ";") {
-			tokens.erase(tokens.begin());
-			break;
-		}
-		route.upload = *tokens.begin();
-		tokens.erase(tokens.begin());
-	}
-}
-
-void	locationHandleIndex(Route &route, std::vector<std::string> &tokens) {
-	tokens.erase(tokens.begin());
-	while (!tokens.empty()) {
-		if (*tokens.begin() == ";") {
-			tokens.erase(tokens.begin());
-			break;
-		}
-		route.index = *tokens.begin();
-		tokens.erase(tokens.begin());
-	}
-}
-
-void	locationHandleReturn(Route &route, std::vector<std::string> &tokens) {
-	tokens.erase(tokens.begin());
-	while (!tokens.empty()) {
-		if (*tokens.begin() == ";") {
-			tokens.erase(tokens.begin());
-			break;
-		}
-		std::cout << *tokens.begin();
-		route._return.first = atoi((*tokens.begin()).c_str());
-		if (*tokens.begin() == ";") {
-			route._return.second = "";
-			tokens.erase(tokens.begin());
-			break;
-		}
-		tokens.erase(tokens.begin());
-		std::cout << *tokens.begin();
-		route._return.second = (*tokens.begin());
-		tokens.erase(tokens.begin());
-	}
-}
-
-void	locationHandleAccess(Route &route, std::vector<std::string> &tokens) {
-	tokens.erase(tokens.begin());
-	while (!tokens.empty()) {
-		if (*tokens.begin() == ";") {
-			tokens.erase(tokens.begin());
-			break;
-		}
-		if (*tokens.begin() == "true") {
-			route.access = true;
-		}
-		else {
-			route.access = false;
-		}
-		tokens.erase(tokens.begin());
-	}
-}
-
-void	locationHandleListing(Route &route, std::vector<std::string> &tokens) {
-	tokens.erase(tokens.begin());
-	while (!tokens.empty()) {
-		if (*tokens.begin() == ";") {
-			tokens.erase(tokens.begin());
-			break;
-		}
-		if (*tokens.begin() == "true") {
-			route.listing = true;
-		}
-		else {
-			route.listing = false;
-		}
-		tokens.erase(tokens.begin());
-	}
-}
-
-typedef void (*locationHandler)(Route&, std::vector<std::string>&);
-
-std::map<std::string, locationHandler> locationMap() {
-	std::map<std::string, locationHandler> myMap;
-
-	myMap["methods"] = &locationHandleMethods;
-	myMap["root"] = &locationHandleRoot;
-	myMap["cgi"] = &locationHandleCgi;
-	myMap["upload"] = &locationHandleUpload;
-	myMap["index"] = &locationHandleIndex;
-	myMap["return"] = &locationHandleReturn;
-	myMap["access"] = &locationHandleAccess;
-	myMap["listing"] = &locationHandleListing;
-
-	return myMap;
-}
-
 void	handleLocation(ServerConfig &config, std::vector<std::string> &tokens) {
-	Route	new_route;
-	std::map<std::string, locationHandler> map = locationMap();
-
-	new_route.root = "";
-	new_route.cgi = "";
-	new_route.upload = "";
-	new_route.index = "";
-	new_route._return.first = 0;
-	new_route._return.second = "";
-	new_route.access = true;
-	new_route.listing = false;
-	tokens.erase(tokens.begin());
-	if (*tokens.begin() != "{") {
-		new_route.location = *tokens.begin();
-		tokens.erase(tokens.begin());
-	}
-	else {
-		std::cerr << "Location parsing error." << std::endl;
-		exit(1);
-	}
-	tokens.erase(tokens.begin());
-	while (!tokens.empty()) {
-		if (map.find(*tokens.begin()) != map.end()) {
-			locationHandler function = map[*tokens.begin()];
-			function(new_route, tokens);
-		}
-		else if (*tokens.begin() == "}") {
-			tokens.erase(tokens.begin());
-			break ;
-		}
-		else {
-			tokenNotRecognized(tokens);
-		}
-	}
-	Location	newLocation()
-	config.setRoutes(new_route);
+	Location	newLocation(tokens);
+	config.setLocations(newLocation);
 }
 
 typedef void (*caseHandler)(ServerConfig&, std::vector<std::string>&);
@@ -318,7 +151,8 @@ ServerConfig::ServerConfig(std::vector<std::string> tokens) :
 	_error_log(""),
 	_root(""),
 	_index(""),
-	_routes() {
+	_locations()
+{
 	std::map<std::string, caseHandler> map = caseMap();
 	// for (std::vector<std::string>::iterator it = tokens.begin(); it != tokens.end(); ++it) {
 	while (!tokens.empty()) {
@@ -343,7 +177,7 @@ ServerConfig::ServerConfig(void) :
 	_error_page(),
 	_root(""),
 	_index(""),
-	_routes() {
+	_locations() {
 }
 
 ServerConfig::ServerConfig(ServerConfig const &other) :
@@ -356,7 +190,7 @@ ServerConfig::ServerConfig(ServerConfig const &other) :
 	_error_page(other._error_page),
 	_root(other._root),
 	_index(other._index),
-	_routes(other._routes) {
+	_locations(other._locations) {
 }
 
 ServerConfig::~ServerConfig(void) {
@@ -373,29 +207,15 @@ ServerConfig	&ServerConfig::operator=(ServerConfig const &other) {
 		_error_page = other._error_page;
 		_root = other._root;
 		_index = other._index;
-		_routes = other._routes;
+		_locations = other._locations;
 	}
 	return *this;
 }
 
 /*--------------TESTING FUNCTIONS--------------*/
-void	ServerConfig::printRoute(const Route& route) {
-	std::cout << "  Location: " << route.location << std::endl;
-	std::cout << "	Methods:";
-	for (size_t i = 0; i < route.methods.size(); ++i) {
-			std::cout << " " << route.methods[i];
-	}
-	std::cout << std::endl;
-	std::cout << "	Root: " << route.root << std::endl;
-	std::cout << "	CGI: " << route.cgi << std::endl;
-	std::cout << "	Upload: " << route.upload << std::endl;
-	std::cout << "	Index: " << route.index << std::endl;
-	std::cout << "	Access: " << (route.access ? "true" : "false") << std::endl;
-	std::cout << "	Listing: " << (route.listing ? "true" : "false") << std::endl;
-	std::cout << "	Return: " << route._return.first << " " << route._return.second << std::endl;
-}
 
-void	ServerConfig::printServerConfig(void) {
+
+void	ServerConfig::printServerConfig(void) const {
 	std::cout << "IP:" << _ip << std::endl;
 	std::cout << "Port:" << _port << std::endl;
 	std::cout << "Client Max Body Size: " << _client_max_body_size << std::endl;
@@ -405,9 +225,8 @@ void	ServerConfig::printServerConfig(void) {
 	std::cout << "Root: " << _root << std::endl;
 	std::cout << "Index:" << _index << std::endl;
 	std::cout << std::endl;
-	std::cout << "Routes:" << std::endl;
-	for (std::map<std::string, Route>::const_iterator it = _routes.begin(); it != _routes.end(); ++it) {
-		const Route& route = it->second;
-		printRoute(route);
+	std::cout << "Locations:" << std::endl;
+	for (std::map<std::string, Location>::const_iterator it = _locations.begin(); it != _locations.end(); ++it) {
+		it->second.printLocation();
 	}
 }

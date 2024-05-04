@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/04 11:24:57 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/04 13:04:31 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/04 14:13:16 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,7 +40,7 @@ class Location {
 
 		Location(void);
 		Location(const Location& other);
-		Location::Location(std::vector<std::string> &tokens);
+		Location(std::vector<std::string> &tokens);
 		~Location(void);
 		Location	&operator=(const Location& other);
 	
@@ -56,7 +56,7 @@ class Location {
 		void setListing(const std::string& listing) { _listing = true; if (listing == "false") _listing = false; }
 
 		/*-----Get-----*/
-		const std::string& getLocation() const { return _locationName; }
+		const std::string& getLocationName() const { return _locationName; }
 		const std::vector<std::string>& getMethods() const { return _methods; }
 		const std::string& getRoot() const { return _root; }
 		const std::string& getCgi() const { return _cgi; }
@@ -67,5 +67,5 @@ class Location {
 		bool getListing() const { return _listing; }
 
 		/*-----Debug-----*/
-		void	printLocation(void);
+		void	printLocation(void) const;
 };
