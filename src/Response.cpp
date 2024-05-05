@@ -6,7 +6,7 @@
 /*   By: lray <lray@student.42lausanne.ch >         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 16:44:57 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/05 13:16:15 by lray             ###   ########.fr       */
+/*   Updated: 2024/05/05 15:12:55 by lray             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,7 +60,7 @@ std::string getContentType(const std::string& filename) {
 }
 
 void	Response::writeListingPage() {
-	std::string httpResponse = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n";
+	std::string httpResponse = "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n";
 	httpResponse += "<!DOCTYPE html>\n";
 	httpResponse += "<html>\n";
 	httpResponse += "<head>\n";
@@ -175,7 +175,6 @@ bool	isListing(const Location* foundLocation, std::string& responseFilePath) {
 //			Response			response(foundRoute, responseFilePath, responseCode, request);
 Response::Response(const Location* foundLocation, std::string responseFilePath, unsigned int responseCode, const Request& request) {
 	_request = request;
-
 	_realPath = responseFilePath;
 	_returnCode = responseCode;
 	if (_returnCode == 301) {
