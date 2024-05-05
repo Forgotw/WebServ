@@ -3,12 +3,14 @@
 /*                                                        :::      ::::::::   */
 /*   Location.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
+/*   By: lray <lray@student.42lausanne.ch >         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/04 11:25:41 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/04 16:26:57 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/05 13:13:57 by lray             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
+#include <cstdlib>
 
 #include "Location.hpp"
 
@@ -162,7 +164,7 @@ Location::Location(unsigned int redirCode, std::string redirPath) :
 	_allocated(true) {
 }
 
-Location::Location(std::vector<std::string> &tokens): 
+Location::Location(std::vector<std::string> &tokens):
 	_locationName(""),
 	_methods(),
 	_root(""),
@@ -172,7 +174,7 @@ Location::Location(std::vector<std::string> &tokens):
 	_return(std::make_pair(0, "")),
 	_access(true),
 	_listing(false),
-	_allocated(false) 
+	_allocated(false)
 {
 	std::map<std::string, locationHandler> map = locationMap();
 

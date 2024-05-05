@@ -6,7 +6,7 @@
 /*   By: lray <lray@student.42lausanne.ch >         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/10 11:14:07 by lsohler@stu       #+#    #+#             */
-/*   Updated: 2024/05/03 16:22:25 by lray             ###   ########.fr       */
+/*   Updated: 2024/05/05 13:13:31 by lray             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,8 +57,8 @@ std::vector<std::string>	configFileTokenizer(std::string filename) {
 		while (iss >> word) {
 			if (!word.empty() && word[0] == '#')
 				break ;
-			else if (!word.empty() && word.back() == ';') {
-				word.pop_back();
+			else if (!word.empty() && word[word.size() - 1] == ';') {
+				word.erase(word.size() - 1);
 				tokens.push_back(word);
 				tokens.push_back(";");
 			}

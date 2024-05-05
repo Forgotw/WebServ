@@ -12,6 +12,7 @@
 #include <iostream>
 #include <ostream>
 #include <cerrno>
+#include <algorithm>
 
 #define LISTEN_BACKLOG 42
 
@@ -119,16 +120,16 @@ const Location*		Server::findLocation(std::string path) const {
 			return &it->second;
 		} else {
 			// Check si / a la fin de find avec un slash et inversement
-			bool	checkAlternatePath = false;
+			//bool	checkAlternatePath = false;
 			std::cout << "Path check: " << path << std::endl;
 			if (path[path.size() - 1] == '/') {
 				std::cout << "Path fini par /\n";
 				path.erase(path.size() - 1);
-				checkAlternatePath = true;
+				//checkAlternatePath = true;
 			} else {
 				std::cout << "Path ne fini PAS par /\n";
 				path += "/";
-				checkAlternatePath = true;
+				//checkAlternatePath = true;
 			}
 			std::cout << "New Path after atlernate: " << path << std::endl;
 			if (locations.find(path) != locations.end()) {

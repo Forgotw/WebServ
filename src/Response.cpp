@@ -3,17 +3,20 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
+/*   By: lray <lray@student.42lausanne.ch >         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 16:44:57 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/04 16:56:56 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/05 13:16:15 by lray             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Response.hpp"
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+
+#include <cstring>
+
+#include "Response.hpp"
 
 std::string getContentType(const std::string& filename) {
 	if (filename.find(".html") != std::string::npos ||
@@ -102,7 +105,7 @@ void	Response::writeListingPage() {
 void	Response::httpGetFormatter() {
 	std::stringstream response;
 	std::string htmlContent;
-	std::ifstream file(_realPath);
+	std::ifstream file(_realPath.c_str());
 	std::stringstream buffer;
 	buffer << file.rdbuf();
 	htmlContent = buffer.str();
