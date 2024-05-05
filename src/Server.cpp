@@ -19,7 +19,6 @@
 Server::Server(ServerConfig &new_config) {
 	std::cout << "Creating Server object\n";
 	_config = new_config;
-	// new_config.printServerConfig();
 	int err;
 	struct addrinfo *resp;
 	struct addrinfo *rp;
@@ -115,31 +114,20 @@ const Location*		Server::findLocation(std::string path) const {
 		if (path == "/" && it == locations.end()) {
 			return NULL;
 		}
-		std::cout << "Searching: " << path << std::endl;
 		if (it != locations.end()) {
-			return &it->second;
+			return new Location(it->second);
 		} else {
 			// Check si / a la fin de find avec un slash et inversement
-			//bool	checkAlternatePath = false;
-			std::cout << "Path check: " << path << std::endl;
 			if (path[path.size() - 1] == '/') {
-				std::cout << "Path fini par /\n";
 				path.erase(path.size() - 1);
-				//checkAlternatePath = true;
 			} else {
-				std::cout << "Path ne fini PAS par /\n";
 				path += "/";
-				//checkAlternatePath = true;
 			}
-			std::cout << "New Path after atlernate: " << path << std::endl;
 			if (locations.find(path) != locations.end()) {
-				std::cout << "WARNING: new !\n";
 				return new Location(301, path);
 			} else {
 				path = trimLastLoctation(path);
-				std::cout << "Path after trim: " << path << std::endl;
 			}
-			// it = locations.find(path);
 		}
 	}
 	return NULL;
@@ -161,7 +149,6 @@ std::string		Server::findRequestedPath(const Location* location, std::string pat
 	std::string	realPath = location->getRoot();
 	if (location->getLocationName() != path) {
 		realPath = searchFindReplace(path, location->getLocationName(), location->getRoot());
-		std::cout << "IF 1: " << realPath << std::endl;
 	}
 	struct stat	sb;
 	if (stat(realPath.c_str(), &sb) == -1) {
@@ -191,7 +178,6 @@ unsigned int	Server::generateResponseCode(const Location* location, std::string 
 		return location->getReturn().first;
 	}
 	if (urlContainRelativePath(request.getURI().path)) {
-		std::cout << "Shenanigans detected !\n";
 		return 401;
 	}
 	if (!location || realPath.empty()) {
