@@ -115,7 +115,7 @@ const Location*		Server::findLocation(std::string path) const {
 			return NULL;
 		}
 		if (it != locations.end()) {
-			return new Location(it->second);
+			return &it->second;
 		} else {
 			// Check si / a la fin de find avec un slash et inversement
 			if (path[path.size() - 1] == '/') {
@@ -154,8 +154,7 @@ std::string		Server::findRequestedPath(const Location* location, std::string pat
 	if (stat(realPath.c_str(), &sb) == -1) {
 		return "";
 	}
-	//TODO: checker nginx
-	if (S_ISDIR(sb.st_mode) && location->getListing() && !location->getIndex().empty()) {
+	if (S_ISDIR(sb.st_mode) && !location->getIndex().empty()) {
 		realPath += location->getIndex();
 	}
 	return realPath;
