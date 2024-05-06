@@ -206,6 +206,7 @@ void WebServ::handleHttp() {
 			const Server		*server = _peers[i].getServer();
 			ServerConfig		config = server->getConfig();
 			const Request		request = *(_peers[i].getRequest());
+			//std::cout << request.getURI().path << std::endl;
 			const Location*		foundLocation = server->findLocation(request.getURI().path);
 			std::string			realPath = server->findRequestedPath(foundLocation, request.getURI().path);
 			unsigned int		responseCode = server->generateResponseCode(foundLocation, realPath, request);

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
+/*   By: efailla <efailla@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/06 18:51:50 by lsohler           #+#    #+#             */
-/*   Updated: 2024/04/13 18:23:19 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/06 18:18:55 by efailla          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -233,13 +233,34 @@ std::vector<std::string> splitLines(const std::string& input) {
 	return lines;
 }
 
+std::string URIDecoder(const std::string &encoded) {
+    std::stringstream decoded;
+    std::string::const_iterator it = encoded.begin();
+    while (it != encoded.end()) {
+        if (*it == '%') {
+            ++it;
+            char hex1 = *it++;
+            char hex2 = *it++;
+            int hexValue;
+            std::stringstream hexStream;
+            hexStream << hex1 << hex2;				// colle les deux exas, et le transforme en
+            hexStream >> std::hex >> hexValue;		//		un int qui est ensuite casté en char
+            decoded << static_cast<char>(hexValue);	//		pour aller dans un stringstream
+        } else {
+            decoded << *it++;
+        }
+    }
+    return decoded.str();
+}
+
 HTTPRequest parseHTTPRequest(const std::string& request) {
 	HTTPRequest httpRequest;
 	std::vector<std::string> lines = splitLines(request);
 
 	std::istringstream firstLineStream(lines[0]);
 	firstLineStream >> httpRequest.method >> httpRequest.uri >> httpRequest.version;
-
+	httpRequest.uri = URIDecoder(httpRequest.uri); // decode UTF-8 en ascii
+	
 	for (size_t i = 1; i < lines.size(); ++i) {
 		size_t colonPos = lines[i].find(':');
 		if (colonPos != std::string::npos) {
