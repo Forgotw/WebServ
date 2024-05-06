@@ -6,7 +6,7 @@
 /*   By: lray <lray@student.42lausanne.ch >         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/12 16:26:12 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/06 14:51:04 by lray             ###   ########.fr       */
+/*   Updated: 2024/05/06 16:08:07 by lray             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -123,8 +123,8 @@ typedef void (*caseHandler)(ServerConfig&, std::vector<std::string>&);
 std::map<std::string, caseHandler> caseMap() {
 	std::map<std::string, caseHandler> myMap;
 
-	myMap["listen"] = &handleIP;
-	myMap["port"] = &handleListen;
+	myMap["ip"] = &handleIP;
+	myMap["listen"] = &handleListen;
 	myMap["server_name"] = &handleServerName;
 	myMap["access_log"] = &handleAccessLog;
 	myMap["error_log"] = &handleErrorLog;
