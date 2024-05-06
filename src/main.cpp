@@ -3,28 +3,30 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
+/*   By: lray <lray@student.42lausanne.ch >         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/12 15:27:33 by lsohler           #+#    #+#             */
-/*   Updated: 2024/04/13 18:57:47 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/05 21:47:41 by lray             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "WebServ.hpp"
 
 #include <iostream>
+#include <string>
 
 std::vector<ServerConfig>	configFileParser(std::string filename);
 
 int main(int ac, char **av) {
-	(void)ac;
-	try {
-		std::vector<ServerConfig> serverConfigVector = configFileParser(av[1]);
-		WebServ master(serverConfigVector);
-		master.start();
-	} catch (std::exception &err) {
-		std::cerr << "[!] " << err.what() << std::endl;
+	std::string configFilePath;
+	if (ac < 2) {
+		configFilePath = "conf/default.conf";
+	} else {
+		configFilePath = av[1];
 	}
+	std::vector<ServerConfig> serverConfigVector = configFileParser(configFilePath);
+	WebServ master(serverConfigVector);
+	master.start();
 	return 0;
 }
 // #include <unistd.h>
@@ -41,7 +43,7 @@ int main(int ac, char **av) {
 //     std::string fullPath = std::string(cwd) + "/" + filename;
 //     std::ifstream file(fullPath.c_str());
 // 	std::cout << "Trying to open: " << fullPath.c_str() << std::endl;
-    
+
 //     if (!file.is_open()) {
 //         std::cerr << "Erreur : Impossible d'ouvrir le fichier '" << fullPath << "'." << std::endl;
 //         if (file.fail()) {
@@ -58,7 +60,7 @@ int main(int ac, char **av) {
 
 //     file.clear();  // Réinitialiser l'état d'erreur
 //     file.close();
-    
+
 //     return true;
 // }
 

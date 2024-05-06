@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Location.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
+/*   By: lray <lray@student.42lausanne.ch >         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/04 11:25:41 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/04 16:26:57 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/06 14:43:27 by lray             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,8 @@ Location::Location() :
 	_index(""),
 	_return(std::make_pair(0, "")),
 	_access(true),
-	_listing(false) {
+	_listing(false),
+	_allocated(false) {
 }
 
 Location::Location(const Location& other) :
@@ -33,7 +34,8 @@ Location::Location(const Location& other) :
 	_index(other._index),
 	_return(other._return),
 	_access(other._access),
-	_listing(other._listing) {
+	_listing(other._listing),
+	_allocated(other._allocated) {
 }
 
 Location::~Location() {}
@@ -162,7 +164,7 @@ Location::Location(unsigned int redirCode, std::string redirPath) :
 	_allocated(true) {
 }
 
-Location::Location(std::vector<std::string> &tokens): 
+Location::Location(std::vector<std::string> &tokens):
 	_locationName(""),
 	_methods(),
 	_root(""),
@@ -172,7 +174,7 @@ Location::Location(std::vector<std::string> &tokens):
 	_return(std::make_pair(0, "")),
 	_access(true),
 	_listing(false),
-	_allocated(false) 
+	_allocated(false)
 {
 	std::map<std::string, locationHandler> map = locationMap();
 

@@ -3,17 +3,20 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
+/*   By: lray <lray@student.42lausanne.ch >         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 16:44:57 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/04 16:56:56 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/06 14:39:16 by lray             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Response.hpp"
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+
+#include <cstring>
+
+#include "Response.hpp"
 
 std::string getContentType(const std::string& filename) {
 	if (filename.find(".html") != std::string::npos ||
@@ -57,7 +60,7 @@ std::string getContentType(const std::string& filename) {
 }
 
 void	Response::writeListingPage() {
-	std::string httpResponse = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n";
+	std::string httpResponse = "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n";
 	httpResponse += "<!DOCTYPE html>\n";
 	httpResponse += "<html>\n";
 	httpResponse += "<head>\n";
@@ -102,7 +105,7 @@ void	Response::writeListingPage() {
 void	Response::httpGetFormatter() {
 	std::stringstream response;
 	std::string htmlContent;
-	std::ifstream file(_realPath);
+	std::ifstream file(_realPath.c_str());
 	std::stringstream buffer;
 	buffer << file.rdbuf();
 	htmlContent = buffer.str();
@@ -111,6 +114,7 @@ void	Response::httpGetFormatter() {
 	std::streampos fileSize = file.tellg();
 	file.seekg(0, std::ios::beg);
 
+	std::cout << "FILESIZE: " << fileSize << "\n";
 	// Allouer une chaîne de la taille du fichier
 	std::string fileContent(fileSize, '\0');
 	file.read(&fileContent[0], fileSize);
@@ -172,7 +176,6 @@ bool	isListing(const Location* foundLocation, std::string& responseFilePath) {
 //			Response			response(foundRoute, responseFilePath, responseCode, request);
 Response::Response(const Location* foundLocation, std::string responseFilePath, unsigned int responseCode, const Request& request) {
 	_request = request;
-
 	_realPath = responseFilePath;
 	_returnCode = responseCode;
 	if (_returnCode == 301) {

@@ -12,13 +12,13 @@
 #include <iostream>
 #include <ostream>
 #include <cerrno>
+#include <algorithm>
 
 #define LISTEN_BACKLOG 42
 
 Server::Server(ServerConfig &new_config) {
 	std::cout << "Creating Server object\n";
 	_config = new_config;
-	// new_config.printServerConfig();
 	int err;
 	struct addrinfo *resp;
 	struct addrinfo *rp;
@@ -114,7 +114,6 @@ const Location*		Server::findLocation(std::string path) const {
 		if (path == "/" && it == locations.end()) {
 			return NULL;
 		}
-		std::cout << "Searching: " << path << std::endl;
 		if (it != locations.end()) {
 			return &it->second;
 		} else {
@@ -129,7 +128,6 @@ const Location*		Server::findLocation(std::string path) const {
 			} else {
 				path = trimLastLoctation(path);
 			}
-			// it = locations.find(path);
 		}
 	}
 	return NULL;
@@ -151,14 +149,12 @@ std::string		Server::findRequestedPath(const Location* location, std::string pat
 	std::string	realPath = location->getRoot();
 	if (location->getLocationName() != path) {
 		realPath = searchFindReplace(path, location->getLocationName(), location->getRoot());
-		std::cout << "IF 1: " << realPath << std::endl;
 	}
 	struct stat	sb;
 	if (stat(realPath.c_str(), &sb) == -1) {
 		return "";
 	}
-	//TODO: checker nginx
-	if (S_ISDIR(sb.st_mode) && location->getListing() && !location->getIndex().empty()) {
+	if (S_ISDIR(sb.st_mode) && !location->getIndex().empty()) {
 		realPath += location->getIndex();
 	}
 	return realPath;
@@ -181,7 +177,6 @@ unsigned int	Server::generateResponseCode(const Location* location, std::string 
 		return location->getReturn().first;
 	}
 	if (urlContainRelativePath(request.getURI().path)) {
-		std::cout << "Shenanigans detected !\n";
 		return 401;
 	}
 	if (!location || realPath.empty()) {
