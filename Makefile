@@ -1,14 +1,15 @@
 NAME		:= webserv
 
 SRCS 		:= $(addprefix src/, \
-	Server.cpp \
-	WebServ.cpp \
+	main.cpp \
+	ConfigParser.cpp \
+	Location.cpp \
 	Peer.cpp \
 	Request.cpp \
-	ConfigParser.cpp \
-	ServerConfig.cpp \
-	main.cpp \
 	Response.cpp \
+	Server.cpp \
+	ServerConfig.cpp \
+	WebServ.cpp \
 )
 OBJS		:= $(SRCS:.cpp=.o)
 

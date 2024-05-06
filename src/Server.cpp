@@ -1,7 +1,8 @@
 #include "Server.hpp"
 
-#include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <netdb.h>
 #include <unistd.h>
 
@@ -87,4 +88,127 @@ std::ostream &operator<<(std::ostream &os, Server const &ref) {
 	   << ", running: " << std::boolalpha << ref.isRunning() << std::noboolalpha
 	   << " }";
 	return os;
+}
+
+static std::string trimLastLoctation(std::string chaine) {
+	if (chaine.empty())
+		return chaine;
+
+	size_t pos = chaine.rfind('/');
+	if (pos == chaine.size() - 1 && chaine.size() != 1)
+		chaine = chaine.substr(0, pos);
+	pos = chaine.rfind('/');
+	if (pos == std::string::npos)
+		return "/";
+
+	if (pos == 0 && chaine.size() == 1)
+		return "/";
+
+	return chaine.substr(0, pos) + "/";
+}
+
+const Location*		Server::findLocation(std::string path) const {
+	const std::map<std::string, Location>&				locations = _config.getLocations();
+	while (true) {
+		std::map<std::string, Location>::const_iterator	it = locations.find(path);
+		if (path == "/" && it == locations.end()) {
+			return NULL;
+		}
+		std::cout << "Searching: " << path << std::endl;
+		if (it != locations.end()) {
+			return &it->second;
+		} else {
+			// Check si / a la fin de find avec un slash et inversement
+			if (path[path.size() - 1] == '/') {
+				path.erase(path.size() - 1);
+			} else {
+				path += "/";
+			}
+			if (locations.find(path) != locations.end()) {
+				return new Location(301, path);
+			} else {
+				path = trimLastLoctation(path);
+			}
+			// it = locations.find(path);
+		}
+	}
+	return NULL;
+}
+
+std::string searchFindReplace(std::string& toSearch, const std::string& toFind, const std::string& toReplace) {
+	size_t pos = toSearch.find(toFind);
+	if (pos == std::string::npos)
+		return toSearch;
+
+	toSearch.replace(pos, toFind.length(), toReplace);
+	return toSearch;
+}
+
+std::string		Server::findRequestedPath(const Location* location, std::string path) const {
+	if (!location) {
+		return "";
+	}
+	std::string	realPath = location->getRoot();
+	if (location->getLocationName() != path) {
+		realPath = searchFindReplace(path, location->getLocationName(), location->getRoot());
+		std::cout << "IF 1: " << realPath << std::endl;
+	}
+	struct stat	sb;
+	if (stat(realPath.c_str(), &sb) == -1) {
+		return "";
+	}
+	//TODO: checker nginx
+	if (S_ISDIR(sb.st_mode) && location->getListing() && !location->getIndex().empty()) {
+		realPath += location->getIndex();
+	}
+	return realPath;
+}
+
+static bool	isAllowedMethod(std::vector<std::string> methods, std::string method) {
+	return std::find(methods.begin(), methods.end(), method) != methods.end();
+}
+
+static bool haveAccess(bool _access, std::string realPath) {
+	return _access && access(realPath.c_str(), R_OK) != -1;
+}
+
+static bool urlContainRelativePath(std::string realPath) {
+	return realPath.find("/.") != std::string::npos || realPath.find("../") != std::string::npos || realPath.find("./") != std::string::npos;
+}
+
+unsigned int	Server::generateResponseCode(const Location* location, std::string realPath, const Request& request) const {
+	if (location && location->getReturn().first > 0) {
+		return location->getReturn().first;
+	}
+	if (urlContainRelativePath(request.getURI().path)) {
+		std::cout << "Shenanigans detected !\n";
+		return 401;
+	}
+	if (!location || realPath.empty()) {
+		return 404;
+	}
+	if (!haveAccess(location->getAccess(), realPath)) {
+		return 403;
+	}
+	if (!isAllowedMethod(location->getMethods(), request.getMethod())) {
+		return 405;
+	}
+	return 200;
+}
+
+
+std::string		Server::generateReponseFilePath(unsigned int responseCode, std::string realPath) const {
+	std::string responseFilePath = realPath;
+
+	if (responseCode >= 400) {
+		std::map<int, std::string>					error_pages = _config.getErrorPage();
+		std::map<int, std::string>::const_iterator	it = error_pages.find(responseCode);
+
+		if (it != error_pages.end()) {
+			responseFilePath = _config.getRoot() + "default_error/" + it->second;
+		} else {
+			responseFilePath =  DEFAULT_ERROR_PAGE;
+		}
+	}
+	return responseFilePath;
 }
