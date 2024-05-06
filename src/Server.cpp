@@ -119,24 +119,15 @@ const Location*		Server::findLocation(std::string path) const {
 			return &it->second;
 		} else {
 			// Check si / a la fin de find avec un slash et inversement
-			bool	checkAlternatePath = false;
-			std::cout << "Path check: " << path << std::endl;
 			if (path[path.size() - 1] == '/') {
-				std::cout << "Path fini par /\n";
 				path.erase(path.size() - 1);
-				checkAlternatePath = true;
 			} else {
-				std::cout << "Path ne fini PAS par /\n";
 				path += "/";
-				checkAlternatePath = true;
 			}
-			std::cout << "New Path after atlernate: " << path << std::endl;
 			if (locations.find(path) != locations.end()) {
-				std::cout << "WARNING: new !\n";
 				return new Location(301, path);
 			} else {
 				path = trimLastLoctation(path);
-				std::cout << "Path after trim: " << path << std::endl;
 			}
 			// it = locations.find(path);
 		}
