@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/06 18:51:50 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/07 12:08:00 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/07 17:02:47 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -206,10 +206,6 @@ URI parseURI(const std::string &uriString) {
 		} else {
 			uri.query = uriString.substr(queryStart + 1);
 		}
-	}
-
-	if (fragmentStart != std::string::npos) {
-		uri.fragment = uriString.substr(fragmentStart + 1);
 	}
 
 	return uri;

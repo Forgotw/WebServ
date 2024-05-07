@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/26 11:05:57 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/04 16:19:52 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/07 17:05:03 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,32 +32,23 @@
 class Response {
 
 	private:
-			ServerConfig					_config;
-			Request							_request;
-			std::string						_realPath;
-			std::string						_searchedPage;
-			std::string						_searchedLocation;
-			unsigned int					_returnCode;
-			std::string						_header;
-			std::string						_body;
-			// Route							_route;
-			// Location						_location;
-			bool							_isDir;
+			std::string						_response;
 
 			void			splitSearchedURI(const std::string& input);
-			void			httpGetFormatter();
+			void			httpGetFormatter(const std::string& responseFilePath, unsigned int returnCode);
 			unsigned int	findLocation(void);
 			void			findErrorPage(void);
-			void			writeListingPage(void);
+			void			writeListingPage(const std::string& responseFilePath);
 			unsigned int	recursiveSearchLocation(void);
-
+			void			handleCGI(const Location* foundLocation, std::string responseFilePath, const Request& request);
+			void			handleRedir(const Location* foundLocation);
 	public:
 		Response() {}
 		Response(const ServerConfig &config, const Request &request);
-		Response(const Location* foundLocation, std::string responseFilePath, unsigned int responseCode, const Request& request);
+		Response(const Location* foundLocation, std::string responseFilePath, unsigned int returnCode, const Request& request);
 		Response(const std::string& Response);
 		~Response() {}
 
-		std::string getResponse() const { return _header + _body;}
+		std::string getResponse() const { return _response;}
 
 };

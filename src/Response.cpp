@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lray <lray@student.42lausanne.ch >         +#+  +:+       +#+        */
+/*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 16:44:57 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/06 14:39:16 by lray             ###   ########.fr       */
+/*   Updated: 2024/05/07 17:06:43 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,7 +59,7 @@ std::string getContentType(const std::string& filename) {
 	}
 }
 
-void	Response::writeListingPage() {
+void	Response::writeListingPage(const std::string& responseFilePath) {
 	std::string httpResponse = "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n";
 	httpResponse += "<!DOCTYPE html>\n";
 	httpResponse += "<html>\n";
@@ -72,7 +72,7 @@ void	Response::writeListingPage() {
 
 	DIR *dir;
 	struct dirent *ent;
-	if ((dir = opendir(_realPath.c_str())) != NULL) {
+	if ((dir = opendir(responseFilePath.c_str())) != NULL) {
 		while ((ent = readdir(dir)) != NULL) {
 			if ((ent->d_type == DT_REG || ent->d_type == DT_DIR)
 			 && strcmp(ent->d_name, "..") != 0 && strcmp(ent->d_name, ".") != 0) {
@@ -98,14 +98,14 @@ void	Response::writeListingPage() {
 	httpResponse += "</ul>\n";
 	httpResponse += "</body>\n";
 	httpResponse += "</html>\n";
-	_body = httpResponse;
+	_response = httpResponse;
 }
 
 
-void	Response::httpGetFormatter() {
+void	Response::httpGetFormatter(const std::string& responseFilePath, unsigned int returnCode) {
 	std::stringstream response;
 	std::string htmlContent;
-	std::ifstream file(_realPath.c_str());
+	std::ifstream file(responseFilePath.c_str());
 	std::stringstream buffer;
 	buffer << file.rdbuf();
 	htmlContent = buffer.str();
@@ -120,9 +120,8 @@ void	Response::httpGetFormatter() {
 	file.read(&fileContent[0], fileSize);
 
 	// Lire le contenu du fichier dans la chaîne
-	std::cout << "httpGetFormater: " << _returnCode << " " << _realPath << " " << "_searchedLocation" << std::endl;
-	response << "HTTP/1.1 " << _returnCode << " ";
-	switch (_returnCode) {
+	response << "HTTP/1.1 " << returnCode << " ";
+	switch (returnCode) {
 		case 200:
 			response << "OK";
 			break;
@@ -155,11 +154,10 @@ void	Response::httpGetFormatter() {
 			break;
 	}
 	response << "\r\n";
-	response << "Content-Type: " + getContentType(_realPath) + "\r\n";
+	response << "Content-Type: " + getContentType(responseFilePath) + "\r\n";
 	response << "Content-Length: " << htmlContent.length() << "\r\n";
 	response << "\r\n";
-	_header = response.str();
-	_body = htmlContent;
+	_response = response.str() + htmlContent;
 }
 
 bool	isListing(const Location* foundLocation, std::string& responseFilePath) {
@@ -173,22 +171,31 @@ bool	isListing(const Location* foundLocation, std::string& responseFilePath) {
 	}
 	return false;
 }
-//			Response			response(foundRoute, responseFilePath, responseCode, request);
-Response::Response(const Location* foundLocation, std::string responseFilePath, unsigned int responseCode, const Request& request) {
-	_request = request;
-	_realPath = responseFilePath;
-	_returnCode = responseCode;
-	if (_returnCode == 301) {
-		_header += "HTTP/1.1 301 Moved Permanently\r\n";
-		_header += "Location: ";
-		_header += foundLocation->getReturn().second;
-		_header += "\r\n";
+
+void	Response::handleRedir(const Location* foundLocation) {
+		_response += "HTTP/1.1 301 Moved Permanently\r\n";
+		_response += "Location: ";
+		_response += foundLocation->getReturn().second;
+		_response += "\r\n";
 		if (foundLocation->getAllocated()) {
 			delete foundLocation;
 		}
+}
+
+void	Response::handleCGI(const Location* foundLocation, std::string responseFilePath, const Request& request) {
+	(void)foundLocation;
+	(void)responseFilePath;
+	(void)request;
+}
+
+Response::Response(const Location* foundLocation, std::string responseFilePath, unsigned int returnCode, const Request& request) {
+	if (foundLocation->isCgi() && returnCode == 200) {
+		handleCGI(foundLocation, responseFilePath, request);
+	} else if (returnCode == 301) {
+		handleRedir(foundLocation);
 	} else if (isListing(foundLocation, responseFilePath)) {
-		writeListingPage();
+		writeListingPage(responseFilePath);
 	} else {
-		httpGetFormatter();
+		httpGetFormatter(responseFilePath, returnCode);
 	}
 }

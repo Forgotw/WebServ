@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/04 11:24:57 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/04 16:30:02 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/07 16:34:13 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,6 +69,8 @@ class Location {
 		bool getListing() const { return _listing; }
 		bool getAllocated() const { return _allocated; }
 
+		/*------------*/
+		bool isCgi(void) const { return !_cgi.empty(); }
 		/*-----Debug-----*/
 		void	printLocation(void) const;
 };

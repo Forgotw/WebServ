@@ -107,8 +107,45 @@ static std::string trimLastLoctation(std::string chaine) {
 	return chaine.substr(0, pos) + "/";
 }
 
+static const std::string cgiExtensions[] = {".cgi", ".pl", ".py", ".sh", ".php", ".rb"};
+
+static bool	isCgi(const std::string& path) {
+	size_t dotPosition = path.rfind('.');
+	if (dotPosition != std::string::npos) {
+		std::string extension = path.substr(dotPosition);
+
+		for (size_t i = 0; i < sizeof(cgiExtensions) / sizeof(cgiExtensions[0]); ++i) {
+			if (extension == cgiExtensions[i]) {
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+const Location*			Server::findCgiLocation(const std::string& path) const {
+	const std::map<std::string, Location>&				locations = _config.getLocations();
+	size_t dotPosition = path.rfind('.');
+	if (dotPosition != std::string::npos) {
+		std::string extension = path.substr(dotPosition);
+
+		for (size_t i = 0; i < sizeof(cgiExtensions) / sizeof(cgiExtensions[0]); ++i) {
+			if (extension == cgiExtensions[i]) {
+				std::map<std::string, Location>::const_iterator	it = locations.find("\\" + extension + "$");
+				if (it != locations.end()) {
+					return &it->second;
+				}
+			}
+		}
+	}
+	return NULL;
+}
+///MyCGI.php
 const Location*		Server::findLocation(std::string path) const {
 	const std::map<std::string, Location>&				locations = _config.getLocations();
+	if (isCgi(path)) {
+		return	findCgiLocation(path);
+	}
 	while (true) {
 		std::map<std::string, Location>::const_iterator	it = locations.find(path);
 		if (path == "/" && it == locations.end()) {
