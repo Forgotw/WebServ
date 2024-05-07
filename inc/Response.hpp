@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
+/*   By: efailla <efailla@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/26 11:05:57 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/04 16:19:52 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/07 16:53:18 by efailla          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,6 +50,7 @@ class Response {
 			void			findErrorPage(void);
 			void			writeListingPage(void);
 			unsigned int	recursiveSearchLocation(void);
+			bool			handleCookies();
 
 	public:
 		Response() {}

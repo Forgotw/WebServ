@@ -6,7 +6,7 @@
 /*   By: efailla <efailla@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 16:44:57 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/07 16:16:49 by efailla          ###   ########.fr       */
+/*   Updated: 2024/05/07 17:29:22 by efailla          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -159,6 +159,8 @@ void	Response::httpGetFormatter() {
 	}
 	response << "\r\n";
 	response << "Content-Type: " + getContentType(_realPath) + "\r\n";
+	if (!handleCookies())
+		response << "Set-Cookie: visited=1; Max-Age=120; path=/;\r\n";
 	response << "Content-Length: " << htmlContent.length() << "\r\n";
 	response << "\r\n";
 	_header = response.str();
@@ -176,6 +178,19 @@ bool	isListing(const Location* foundLocation, std::string& responseFilePath) {
 	}
 	return false;
 }
+
+bool	Response::handleCookies()
+{
+	std::string cookie;
+
+	cookie = _request.getHeaders().find("Cookie")->second;
+	//std::cout << cookie << std::endl;
+	if (cookie == "visited=1\r")
+		return true;
+	//std::cout << "YA PAAAAS COOOOKieee" << std::endl;
+	return false;
+}
+
 //			Response			response(foundRoute, responseFilePath, responseCode, request);
 Response::Response(const Location* foundLocation, std::string responseFilePath, unsigned int responseCode, const Request& request) {
 	_request = request;
