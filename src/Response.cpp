@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lray <lray@student.42lausanne.ch >         +#+  +:+       +#+        */
+/*   By: efailla <efailla@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 16:44:57 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/06 14:39:16 by lray             ###   ########.fr       */
+/*   Updated: 2024/05/07 16:16:49 by efailla          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,6 +65,7 @@ void	Response::writeListingPage() {
 	httpResponse += "<html>\n";
 	httpResponse += "<head>\n";
 	httpResponse += "<title>File List</title>\n";
+	httpResponse += "<link rel=\"stylesheet\" href=\"/style/listing.css\">\n";
 	httpResponse += "</head>\n";
 	httpResponse += "<body>\n";
 	httpResponse += "<h1>File List</h1>\n";
@@ -81,8 +82,10 @@ void	Response::writeListingPage() {
 				httpResponse += ent->d_name;
 				if (ent->d_type == DT_DIR) {
 					httpResponse += "/";
+					httpResponse += "\" class=\"dir\">";
 				}
-				httpResponse += "\">";
+				else
+					httpResponse += "\" class=\"jsp\">";
 				httpResponse += ent->d_name;
 				if (ent->d_type == DT_DIR) {
 					httpResponse += "/";
