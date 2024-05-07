@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/06 18:52:20 by lsohler           #+#    #+#             */
-/*   Updated: 2024/04/15 19:27:50 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/07 12:04:06 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,4 +57,7 @@ class Request {
 		const URI&									getURI() const { return _URI; }
 		const std::map<std::string, std::string>&	getHeaders() const { return _headers; }
 		const std::string&							getBody() const { return _body; }
+
+		/*-----Debug-----*/
+		void printRequest(void) const;
 };

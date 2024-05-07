@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/06 18:51:50 by lsohler           #+#    #+#             */
-/*   Updated: 2024/04/13 18:23:19 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/07 12:05:02 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -294,4 +294,20 @@ Request::Request(const std::string &httpRequestString) : _method(), _version(), 
 		_headers = httpRequest.headers;
 		_body = httpRequest.body;
 	}
+}
+
+void Request::printRequest() const {
+	std::cout << "Method: " << _method << std::endl;
+	std::cout << "Version: " << _version << std::endl;
+	std::cout << "Raw URI: " << _rawURI << std::endl;
+	std::cout << "URI Scheme: " << _URI.scheme << std::endl;
+	std::cout << "URI Authority: " << _URI.authority << std::endl;
+	std::cout << "URI Path: " << _URI.path << std::endl;
+	std::cout << "URI Query: " << _URI.query << std::endl;
+	std::cout << "URI Fragment: " << _URI.fragment << std::endl;
+	std::cout << "Headers:" << std::endl;
+	for (std::map<std::string, std::string>::const_iterator it = _headers.begin(); it != _headers.end(); ++it) {
+		std::cout << "    " << it->first << ": " << it->second << std::endl;
+	}
+	std::cout << "Body: " << _body << std::endl;
 }

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Location.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lray <lray@student.42lausanne.ch >         +#+  +:+       +#+        */
+/*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/04 11:25:41 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/05 13:13:57 by lray             ###   ########.fr       */
+/*   Updated: 2024/05/06 13:39:57 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,8 @@ Location::Location() :
 	_index(""),
 	_return(std::make_pair(0, "")),
 	_access(true),
-	_listing(false) {
+	_listing(false),
+	_allocated(false) {
 }
 
 Location::Location(const Location& other) :
@@ -35,7 +36,8 @@ Location::Location(const Location& other) :
 	_index(other._index),
 	_return(other._return),
 	_access(other._access),
-	_listing(other._listing) {
+	_listing(other._listing),
+	_allocated(other._allocated) {
 }
 
 Location::~Location() {}
