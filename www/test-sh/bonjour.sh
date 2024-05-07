@@ -1,5 +1,6 @@
-echo "Content-type: text/html\r\n"
-echo ""
+echo "HTTP/1.1 200 OK\r"
+echo "Content-type: text/html\r"
+echo "\r"
 echo "<!DOCTYPE html>"
 echo "<html lang='en'>"
 echo "<head>"
