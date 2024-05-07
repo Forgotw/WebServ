@@ -6,7 +6,6 @@
 #include <cstring>
 
 Peer::Peer() {
-	std::cout << "Peer Constructor\n";
 	this->_status = EMPTY;
 	this->_sockfd = 0;
 	std::memset(&this->_addr, 0, sizeof(this->_addr));

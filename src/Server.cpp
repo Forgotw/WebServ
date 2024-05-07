@@ -131,19 +131,22 @@ const Location*			Server::findCgiLocation(const std::string& path) const {
 
 		for (size_t i = 0; i < sizeof(cgiExtensions) / sizeof(cgiExtensions[0]); ++i) {
 			if (extension == cgiExtensions[i]) {
-				std::map<std::string, Location>::const_iterator	it = locations.find("\\" + extension + "$");
+				std::map<std::string, Location>::const_iterator	it = locations.find("/*" + extension);
 				if (it != locations.end()) {
+					it->second.printLocation();
 					return &it->second;
 				}
 			}
 		}
 	}
+	std::cout << "findCGILocation return NULL\n";
 	return NULL;
 }
 ///MyCGI.php
 const Location*		Server::findLocation(std::string path) const {
 	const std::map<std::string, Location>&				locations = _config.getLocations();
 	if (isCgi(path)) {
+		std::cout << "findLocation -> isCGI\n";
 		return	findCgiLocation(path);
 	}
 	while (true) {
@@ -182,6 +185,9 @@ std::string searchFindReplace(std::string& toSearch, const std::string& toFind, 
 std::string		Server::findRequestedPath(const Location* location, std::string path) const {
 	if (!location) {
 		return "";
+	}
+	if (location->isCgi()) {
+		return location->getRoot() + path;
 	}
 	std::string	realPath = location->getRoot();
 	if (location->getLocationName() != path) {
