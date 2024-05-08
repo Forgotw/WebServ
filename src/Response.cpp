@@ -6,7 +6,7 @@
 /*   By: lsohler@student.42.fr <lsohler>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 16:44:57 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/08 15:50:42 by lsohler@stu      ###   ########.fr       */
+/*   Updated: 2024/05/08 16:13:47 by lsohler@stu      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -168,7 +168,6 @@ bool	isListing(const Location* foundLocation, std::string& responseFilePath) {
 	if (stat(responseFilePath.c_str(), &sb) == -1) {
 		throw std::runtime_error(std::string("stat: ") + std::strerror(errno));
 	}
-	//TODO: checker nginx
 	if (S_ISDIR(sb.st_mode) && foundLocation->getListing() && foundLocation->getIndex().empty()) {
 		return true;
 	}

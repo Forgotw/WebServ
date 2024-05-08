@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
+/*   By: lsohler@student.42.fr <lsohler>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/26 11:05:57 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/07 17:05:03 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/08 16:12:18 by lsohler@stu      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,12 +34,8 @@ class Response {
 	private:
 			std::string						_response;
 
-			void			splitSearchedURI(const std::string& input);
 			void			httpGetFormatter(const std::string& responseFilePath, unsigned int returnCode);
-			unsigned int	findLocation(void);
-			void			findErrorPage(void);
 			void			writeListingPage(const std::string& responseFilePath);
-			unsigned int	recursiveSearchLocation(void);
 			void			handleCGI(const Location* foundLocation, std::string responseFilePath, const Request& request);
 			void			handleRedir(const Location* foundLocation);
 	public:
