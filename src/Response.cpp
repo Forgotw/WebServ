@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
+/*   By: lsohler@student.42.fr <lsohler>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 16:44:57 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/07 18:52:37 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/08 15:50:42 by lsohler@stu      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -223,14 +223,16 @@ void	Response::handleCGI(const Location* foundLocation, std::string responseFile
         // bytesRead = read(pipefd[0], buffer, BUFSIZ);
 		// std::cout << "bytesRead: " << bytesRead << "\n";
         while ((bytesRead = read(pipefd[0], buffer, BUFSIZ)) > 0) {
-			std::cout << "READ: " << buffer << "\n";
+			// std::cout << "READ: " << buffer << "\n";
             output.write(buffer, bytesRead);
         }
-		std::cout << "AFTER while\n";
+		// std::cout << "AFTER while\n";
         close(pipefd[0]);
         std::string cgiOutput = output.str();
 		std::cout << "RESPONSE\n" << output.str() << "END OF RESPONSE\n";
-		_response = cgiOutput;
+		_response += "HTTP/1.1 200 OK\r\n";
+		// _response += "Content-type: text/html\r\n\r\n";
+		_response += cgiOutput;
         waitpid(pid, &status, 0);
 		std::cout << "After waitpid: " << status << "\n";
 		// std::cout << "RESPONSE\n" << _response;
