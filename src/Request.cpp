@@ -6,12 +6,13 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/06 18:51:50 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/09 18:05:51 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/09 20:21:19 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Request.hpp"
-
+#include <iostream>
+#include <fstream>
 /*
 Berners-Lee, et al.         Standards Track                    [Page 12]
 RFC 3986                   URI Generic Syntax               January 2005
@@ -199,40 +200,6 @@ URI parseURI(const std::string &uriStringConst) {
 	uri.path = uriString;
 	return uri;
 }
-	// size_t schemeEnd = uriString.find("://");
-	// if (schemeEnd != std::string::npos) {
-	// 	uri.scheme = uriString.substr(0, schemeEnd);
-	// }
-
-	// size_t authorityStart = schemeEnd != std::string::npos ? schemeEnd + 3 : 0;
-	// size_t pathStart = uriString.find("/", authorityStart);
-	// if (pathStart != std::string::npos) {
-	// 	uri.authority = uriString.substr(authorityStart, pathStart - authorityStart);
-	// } else {
-	// 	uri.authority = uriString.substr(authorityStart);
-	// 	return uri;
-	// }
-
-	// size_t queryStart = uriString.find("?", pathStart);
-	// size_t fragmentStart = uriString.find("#", pathStart);
-	// if (queryStart != std::string::npos) {
-	// 	uri.path = uriString.substr(pathStart, queryStart - pathStart);
-	// } else if (fragmentStart != std::string::npos) {
-	// 	uri.path = uriString.substr(pathStart, fragmentStart - pathStart);
-	// } else {
-	// 	uri.path = uriString.substr(pathStart);
-	// }
-
-	// if (queryStart != std::string::npos) {
-	// 	if (fragmentStart != std::string::npos) {
-	// 		uri.query = uriString.substr(queryStart + 1, fragmentStart - queryStart - 1);
-	// 	} else {
-	// 		uri.query = uriString.substr(queryStart + 1);
-	// 	}
-	// }
-
-	// return uri;
-// }
 
 std::vector<std::string> splitLines(const std::string& input) {
 	std::vector<std::string> lines;
@@ -269,11 +236,21 @@ HTTPRequest parseHTTPRequest(const std::string& request) {
 	HTTPRequest httpRequest;
 	std::vector<std::string> lines = splitLines(request);
 
+    std::ofstream fichier("request.txt");
+    if (fichier.is_open()) {
+        fichier << request;
+        fichier.close();
+    }
+	std::cout << "Fini de mettre request dans fichier\n";
 	std::istringstream firstLineStream(lines[0]);
 	firstLineStream >> httpRequest.method >> httpRequest.uri >> httpRequest.version;
 	httpRequest.uri = URIDecoder(httpRequest.uri); // decode UTF-8 en ascii
 
 	for (size_t i = 1; i < lines.size(); ++i) {
+		if (lines[i].empty()) {
+			std::cout << "Line before:" << lines[i -1] << std::endl;
+			break ;
+		}
 		size_t colonPos = lines[i].find(':');
 		if (colonPos != std::string::npos) {
 			std::string headerName = lines[i].substr(0, colonPos);
