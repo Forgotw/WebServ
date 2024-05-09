@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 16:44:57 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/09 14:00:53 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/09 17:15:45 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -186,11 +186,10 @@ void	Response::handleRedir(const Location* foundLocation) {
 
 
 
-Response::Response(const Location* foundLocation, std::string responseFilePath,
-	unsigned int returnCode, const Request& request, const ServerConfig* config) {
+Response::Response(const Location* foundLocation, std::string responseFilePath, unsigned int returnCode, const Request& request, const ServerConfig* config) {
 	if (foundLocation->isCgi() && returnCode == 200) {
 		std::cout << "Handle CGI\n";
-		handleCGI(foundLocation, responseFilePath, request, config);
+		_response = handleCGI(foundLocation, responseFilePath, request, config);
 	} else if (returnCode == 301) {
 		handleRedir(foundLocation);
 	} else if (isListing(foundLocation, responseFilePath)) {

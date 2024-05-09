@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/06 18:51:50 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/09 14:08:20 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/09 18:05:51 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -172,52 +172,67 @@ bool is_unreserved(char character) {
 	return false;
 }
 
-
-URI parseURI(const std::string &uriString) {
+/*
+Avec l'exemple /path/to/resource/cgi.php/additional_info?param1=value1&param2=value2
+je veux dans path: /path/to/resource/cgi.php
+pathInfo: /additional_info
+querry: param1=value1&param2=value2
+*/
+URI parseURI(const std::string &uriStringConst) {
+	std::string uriString = uriStringConst;
 	URI uri;
 
-	size_t schemeEnd = uriString.find("://");
-	if (schemeEnd != std::string::npos) {
-		uri.scheme = uriString.substr(0, schemeEnd);
+	size_t querryStart = uriString.find("?");
+	if (querryStart != std::string::npos) {
+		uri.querryString = uriString.substr(querryStart);
+		uriString = uriString.substr(0, querryStart);
 	}
-
-	size_t authorityStart = schemeEnd != std::string::npos ? schemeEnd + 3 : 0;
-	size_t pathStart = uriString.find("/", authorityStart);
-	if (pathStart != std::string::npos) {
-		uri.authority = uriString.substr(authorityStart, pathStart - authorityStart);
-	} else {
-		uri.authority = uriString.substr(authorityStart);
-		return uri;
-	}
-
-	size_t queryStart = uriString.find("?", pathStart);
-	size_t fragmentStart = uriString.find("#", pathStart);
-	if (queryStart != std::string::npos) {
-		uri.path = uriString.substr(pathStart, queryStart - pathStart);
-	} else if (fragmentStart != std::string::npos) {
-		uri.path = uriString.substr(pathStart, fragmentStart - pathStart);
-	} else {
-		uri.path = uriString.substr(pathStart);
-	}
-
-	if (queryStart != std::string::npos) {
-		if (fragmentStart != std::string::npos) {
-			uri.query = uriString.substr(queryStart + 1, fragmentStart - queryStart - 1);
-		} else {
-			uri.query = uriString.substr(queryStart + 1);
+	size_t extensionStart = uriString.find(".");
+	size_t pathInfoStart;
+	if (extensionStart != std::string::npos) {
+		pathInfoStart = uriString.find("/", extensionStart);
+		if (pathInfoStart != std::string::npos) {
+			uri.pathInfo = uriString.substr(pathInfoStart);
+			uriString = uriString.substr(0, pathInfoStart);
 		}
 	}
-
+	uri.path = uriString;
 	return uri;
 }
+	// size_t schemeEnd = uriString.find("://");
+	// if (schemeEnd != std::string::npos) {
+	// 	uri.scheme = uriString.substr(0, schemeEnd);
+	// }
 
-struct HTTPRequest {
-	std::string method;
-	std::string uri;
-	std::string version;
-	std::map<std::string, std::string> headers;
-	std::string body;
-};
+	// size_t authorityStart = schemeEnd != std::string::npos ? schemeEnd + 3 : 0;
+	// size_t pathStart = uriString.find("/", authorityStart);
+	// if (pathStart != std::string::npos) {
+	// 	uri.authority = uriString.substr(authorityStart, pathStart - authorityStart);
+	// } else {
+	// 	uri.authority = uriString.substr(authorityStart);
+	// 	return uri;
+	// }
+
+	// size_t queryStart = uriString.find("?", pathStart);
+	// size_t fragmentStart = uriString.find("#", pathStart);
+	// if (queryStart != std::string::npos) {
+	// 	uri.path = uriString.substr(pathStart, queryStart - pathStart);
+	// } else if (fragmentStart != std::string::npos) {
+	// 	uri.path = uriString.substr(pathStart, fragmentStart - pathStart);
+	// } else {
+	// 	uri.path = uriString.substr(pathStart);
+	// }
+
+	// if (queryStart != std::string::npos) {
+	// 	if (fragmentStart != std::string::npos) {
+	// 		uri.query = uriString.substr(queryStart + 1, fragmentStart - queryStart - 1);
+	// 	} else {
+	// 		uri.query = uriString.substr(queryStart + 1);
+	// 	}
+	// }
+
+	// return uri;
+// }
 
 std::vector<std::string> splitLines(const std::string& input) {
 	std::vector<std::string> lines;
@@ -229,16 +244,34 @@ std::vector<std::string> splitLines(const std::string& input) {
 	}
 	return lines;
 }
-/*
-Avec l'exemple /path/to/resource/cgi.php/additional_info?param1=value1&param2=value2
-je veux dans path: /path/to/resource/cgi.php
-*/
+
+std::string URIDecoder(const std::string &encoded) {
+    std::stringstream decoded;
+    std::string::const_iterator it = encoded.begin();
+    while (it != encoded.end()) {
+        if (*it == '%') {
+            ++it;
+            char hex1 = *it++;
+            char hex2 = *it++;
+            int hexValue;
+            std::stringstream hexStream;
+            hexStream << hex1 << hex2;				// colle les deux exas, et le transforme en
+            hexStream >> std::hex >> hexValue;		//		un int qui est ensuite casté en char
+            decoded << static_cast<char>(hexValue);	//		pour aller dans un stringstream
+        } else {
+            decoded << *it++;
+        }
+    }
+    return decoded.str();
+}
+
 HTTPRequest parseHTTPRequest(const std::string& request) {
 	HTTPRequest httpRequest;
 	std::vector<std::string> lines = splitLines(request);
 
 	std::istringstream firstLineStream(lines[0]);
 	firstLineStream >> httpRequest.method >> httpRequest.uri >> httpRequest.version;
+	httpRequest.uri = URIDecoder(httpRequest.uri); // decode UTF-8 en ascii
 
 	for (size_t i = 1; i < lines.size(); ++i) {
 		size_t colonPos = lines[i].find(':');
@@ -300,11 +333,14 @@ void Request::printRequest() const {
 	std::cout << "Method: " << _method << std::endl;
 	std::cout << "Version: " << _version << std::endl;
 	std::cout << "Raw URI: " << _rawURI << std::endl;
-	std::cout << "URI Scheme: " << _URI.scheme << std::endl;
-	std::cout << "URI Authority: " << _URI.authority << std::endl;
+	// std::cout << "URI Scheme: " << _URI.scheme << std::endl;
+	// std::cout << "URI Authority: " << _URI.authority << std::endl;
+	// std::cout << "URI Path: " << _URI.path << std::endl;
+	// std::cout << "URI Query: " << _URI.query << std::endl;
+	// std::cout << "URI Fragment: " << _URI.fragment << std::endl;
 	std::cout << "URI Path: " << _URI.path << std::endl;
-	std::cout << "URI Query: " << _URI.query << std::endl;
-	std::cout << "URI Fragment: " << _URI.fragment << std::endl;
+	std::cout << "URI PathInfo: " << _URI.pathInfo << std::endl;
+	std::cout << "URI Querry: " << _URI.querryString << std::endl;
 	std::cout << "Headers:" << std::endl;
 	for (std::map<std::string, std::string>::const_iterator it = _headers.begin(); it != _headers.end(); ++it) {
 		std::cout << "    " << it->first << ": " << it->second << std::endl;

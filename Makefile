@@ -3,6 +3,7 @@ NAME		:= webserv
 SRCS 		:= $(addprefix src/, \
 	main.cpp \
 	ConfigParser.cpp \
+	handleCGI.cpp \
 	Location.cpp \
 	Peer.cpp \
 	Request.cpp \

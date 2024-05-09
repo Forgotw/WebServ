@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/06 18:52:20 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/09 14:02:23 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/09 18:05:45 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,12 +23,18 @@
 #include <vector>
 #include <sstream>
 
-struct	HTTPRequest;
+struct HTTPRequest {
+	std::string method;
+	std::string uri;
+	std::string version;
+	std::map<std::string, std::string> headers;
+	std::string body;
+};
 
 struct URI {
 	std::string path;
 	std::string pathInfo;
-	std::string queryString;
+	std::string querryString;
 };
 
 class Request {

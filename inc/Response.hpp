@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/26 11:05:57 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/09 14:00:59 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/09 16:43:42 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,8 +41,7 @@ class Response {
 	public:
 		Response() {}
 		Response(const ServerConfig &config, const Request &request);
-		Response(const Location* foundLocation, std::string responseFilePath,
-			unsigned int returnCode, const Request& request, const ServerConfig* config);
+		Response(const Location* foundLocation, std::string responseFilePath, unsigned int returnCode, const Request& request, const ServerConfig* config);
 		Response(const std::string& Response);
 		~Response() {}
 
