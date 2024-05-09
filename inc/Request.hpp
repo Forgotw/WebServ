@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/06 18:52:20 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/07 17:01:11 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/09 14:02:23 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,11 +26,9 @@
 struct	HTTPRequest;
 
 struct URI {
-	std::string scheme;		// Schéma (ex: "http", "https", etc.)
-	std::string authority;	// Autorité (ex: "example.com")
-	std::string path;		// Chemin (ex: "/index.html")
-	std::string query;		// Requête (ex: "q=term")
-	std::string fragment;	// Fragment (ex: "section2")
+	std::string path;
+	std::string pathInfo;
+	std::string queryString;
 };
 
 class Request {

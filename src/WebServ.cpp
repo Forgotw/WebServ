@@ -198,11 +198,6 @@ void WebServ::handleExcept() {
 void WebServ::handleHttp() {
 	for (size_t i = 0; i < FD_SETSIZE; i++) {
 		if (this->_peers[i].getStatus() == Peer::WAITING_READ) {
-			std::string		filename;
-			// t_response		response;
-			// std::memset(&response, 0, sizeof(t_response));
-			std::string		httpResponse = "";
-
 			const Server		*server = _peers[i].getServer();
 			const Request		request = *(_peers[i].getRequest());
 			const Location*		foundLocation = server->findLocation(request.getRawURI());
@@ -211,7 +206,7 @@ void WebServ::handleHttp() {
 			unsigned int		responseCode = server->generateResponseCode(foundLocation, realPath, request);
 			std::string			responseFilePath = server->generateReponseFilePath(responseCode, realPath);
 			std::cout << "realPath: " << realPath << " responseCode: " << responseCode << " " << " responseFilePath: " << responseFilePath << std::endl;
-			Response			response(foundLocation, responseFilePath, responseCode, request);
+			Response			response(foundLocation, responseFilePath, responseCode, request, server->getConfig());
 			_peers[i].setReponse(response.getResponse());
 		}
 	}

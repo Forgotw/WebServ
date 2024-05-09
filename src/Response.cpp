@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lsohler@student.42.fr <lsohler>            +#+  +:+       +#+        */
+/*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 16:44:57 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/08 16:13:47 by lsohler@stu      ###   ########.fr       */
+/*   Updated: 2024/05/09 14:00:53 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -184,64 +184,13 @@ void	Response::handleRedir(const Location* foundLocation) {
 		}
 }
 
-void	Response::handleCGI(const Location* foundLocation, std::string responseFilePath, const Request& request) {
-	(void)foundLocation;
-	(void)request;
-	std::string programme = foundLocation->getCgi();
-	// responseFilePath = "./"
-	// std::cout << "FilePath for execve: " << responseFilePath << "\n";
-	int pipefd[2];
-	if (pipe(pipefd) == -1) {
-		throw std::runtime_error(std::string("pipe: ") + std::strerror(errno));
-	}
-	pid_t pid = fork();
-	if (pid == -1) {
-		throw std::runtime_error(std::string("fork: ") + std::strerror(errno));
-	}
-	std::string envp[1] = {""};
-	if (pid == 0) {
-		if (dup2(pipefd[1], STDOUT_FILENO) == -1) {
-			throw std::runtime_error(std::string("dup2: ") + std::strerror(errno));
-		}
-		close(pipefd[0]);
-		close(pipefd[1]);
-		char* args[] = {&programme[0], &responseFilePath[0], NULL};
-		char* envp[] = {NULL};
 
-		execve(&programme[0], args, envp);
-        throw std::runtime_error(std::string("execve: ") + std::strerror(errno));
-	} else {
-        int status;
-		close(pipefd[1]);
-		std::cout << "Before waitpid\n" << BUFSIZ << "\n";
-        char buffer[BUFSIZ];
-        int bytesRead;
-        std::stringstream output;
 
-			std::cout << "while\n";
-        // bytesRead = read(pipefd[0], buffer, BUFSIZ);
-		// std::cout << "bytesRead: " << bytesRead << "\n";
-        while ((bytesRead = read(pipefd[0], buffer, BUFSIZ)) > 0) {
-			// std::cout << "READ: " << buffer << "\n";
-            output.write(buffer, bytesRead);
-        }
-		// std::cout << "AFTER while\n";
-        close(pipefd[0]);
-        std::string cgiOutput = output.str();
-		std::cout << "RESPONSE\n" << output.str() << "END OF RESPONSE\n";
-		_response += "HTTP/1.1 200 OK\r\n";
-		// _response += "Content-type: text/html\r\n\r\n";
-		_response += cgiOutput;
-        waitpid(pid, &status, 0);
-		std::cout << "After waitpid: " << status << "\n";
-		// std::cout << "RESPONSE\n" << _response;
-    }
-}
-
-Response::Response(const Location* foundLocation, std::string responseFilePath, unsigned int returnCode, const Request& request) {
+Response::Response(const Location* foundLocation, std::string responseFilePath,
+	unsigned int returnCode, const Request& request, const ServerConfig* config) {
 	if (foundLocation->isCgi() && returnCode == 200) {
 		std::cout << "Handle CGI\n";
-		handleCGI(foundLocation, responseFilePath, request);
+		handleCGI(foundLocation, responseFilePath, request, config);
 	} else if (returnCode == 301) {
 		handleRedir(foundLocation);
 	} else if (isListing(foundLocation, responseFilePath)) {

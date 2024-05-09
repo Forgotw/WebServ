@@ -142,7 +142,7 @@ const Location*			Server::findCgiLocation(const std::string& path) const {
 	std::cout << "findCGILocation return NULL\n";
 	return NULL;
 }
-///MyCGI.php
+
 const Location*		Server::findLocation(std::string path) const {
 	const std::map<std::string, Location>&				locations = _config.getLocations();
 	if (isCgi(path)) {
@@ -216,6 +216,9 @@ static bool urlContainRelativePath(std::string realPath) {
 }
 
 unsigned int	Server::generateResponseCode(const Location* location, std::string realPath, const Request& request) const {
+	if (location && !location->getCgi().empty()) {
+		return	checkCgiError(location, realPath, request);
+	}
 	if (location && location->getReturn().first > 0) {
 		return location->getReturn().first;
 	}

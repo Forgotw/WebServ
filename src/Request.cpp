@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/06 18:51:50 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/07 17:02:47 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/09 14:08:20 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -210,6 +210,7 @@ URI parseURI(const std::string &uriString) {
 
 	return uri;
 }
+
 struct HTTPRequest {
 	std::string method;
 	std::string uri;
@@ -228,7 +229,10 @@ std::vector<std::string> splitLines(const std::string& input) {
 	}
 	return lines;
 }
-
+/*
+Avec l'exemple /path/to/resource/cgi.php/additional_info?param1=value1&param2=value2
+je veux dans path: /path/to/resource/cgi.php
+*/
 HTTPRequest parseHTTPRequest(const std::string& request) {
 	HTTPRequest httpRequest;
 	std::vector<std::string> lines = splitLines(request);

@@ -30,7 +30,9 @@ private:
 	int				_sockfd;
 	bool			_isRunning;
 	ServerConfig	_config;
+
 };
 std::ostream &operator<<(std::ostream &os, Server const &ref);
+unsigned int checkCgiError(const Location* location, std::string realPath, const Request& request);
 
 #endif
