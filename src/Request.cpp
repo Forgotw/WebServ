@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/06 18:51:50 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/09 20:21:19 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/09 20:29:45 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -205,10 +205,22 @@ std::vector<std::string> splitLines(const std::string& input) {
 	std::vector<std::string> lines;
 	std::istringstream stream(input);
 	std::string line;
-	while (getline(stream, line)) {
-		// std::cout << "Raw line: " << line << std::endl;
-		lines.push_back(line);
+    std::ofstream fichier("requestline.txt");
+    if (fichier.is_open()) {
+		while (getline(stream, line)) {
+			fichier << line;
+			// std::cout << "Raw line: " << line << std::endl;
+			lines.push_back(line);
+		}
+		fichier.close();
 	}
+    std::ofstream fichiervector("requestvector.txt");
+    if (fichiervector.is_open()) {
+		for(std::vector<std::string>::iterator it = lines.begin(); it != lines.end(); it++) {
+			fichiervector << *it;
+		}
+	}
+		fichiervector.close();
 	return lines;
 }
 
@@ -236,11 +248,11 @@ HTTPRequest parseHTTPRequest(const std::string& request) {
 	HTTPRequest httpRequest;
 	std::vector<std::string> lines = splitLines(request);
 
-    std::ofstream fichier("request.txt");
-    if (fichier.is_open()) {
-        fichier << request;
-        fichier.close();
-    }
+    // std::ofstream fichier("request.txt");
+    // if (fichier.is_open()) {
+    //     fichier << request;
+    //     fichier.close();
+    // }
 	std::cout << "Fini de mettre request dans fichier\n";
 	std::istringstream firstLineStream(lines[0]);
 	firstLineStream >> httpRequest.method >> httpRequest.uri >> httpRequest.version;
