@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 16:44:57 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/09 17:15:45 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/10 16:34:02 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -117,7 +117,7 @@ void	Response::httpGetFormatter(const std::string& responseFilePath, unsigned in
 	std::streampos fileSize = file.tellg();
 	file.seekg(0, std::ios::beg);
 
-	std::cout << "FILESIZE: " << fileSize << "\n";
+	// std::cout << "FILESIZE: " << fileSize << "\n";
 	// Allouer une chaîne de la taille du fichier
 	std::string fileContent(fileSize, '\0');
 	file.read(&fileContent[0], fileSize);

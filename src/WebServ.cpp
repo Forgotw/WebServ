@@ -217,12 +217,12 @@ void WebServ::handleHttp() {
 			const Server		*server = _peers[i].getServer();
 			const Request		request = *(_peers[i].getRequest());
 			const Location*		foundLocation = server->findLocation(request.getURI().path);
-			request.printRequest();
+			// request.printRequest();
 			std::string			realPath = server->findRequestedPath(foundLocation, request.getURI().path);
-			std::cout << "realPath Before: " << realPath << "\n";
+			// std::cout << "realPath Before: " << realPath << "\n";
 			unsigned int		responseCode = server->generateResponseCode(foundLocation, realPath, request);
 			std::string			responseFilePath = server->generateReponseFilePath(responseCode, realPath);
-			std::cout << "realPath: " << realPath << " responseCode: " << responseCode << " " << " responseFilePath: " << responseFilePath << std::endl;
+			// std::cout << "realPath: " << realPath << " responseCode: " << responseCode << " " << " responseFilePath: " << responseFilePath << std::endl;
 			Response			response(foundLocation, responseFilePath, responseCode, request, &server->getConfig());
 			_peers[i].setReponse(response.getResponse());
 		}

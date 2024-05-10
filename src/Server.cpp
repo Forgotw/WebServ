@@ -17,7 +17,7 @@
 #define LISTEN_BACKLOG 42
 
 Server::Server(ServerConfig &new_config) {
-	std::cout << "Creating Server object\n";
+	// std::cout << "Creating Server object\n";
 	_config = new_config;
 	int err;
 	struct addrinfo *resp;
@@ -30,7 +30,7 @@ Server::Server(ServerConfig &new_config) {
 
 	std::string	ip = this->getConfig().getIP();
 	std::string	port = this->getConfig().getPort();
-	std::cout << "IP: " << ip << "Port: " << port << std::endl;
+	// std::cout << "IP: " << ip << "Port: " << port << std::endl;
 	if (ip.empty()) {
 		ip = "0.0.0.0";
 	}

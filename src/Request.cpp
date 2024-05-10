@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/06 18:51:50 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/10 14:39:06 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/10 17:17:10 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,7 +70,51 @@ void Request::parseHeaders(const std::string& headersData) {
 	}
 }
 
-// Implémentation du constructeur prenant une chaîne de caractères représentant la requête
+std::string extractBoundary(const std::string& en_tete) {
+    std::string boundary;
+    std::size_t pos_debut = en_tete.find("boundary=");
+
+    if (pos_debut != std::string::npos) {
+    	boundary = en_tete.substr(pos_debut + 9, en_tete.length());
+	}
+    return boundary;
+}
+
+// static void	testOnFile(std::string body, std::string boundary) {
+//     std::size_t debut_binaire, fin_binaire;
+//     if (body.empty() || boundary.empty()) {
+// 		return ;
+// 	}
+//     // Cherche le début du binaire
+//     debut_binaire = body.find(boundary);
+//     if (debut_binaire == std::string::npos) {
+//         std::cout << "Début du binaire non trouvé." << std::endl;
+//         return;
+//     }
+//     debut_binaire = body.find("\r\n\r\n", debut_binaire);
+//     if (debut_binaire == std::string::npos) {
+//         std::cout << "Début du binaire non valide." << std::endl;
+//         return;
+//     }
+//     debut_binaire += 4; // Saute les "\r\n\r\n"
+    
+//     // Cherche la fin du binaire
+//     fin_binaire = body.find(boundary, debut_binaire);
+//     if (fin_binaire - 1 == std::string::npos) {
+//         std::cout << "Fin du binaire non trouvée." << std::endl;
+//         return;
+//     }
+//     fin_binaire -= 2; // Retourne en arrière pour enlever "--" avant la délimitation
+//     std::string donnees_binaires = body.substr(debut_binaire, fin_binaire - debut_binaire);
+// 	std::ofstream fichier("request_binary", std::ios::binary);
+// 	if (fichier.is_open()) {
+// 		std::cout << "\n\n\n------------FICHIER WRITING------------\n";
+// 		std::cout << "Lenght: " << donnees_binaires.length() << "\n";
+// 		std::cout << "Size: " << donnees_binaires.size() << "\n";
+// 		fichier.write(donnees_binaires.c_str(), donnees_binaires.size());
+// 		std::cout << "\n------------FICHIER WRITING END------------\n";
+// 	}
+// }
 Request::Request(const std::string& request) {
 	std::istringstream iss(request);
 	std::string requestLine;
@@ -86,6 +130,11 @@ Request::Request(const std::string& request) {
 		parseHeaders(request.substr(0, pos + 4)); // +4 pour sauter "\r\n\r\n"
 		// Récupérer le corps de la requête
 		_body = request.substr(pos + 4);
+		// std::string contentType = (*_headers.find("Content-Type")).second;
+		// std::string boundary = extractBoundary(contentType);
+		// std::cout << contentType << "\n\n\n\n";
+		// std::cout << boundary << "\n\n\n\n";
+		// testOnFile(_body, boundary);
 	}
 	_URI = parseURI(_rawURI);
 }
@@ -101,10 +150,11 @@ void Request::printRequest() const {
 	for (std::map<std::string, std::string>::const_iterator it = _headers.begin(); it != _headers.end(); ++it) {
 		std::cout << "    " << it->first << ": " << it->second << std::endl;
 	}
-	// std::ofstream fichier("requestInPrint");
+	// std::ofstream fichier("requestInPrint", std::ios::out | std::ios::binary);
 	// if (fichier.is_open()) {
-	// 	fichier << _body;
+	// 	std::cout << "\n------------FICHIER WRITING------------\n";
+	// 	std::cout << _body;
+	// 	fichier.write(_body.c_str(), _body.length());
 	// 	fichier.close();
 	// }
-	// std::cout << "Body: " << _body << std::endl;
 }

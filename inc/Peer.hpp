@@ -29,7 +29,7 @@ public:
 	void				writeResponse(void);
 
 	/*-----Set-----*/
-	void	setRequest(std::string const &buffer);
+	void	setRequest(const std::string& buffer);
 	void	setRequestData(const std::vector<char>& requestData);
 	void	setReponse(std::string const &response);
 	void	setLastActivity();
@@ -55,6 +55,7 @@ private:
 	time_t				_lastActivity;
 	bool				_requestComplete;
 	bool				_headerComplete;
+
 
 };
 
