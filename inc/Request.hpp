@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/06 18:52:20 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/09 18:05:45 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/10 10:48:18 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,10 +47,13 @@ class Request {
 		std::map<std::string, std::string>	_headers;
 		std::string							_body; // Juste pour POST et peut etre DELETE
 
+		void parseRequestLine(const std::string& requestLine);
+		void parseHeaders(const std::string& headersData);
 
 	public:
 		Request() : _method(), _version(), _rawURI(), _URI(), _headers() {}
 		Request(const std::string& request);
+		Request(const std::vector<char>& requestData);
 		~Request() {}
 		std::string toString() const;
 

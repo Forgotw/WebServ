@@ -11,6 +11,8 @@ Peer::Peer() {
 	std::memset(&this->_addr, 0, sizeof(this->_addr));
 	this->_request = NULL;
 	this->_lastActivity = 0;
+	_requestComplete = false;
+	_headerComplete = false;
 }
 Peer::~Peer() {
 	if (this->_request) {
@@ -24,10 +26,25 @@ void Peer::connect(int sockfd, struct sockaddr_in addr, Server* server) {
 		this->_addr = addr;
 		this->_status = CONNECTED;
 		this->_server = server;
+		_requestComplete = false;
+		_headerComplete = false;
 	}
 }
+
+void	Peer::setRequestData(const std::vector<char>& requestData) {
+	std::cout << "New request Data\n";
+	this->_request = new Request(requestData);
+	_request->printRequest();
+	this->_status = WAITING_READ;
+}
+
 void Peer::setRequest(std::string const &buffer) {
 	std::cout << "New request\n";
+    std::ofstream fichier("requestpeer.txt");
+    if (fichier.is_open()) {
+		fichier << buffer;
+		fichier.close();
+	}
 	this->_request = new Request(buffer);
 	_request->printRequest();
 	this->_status = WAITING_READ;
@@ -51,4 +68,74 @@ void Peer::reset() {
 	// this->_response.body.clear();
 	this->_response.clear();
 	this->_lastActivity = 0;
+}
+
+void	Peer::readRequest() {
+	char buffer[1024];
+	std::vector<char> requestData;
+
+	size_t contentLength = 0;
+	while (!_requestComplete) {
+		ssize_t bytesRead = recv(getSocket(), buffer, sizeof(buffer), MSG_DONTWAIT);
+		if (bytesRead > 0) {
+			// Ajouter les données lues au vecteur requestData
+			std::cout << "recv: " << buffer << std::endl; 
+			requestData.insert(requestData.end(), buffer, buffer + bytesRead);
+			if (!_headerComplete) {
+				// Vérifier si l'en-tête est complet
+				if (strstr(&requestData[0], "\r\n\r\n")) {
+					std::cout << "Header Complete------------\n";
+					_headerComplete = true;
+					// Extraire la longueur du contenu si elle est spécifiée dans l'en-tête Content-Length
+					char* contentLengthPtr = strstr(&requestData[0], "Content-Length:");
+					if (contentLengthPtr) {
+						contentLength = atoi(contentLengthPtr + strlen("Content-Length:"));
+					}
+				}
+			}
+			if (_headerComplete) {
+				std::cout << "Checking if _requestComplete-------------\n";
+				// Vérifier si le corps de la requête est complet
+				if (requestData.size() - (strstr(&requestData[0], "\r\n\r\n") - &requestData[0]) >= contentLength) {
+					_requestComplete = true;
+				}
+			}
+		} else if (bytesRead == 0 || (bytesRead < 0 && (errno == EWOULDBLOCK || errno == EAGAIN))) {
+			// Fin de la requête ou pas de données actuellement disponibles
+			break;
+		} else if (bytesRead < 0) {
+			// Erreur de réception
+			throw std::runtime_error(std::string("recv: ") + std::strerror(errno));
+		}
+	}
+	if (_requestComplete) {
+		setRequestData(requestData);
+		setLastActivity();
+		_requestComplete = false;
+		_headerComplete = false;
+	} else {
+		reset();
+	}
+}
+
+void	Peer::writeResponse() {
+	ssize_t httpReponseLen = getResponse().size();
+	ssize_t totalByteWritten = 0;
+
+	for (;;) {
+		ssize_t byteWritten = send(getSocket(), getResponse().c_str() + totalByteWritten, httpReponseLen - totalByteWritten, MSG_DONTWAIT);
+		if (byteWritten < 0) {
+			if (errno == EWOULDBLOCK || errno == EAGAIN) {
+				continue;
+			}
+			throw std::runtime_error(std::string("send: ") + std::strerror(errno));
+		} else {
+			totalByteWritten += byteWritten;
+			if (totalByteWritten >= httpReponseLen) {
+				setLastActivity();
+				reset();
+				break;
+			}
+		}
+	}
 }

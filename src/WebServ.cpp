@@ -134,55 +134,71 @@ void WebServ::handleNewConnection() {
 		}
 	}
 }
+// void WebServ::handlePeerRequest() {
+// 	char buffer[1024];
+// 	for (size_t i = 0; i < FD_SETSIZE; i++) {
+// 		if (FD_ISSET(this->_peers[i].getSocket(), &this->_readfds)) {
+// 			std::string request;
+// 			for (ssize_t byteRead = 1; byteRead > 0;) {
+// 				byteRead = recv(this->_peers[i].getSocket(), buffer, 1024, MSG_DONTWAIT);
+// 				if (byteRead > 0) {
+// 					buffer[byteRead] = '\0';
+// 					request += std::string(buffer);
+// 				} else if (byteRead < 0 && errno != EWOULDBLOCK && errno != EAGAIN) {
+// 					throw std::runtime_error(std::string("recv: ") + std::strerror(errno));
+// 				}
+// 			}
+// 			if (!request.empty()) {
+// 				this->_peers[i].setRequest(request);
+// 				this->_peers[i].setLastActivity();
+// 			} else {
+// 				this->_peers[i].reset();
+// 			}
+// 		}
+// 	}
+// }
+
 void WebServ::handlePeerRequest() {
-	char buffer[1024];
 	for (size_t i = 0; i < FD_SETSIZE; i++) {
 		if (FD_ISSET(this->_peers[i].getSocket(), &this->_readfds)) {
-			std::string request;
-			for (ssize_t byteRead = 1; byteRead > 0;) {
-				byteRead = recv(this->_peers[i].getSocket(), buffer, 1024, MSG_DONTWAIT);
-				if (byteRead > 0) {
-					buffer[byteRead] = '\0';
-					request += std::string(buffer);
-				} else if (byteRead < 0 && errno != EWOULDBLOCK && errno != EAGAIN) {
-					throw std::runtime_error(std::string("recv: ") + std::strerror(errno));
-				}
-			}
-			if (!request.empty()) {
-				this->_peers[i].setRequest(request);
-				this->_peers[i].setLastActivity();
-			} else {
-				this->_peers[i].reset();
-			}
+			_peers[i].readRequest();
 		}
 	}
 }
+
+// void WebServ::handlePeerResponse() {
+// 	for (size_t i = 0; i < FD_SETSIZE; i++) {
+// 		if (FD_ISSET(this->_peers[i].getSocket(), &this->_writefds)) {
+// 			// ssize_t httpReponseLen = std::strlen(this->_peers[i].getResponse().c_str());
+// 			// const char	*response = _peers[i].getResponse().c_str();
+// 			ssize_t httpReponseLen = _peers[i].getResponse().size();
+// 			ssize_t totalByteWritten = 0;
+// 			// std::cout << "\n\n------------Response-------------\n";
+// 			// std::cout << response << "\n\n\n";
+// 			// std::cout << "Size: " << httpReponseLen << std::endl;
+// 			for (;;) {
+// 				ssize_t byteWritten = send(this->_peers[i].getSocket(), this->_peers[i].getResponse().c_str() + totalByteWritten, httpReponseLen - totalByteWritten, MSG_DONTWAIT);
+// 				if (byteWritten < 0) {
+// 					if (errno == EWOULDBLOCK || errno == EAGAIN) {
+// 						continue;
+// 					}
+// 					throw std::runtime_error(std::string("send: ") + std::strerror(errno));
+// 				} else {
+// 					totalByteWritten += byteWritten;
+// 					if (totalByteWritten >= httpReponseLen) {
+// 						this->_peers[i].setLastActivity();
+// 						this->_peers[i].reset();
+// 						break;
+// 					}
+// 				}
+// 			}
+// 		}
+// 	}
+// }
 void WebServ::handlePeerResponse() {
 	for (size_t i = 0; i < FD_SETSIZE; i++) {
 		if (FD_ISSET(this->_peers[i].getSocket(), &this->_writefds)) {
-			// ssize_t httpReponseLen = std::strlen(this->_peers[i].getResponse().c_str());
-			// const char	*response = _peers[i].getResponse().c_str();
-			ssize_t httpReponseLen = _peers[i].getResponse().size();
-			ssize_t totalByteWritten = 0;
-			// std::cout << "\n\n------------Response-------------\n";
-			// std::cout << response << "\n\n\n";
-			// std::cout << "Size: " << httpReponseLen << std::endl;
-			for (;;) {
-				ssize_t byteWritten = send(this->_peers[i].getSocket(), this->_peers[i].getResponse().c_str() + totalByteWritten, httpReponseLen - totalByteWritten, MSG_DONTWAIT);
-				if (byteWritten < 0) {
-					if (errno == EWOULDBLOCK || errno == EAGAIN) {
-						continue;
-					}
-					throw std::runtime_error(std::string("send: ") + std::strerror(errno));
-				} else {
-					totalByteWritten += byteWritten;
-					if (totalByteWritten >= httpReponseLen) {
-						this->_peers[i].setLastActivity();
-						this->_peers[i].reset();
-						break;
-					}
-				}
-			}
+			_peers[i].writeResponse();
 		}
 	}
 }
