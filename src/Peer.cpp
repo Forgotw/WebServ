@@ -79,17 +79,21 @@ void	Peer::readRequest() {
 		ssize_t bytesRead = recv(getSocket(), buffer, sizeof(buffer), MSG_DONTWAIT);
 		if (bytesRead > 0) {
 			// Ajouter les données lues au vecteur requestData
-			std::cout << "recv: " << buffer << std::endl; 
+			std::cout << "recv: " << buffer << std::endl;
 			requestData.insert(requestData.end(), buffer, buffer + bytesRead);
 			if (!_headerComplete) {
 				// Vérifier si l'en-tête est complet
 				if (strstr(&requestData[0], "\r\n\r\n")) {
 					std::cout << "Header Complete------------\n";
 					_headerComplete = true;
-					// Extraire la longueur du contenu si elle est spécifiée dans l'en-tête Content-Length
 					char* contentLengthPtr = strstr(&requestData[0], "Content-Length:");
 					if (contentLengthPtr) {
-						contentLength = atoi(contentLengthPtr + strlen("Content-Length:"));
+						contentLengthPtr += strlen("Content-Length:");
+						// Skip any whitespace after the colon
+						while (isspace(*contentLengthPtr)) {
+							++contentLengthPtr;
+						}
+						contentLength = atoi(contentLengthPtr);
 					}
 				}
 			}

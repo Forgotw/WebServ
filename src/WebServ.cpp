@@ -16,7 +16,7 @@
 #include <fstream>
 
 
-#define TIMEOUT 10
+#define TIMEOUT 3
 
 WebServ::WebServ(std::vector<ServerConfig>& serverConfigVector) {
 	std::cout << "Creating WebServ objet.\n";
@@ -38,7 +38,7 @@ void WebServ::start() {
 	int activity;
 	struct timeval timeout;
 	timeout.tv_sec = 0;
-	timeout.tv_usec = 300000;
+	timeout.tv_usec = 300;
 	for (;;) {
 		checkTimeout();
 		setupSets();
@@ -105,6 +105,7 @@ void WebServ::checkTimeout() {
 	for (int i = 0; i < FD_SETSIZE; i++) {
 		if (this->_peers[i].getStatus() != Peer::EMPTY && time(NULL) - this->_peers[i].getLastActivity() > TIMEOUT) {
 			this->_peers[i].reset();
+			std::cout << "TIMEOUT\n";
 		}
 	}
 }

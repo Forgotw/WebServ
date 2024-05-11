@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
+/*   By: lray <lray@student.42lausanne.ch >         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/06 18:51:50 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/10 12:04:22 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/10 19:16:00 by lray             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -335,7 +335,8 @@ void Request::parseHeaders(const std::string& headersData) {
 		size_t pos = line.find(":");
 		if (pos != std::string::npos) {
 			std::string key = line.substr(0, pos);
-			std::string value = line.substr(pos + 1);
+			std::string value = line.substr(pos + 2);
+			value.erase(value.size() - 1);
 			_headers.insert(make_pair(key, value));
 		}
 	}

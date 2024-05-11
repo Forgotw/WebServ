@@ -187,7 +187,11 @@ std::string		Server::findRequestedPath(const Location* location, std::string pat
 		return "";
 	}
 	if (location->isCgi()) {
-		return location->getRoot() + path;
+		std::string modifiedPath = path;
+		if (!modifiedPath.empty() && modifiedPath[0] == '/') {
+			modifiedPath = modifiedPath.substr(1);
+		}
+		return location->getRoot() + modifiedPath;
 	}
 	std::string	realPath = location->getRoot();
 	if (location->getLocationName() != path) {

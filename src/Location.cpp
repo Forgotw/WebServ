@@ -6,11 +6,12 @@
 /*   By: lray <lray@student.42lausanne.ch >         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/04 11:25:41 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/06 14:43:27 by lray             ###   ########.fr       */
+/*   Updated: 2024/05/10 13:35:24 by lray             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Location.hpp"
+#include <cstdlib>
 
 Location::Location() :
 	_locationName(""),
