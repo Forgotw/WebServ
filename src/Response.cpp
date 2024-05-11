@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 16:44:57 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/10 16:34:02 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/11 14:02:03 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -163,12 +163,12 @@ void	Response::httpGetFormatter(const std::string& responseFilePath, unsigned in
 	_response = response.str() + htmlContent;
 }
 
-bool	isListing(const Location* foundLocation, std::string& responseFilePath) {
+bool	isAutoIndex(const Location* foundLocation, std::string& responseFilePath) {
 	struct stat	sb;
 	if (stat(responseFilePath.c_str(), &sb) == -1) {
 		throw std::runtime_error(std::string("stat: ") + std::strerror(errno));
 	}
-	if (S_ISDIR(sb.st_mode) && foundLocation->getListing() && foundLocation->getIndex().empty()) {
+	if (S_ISDIR(sb.st_mode) && foundLocation->getAutoIndex() && foundLocation->getIndex().empty()) {
 		return true;
 	}
 	return false;
@@ -192,7 +192,7 @@ Response::Response(const Location* foundLocation, std::string responseFilePath, 
 		_response = handleCGI(foundLocation, responseFilePath, request, config);
 	} else if (returnCode == 301) {
 		handleRedir(foundLocation);
-	} else if (isListing(foundLocation, responseFilePath)) {
+	} else if (isAutoIndex(foundLocation, responseFilePath)) {
 		writeListingPage(responseFilePath);
 	} else {
 		httpGetFormatter(responseFilePath, returnCode);

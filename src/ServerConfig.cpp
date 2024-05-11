@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/12 16:26:12 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/07 14:05:59 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/11 14:27:11 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -210,6 +210,10 @@ ServerConfig	&ServerConfig::operator=(ServerConfig const &other) {
 		_locations = other._locations;
 	}
 	return *this;
+}
+
+bool	ServerConfig::isValidServerConfig() {
+	return true;
 }
 
 /*--------------TESTING FUNCTIONS--------------*/

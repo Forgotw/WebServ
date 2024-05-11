@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerConfig.hpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lray <lray@student.42lausanne.ch >         +#+  +:+       +#+        */
+/*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/12 16:25:31 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/05 13:03:57 by lray             ###   ########.fr       */
+/*   Updated: 2024/05/11 14:12:56 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@
 
 #include <Location.hpp>
 
-#define DEF_MAX_BODY_SIZE 10 * 1024
+#define DEF_MAX_BODY_SIZE 10 * 1024 * 1024
 #define DEFAULT_ERROR_PAGE "www/default_error/404.html"
 #define CRITICAL_ERROR_PAGE "www/default_error/500.html"
 
@@ -52,6 +52,7 @@ class ServerConfig {
 		~ServerConfig(void);
 		ServerConfig	&operator=(ServerConfig const &other);
 
+		bool	isValidServerConfig();
 		/*-----Set-----*/
 		void	setIP(const std::string &ip) { _ip = ip; }
 		void	setPort(const std::string &port) { _port = port; }

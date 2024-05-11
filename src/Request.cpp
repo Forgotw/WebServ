@@ -6,13 +6,46 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/06 18:51:50 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/11 12:15:10 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/11 13:51:34 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Request.hpp"
 #include <iostream>
 #include <fstream>
+
+const char* HTTP_METHODS[] = {
+	"OPTIONS",
+	"GET",
+	"HEAD",
+	"POST",
+	"PUT",
+	"DELETE",
+	"TRACE",
+	"CONNECT"
+};
+
+bool isInHTTPMethods(const std::string& method) {
+	for (size_t i = 0; i < sizeof(HTTP_METHODS) / sizeof(HTTP_METHODS[0]); ++i) {
+		if (method == HTTP_METHODS[i]) {
+			return true;
+		}
+	}
+	return false;
+}
+
+bool	Request::isValidRequest() const {
+	if (!isInHTTPMethods(_method)) {
+		return false;
+	}
+	if (_rawURI.empty()) {
+		return false;
+	}
+	if (_version != "HTTP/1.1") {
+		return false;
+	}
+	return true;
+}
 
 URI parseURI(const std::string &uriStringConst) {
 	std::string uriString = uriStringConst;
@@ -34,11 +67,6 @@ URI parseURI(const std::string &uriStringConst) {
 	}
 	uri.path = uriString;
 	return uri;
-}
-
-bool	isValidRequest(HTTPRequest httpRequest) {
-	(void)httpRequest;
-	return true;
 }
 
 
@@ -111,7 +139,7 @@ std::string extractBoundary(const std::string& en_tete) {
 	return boundary;
 }
 
-Request::Request(const std::string& request) {
+Request::Request(const std::string& request) : _method(""), _version(""), _rawURI(""), _URI(), _headers(), _body("") {
 	std::istringstream iss(request);
 	std::string requestLine;
 	std::getline(iss, requestLine);

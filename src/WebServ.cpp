@@ -22,7 +22,9 @@ WebServ::WebServ(std::vector<ServerConfig>& serverConfigVector) {
 	std::cout << "Creating WebServ objet.\n";
 	for (std::vector<ServerConfig>::iterator it = serverConfigVector.begin(); it != serverConfigVector.end(); it++) {
 		(*it).printServerConfig();
-		this->_serverSockets.push_back(new Server(*it));
+		if (it->isValidServerConfig()) {
+			this->_serverSockets.push_back(new Server(*it));
+		}
 	}
 }
 

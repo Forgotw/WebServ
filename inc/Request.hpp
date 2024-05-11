@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/06 18:52:20 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/11 10:44:07 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/11 13:51:27 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,14 +22,6 @@
 #include <map>
 #include <vector>
 #include <sstream>
-
-struct HTTPRequest {
-	std::string method;
-	std::string uri;
-	std::string version;
-	std::map<std::string, std::string> headers;
-	std::string body;
-};
 
 struct URI {
 	std::string path;
@@ -51,10 +43,10 @@ class Request {
 		void parseHeaders(const std::string& headersData);
 
 	public:
-		Request() : _method(), _version(), _rawURI(), _URI(), _headers() {}
+		Request() : _method(""), _version(""), _rawURI(""), _URI(), _headers(), _body("") {}
 		Request(const std::string& request);
 		~Request() {}
-
+		bool	isValidRequest(void) const;
 		/*-----Get-----*/
 		const std::string&							getMethod() const { return _method; }
 		const std::string&							getVersion() const { return _version; }

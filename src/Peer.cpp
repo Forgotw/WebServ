@@ -50,9 +50,7 @@ void Peer::reset() {
 	close(this->_sockfd);
 	this->_sockfd = 0;
 	this->_status = EMPTY;
-	std::cout << "peer memset\n";
 	std::memset(&this->_addr, 0, sizeof(this->_addr));
-	std::cout << "Delete request\n";
 	delete this->_request;
 	this->_request = NULL;
 	// this->_response.requestcode = 0;
@@ -128,12 +126,12 @@ void	Peer::handleHttpRequest() {
 			const Server		*server = getServer();
 			const Request		request = *getRequest();
 			const Location*		foundLocation = server->findLocation(request.getURI().path);
-			// request.printRequest();
+			request.printRequest();
 			std::string			realPath = server->findRequestedPath(foundLocation, request.getURI().path);
-			// std::cout << "realPath Before: " << realPath << "\n";
+			std::cout << "realPath Before: " << realPath << "\n";
 			unsigned int		responseCode = server->generateResponseCode(foundLocation, realPath, request);
 			std::string			responseFilePath = server->generateReponseFilePath(responseCode, realPath);
-			// std::cout << "realPath: " << realPath << " responseCode: " << responseCode << " " << " responseFilePath: " << responseFilePath << std::endl;
+			std::cout << "realPath: " << realPath << " responseCode: " << responseCode << " " << " responseFilePath: " << responseFilePath << std::endl;
 			Response			response(foundLocation, responseFilePath, responseCode, request, &server->getConfig());
 			setReponse(response.getResponse());
 }

@@ -191,6 +191,7 @@ std::string		Server::findRequestedPath(const Location* location, std::string pat
 	if (location->getLocationName() != path) {
 		realPath = searchFindReplace(path, location->getLocationName(), location->getRoot());
 	}
+	std::cout << "Path before check stats: " << realPath << std::endl;
 	struct stat	sb;
 	if (stat(realPath.c_str(), &sb) == -1) {
 		return "";
@@ -214,6 +215,9 @@ static bool urlContainRelativePath(std::string realPath) {
 }
 
 unsigned int	Server::generateResponseCode(const Location* location, std::string realPath, const Request& request) const {
+	if (!request.isValidRequest()) {
+		return 400;
+	}
 	if (location && !location->getCgi().empty()) {
 		return	checkCgiError(location, realPath, request);
 	}

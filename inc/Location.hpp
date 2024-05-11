@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/04 11:24:57 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/07 16:34:13 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/11 14:00:53 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,7 @@ class Location {
 		std::string								_index;
 		std::pair<unsigned int, std::string>	_return;
 		bool									_access;
-		bool									_listing;
+		bool									_autoindex;
 		bool									_allocated;
 
 	public:
@@ -55,7 +55,7 @@ class Location {
 		void setIndex(const std::string& index) { _index = index; }
 		void setReturn(const std::pair<unsigned int, std::string>& ret) { _return = ret; }
 		void setAccess(const std::string& access) { _access = true; if (access == "false") _access = false; }
-		void setListing(const std::string& listing) { _listing = true; if (listing == "false") _listing = false; }
+		void setAutoIndex(const std::string& autoindex) { _autoindex = true; if (autoindex == "false") _autoindex = false; }
 
 		/*-----Get-----*/
 		const std::string& getLocationName() const { return _locationName; }
@@ -66,7 +66,7 @@ class Location {
 		const std::string& getIndex() const { return _index; }
 		const std::pair<unsigned int, std::string>& getReturn() const { return _return; }
 		bool getAccess() const { return _access; }
-		bool getListing() const { return _listing; }
+		bool getAutoIndex() const { return _autoindex; }
 		bool getAllocated() const { return _allocated; }
 
 		/*------------*/
