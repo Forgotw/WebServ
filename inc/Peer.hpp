@@ -21,12 +21,9 @@ public:
 	~Peer();
 
 	void				connect(int sockfd, struct sockaddr_in addr, Server* server);
-	// unsigned int		treatRequest(std::string* filename);
-	// std::string 		findErrorPage(unsigned int errorCode) const;
-	// std::string			generateResponseHeader(unsigned int requestReturn);
-	// std::string			generateResponseBody(const std::string& filename);
 	void				readRequest(void);
 	void				writeResponse(void);
+	void				handleHttpRequest(void);
 
 	/*-----Set-----*/
 	void	setRequest(const std::string& buffer);

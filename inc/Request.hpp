@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/06 18:52:20 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/10 10:48:18 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/11 10:44:07 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,9 +53,7 @@ class Request {
 	public:
 		Request() : _method(), _version(), _rawURI(), _URI(), _headers() {}
 		Request(const std::string& request);
-		Request(const std::vector<char>& requestData);
 		~Request() {}
-		std::string toString() const;
 
 		/*-----Get-----*/
 		const std::string&							getMethod() const { return _method; }

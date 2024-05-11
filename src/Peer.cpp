@@ -1,8 +1,7 @@
 #include "Peer.hpp"
+#include "Response.hpp"
 
-#include <arpa/inet.h>
 #include <unistd.h>
-
 #include <cstring>
 
 Peer::Peer() {
@@ -38,12 +37,7 @@ void	Peer::setRequest(const std::string& requestString) {
 	// _request->printRequest();
 	this->_status = WAITING_READ;
 }
-void	Peer::setRequestData(const std::vector<char>& requestData) {
-	// std::cout << "New request Data\n";
-	this->_request = new Request(requestData);
-	_request->printRequest();
-	this->_status = WAITING_READ;
-}
+
 
 void Peer::setReponse(std::string const &response) {
 	this->_response = response;
@@ -56,7 +50,9 @@ void Peer::reset() {
 	close(this->_sockfd);
 	this->_sockfd = 0;
 	this->_status = EMPTY;
+	std::cout << "peer memset\n";
 	std::memset(&this->_addr, 0, sizeof(this->_addr));
+	std::cout << "Delete request\n";
 	delete this->_request;
 	this->_request = NULL;
 	// this->_response.requestcode = 0;
@@ -68,22 +64,16 @@ void Peer::reset() {
 
 void	Peer::readRequest() {
 	char buffer[1024];
-	// std::vector<char> requestData;
 	std::string			requestData;
 	size_t contentLength = 0;
 	while (!_requestComplete) {
 		ssize_t bytesRead = recv(getSocket(), buffer, sizeof(buffer), MSG_DONTWAIT);
 		if (bytesRead > 0) {
-			// Ajouter les données lues au vecteur requestData
-			// std::cout << "recv: " << buffer << std::endl; 
-			// requestData.insert(requestData.end(), buffer, buffer + bytesRead);
 			requestData.append(buffer, bytesRead);
 			if (!_headerComplete) {
-				// Vérifier si l'en-tête est complet
 				if (strstr(&requestData[0], "\r\n\r\n")) {
 					// std::cout << "Header Complete------------\n";
 					_headerComplete = true;
-					// Extraire la longueur du contenu si elle est spécifiée dans l'en-tête Content-Length
 					char* contentLengthPtr = strstr(&requestData[0], "Content-Length:");
 					if (contentLengthPtr) {
 						contentLength = atoi(contentLengthPtr + strlen("Content-Length:"));
@@ -92,22 +82,18 @@ void	Peer::readRequest() {
 			}
 			if (_headerComplete) {
 				// std::cout << "Checking if _requestComplete-------------\n";
-				// Vérifier si le corps de la requête est complet
 				if (requestData.size() - (strstr(&requestData[0], "\r\n\r\n") - &requestData[0]) >= contentLength) {
 					_requestComplete = true;
 				}
 			}
 		} else if (bytesRead == 0 || (bytesRead < 0 && (errno == EWOULDBLOCK || errno == EAGAIN))) {
-			// Fin de la requête ou pas de données actuellement disponibles
 			break;
 		} else if (bytesRead < 0) {
-			// Erreur de réception
 			throw std::runtime_error(std::string("recv: ") + std::strerror(errno));
 		}
 	}
 	if (_requestComplete) {
 		setRequest(requestData);
-		// setRequestData(requestData);
 		setLastActivity();
 		_requestComplete = false;
 		_headerComplete = false;
@@ -136,4 +122,18 @@ void	Peer::writeResponse() {
 			}
 		}
 	}
+}
+
+void	Peer::handleHttpRequest() {
+			const Server		*server = getServer();
+			const Request		request = *getRequest();
+			const Location*		foundLocation = server->findLocation(request.getURI().path);
+			// request.printRequest();
+			std::string			realPath = server->findRequestedPath(foundLocation, request.getURI().path);
+			// std::cout << "realPath Before: " << realPath << "\n";
+			unsigned int		responseCode = server->generateResponseCode(foundLocation, realPath, request);
+			std::string			responseFilePath = server->generateReponseFilePath(responseCode, realPath);
+			// std::cout << "realPath: " << realPath << " responseCode: " << responseCode << " " << " responseFilePath: " << responseFilePath << std::endl;
+			Response			response(foundLocation, responseFilePath, responseCode, request, &server->getConfig());
+			setReponse(response.getResponse());
 }

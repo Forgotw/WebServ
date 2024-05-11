@@ -139,14 +139,12 @@ const Location*			Server::findCgiLocation(const std::string& path) const {
 			}
 		}
 	}
-	std::cout << "findCGILocation return NULL\n";
 	return NULL;
 }
 
 const Location*		Server::findLocation(std::string path) const {
 	const std::map<std::string, Location>&				locations = _config.getLocations();
 	if (isCgi(path)) {
-		std::cout << "findLocation -> isCGI\n";
 		return	findCgiLocation(path);
 	}
 	while (true) {
