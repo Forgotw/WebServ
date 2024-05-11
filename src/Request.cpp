@@ -6,7 +6,7 @@
 /*   By: lray <lray@student.42lausanne.ch >         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/06 18:51:50 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/10 19:16:00 by lray             ###   ########.fr       */
+/*   Updated: 2024/05/11 15:14:04 by lray             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -254,7 +254,7 @@ HTTPRequest parseHTTPRequest(const std::string& request) {
 
 	for (size_t i = 1; i < lines.size(); ++i) {
 		if (lines[i].empty()) {
-			std::cout << "Line before:" << lines[i -1] << std::endl;
+			//std::cout << "Line before:" << lines[i -1] << std::endl;
 			break ;
 		}
 		size_t colonPos = lines[i].find(':');

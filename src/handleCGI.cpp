@@ -6,7 +6,7 @@
 /*   By: lray <lray@student.42lausanne.ch >         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/09 13:01:40 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/11 14:05:24 by lray             ###   ########.fr       */
+/*   Updated: 2024/05/11 15:31:24 by lray             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -281,7 +281,7 @@ std::string generateCgiResponse(const Location* foundLocation, std::string respo
     std::string binary = searchBinary(foundLocation->getCgi());
     char* args[] = {&binary[0], &responseFilePath[0], NULL};
     char** envp = generateEnvCgi(request, config, responseFilePath);
-	printEnv(envp);
+	//printEnv(envp);
     int pipefd[2];
     int stdinpipefd[2];
     if (pipe(pipefd) == -1 || pipe(stdinpipefd) == -1) {
@@ -353,7 +353,7 @@ std::string generateCgiResponse(const Location* foundLocation, std::string respo
 
 
 std::string	handleCGI(const Location* foundLocation, std::string responseFilePath, const Request& request, const ServerConfig* config) {
-	return generateCgiResponse(foundLocation, responseFilePath, request, config);
+	return generateCgiResponse(foundLocation, responseFilePath, request, config);;
 }
 
 std::string trim(const std::string& str)

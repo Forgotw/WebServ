@@ -34,7 +34,7 @@ void Peer::connect(int sockfd, struct sockaddr_in addr, Server* server) {
 void	Peer::setRequestData(const std::vector<char>& requestData) {
 	std::cout << "New request Data\n";
 	this->_request = new Request(requestData);
-	_request->printRequest();
+	//_request->printRequest();
 	this->_status = WAITING_READ;
 }
 
@@ -79,12 +79,12 @@ void	Peer::readRequest() {
 		ssize_t bytesRead = recv(getSocket(), buffer, sizeof(buffer), MSG_DONTWAIT);
 		if (bytesRead > 0) {
 			// Ajouter les données lues au vecteur requestData
-			std::cout << "recv: " << buffer << std::endl;
+			//std::cout << "recv: " << buffer << std::endl;
 			requestData.insert(requestData.end(), buffer, buffer + bytesRead);
 			if (!_headerComplete) {
 				// Vérifier si l'en-tête est complet
 				if (strstr(&requestData[0], "\r\n\r\n")) {
-					std::cout << "Header Complete------------\n";
+					//std::cout << "Header Complete------------\n";
 					_headerComplete = true;
 					char* contentLengthPtr = strstr(&requestData[0], "Content-Length:");
 					if (contentLengthPtr) {
@@ -98,7 +98,7 @@ void	Peer::readRequest() {
 				}
 			}
 			if (_headerComplete) {
-				std::cout << "Checking if _requestComplete-------------\n";
+				//std::cout << "Checking if _requestComplete-------------\n";
 				// Vérifier si le corps de la requête est complet
 				if (requestData.size() - (strstr(&requestData[0], "\r\n\r\n") - &requestData[0]) >= contentLength) {
 					_requestComplete = true;

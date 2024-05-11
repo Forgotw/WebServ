@@ -105,7 +105,7 @@ void WebServ::checkTimeout() {
 	for (int i = 0; i < FD_SETSIZE; i++) {
 		if (this->_peers[i].getStatus() != Peer::EMPTY && time(NULL) - this->_peers[i].getLastActivity() > TIMEOUT) {
 			this->_peers[i].reset();
-			std::cout << "TIMEOUT\n";
+			//std::cout << "TIMEOUT\n";
 		}
 	}
 }
@@ -218,7 +218,7 @@ void WebServ::handleHttp() {
 			const Server		*server = _peers[i].getServer();
 			const Request		request = *(_peers[i].getRequest());
 			const Location*		foundLocation = server->findLocation(request.getURI().path);
-			request.printRequest();
+			//request.printRequest();
 			std::string			realPath = server->findRequestedPath(foundLocation, request.getURI().path);
 			std::cout << "realPath Before: " << realPath << "\n";
 			unsigned int		responseCode = server->generateResponseCode(foundLocation, realPath, request);
