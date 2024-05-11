@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
+/*   By: lray <lray@student.42lausanne.ch >         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 16:44:57 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/09 17:15:45 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/11 17:56:59 by lray             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,17 @@
 
 
 #include "Response.hpp"
+
+std::string getCGIHeader(std::string respCGI);
+std::string getCGIContentType(std::string CGIHeader);
+std::string getCGIStatusCode(std::string CGIHeader);
+std::string getCGILocation(std::string CGIHeader);
+std::string getCGIBody(std::string respCGI);
+std::string getCGIBodySize(std::string body);
+std::string handle200(std::string type, std::string len, std::string body);
+std::string handle302(std::string location);
+std::string handle404(std::string type);
+std::string handle500(std::string type);
 
 std::string getContentType(const std::string& filename) {
 	if (filename.find(".html") != std::string::npos ||
@@ -184,12 +195,25 @@ void	Response::handleRedir(const Location* foundLocation) {
 		}
 }
 
-
-
 Response::Response(const Location* foundLocation, std::string responseFilePath, unsigned int returnCode, const Request& request, const ServerConfig* config) {
 	if (foundLocation->isCgi() && returnCode == 200) {
 		std::cout << "Handle CGI\n";
-		_response = handleCGI(foundLocation, responseFilePath, request, config);
+		std::string respCGI = handleCGI(foundLocation, responseFilePath, request, config);
+		std::string CGIHeader = getCGIHeader(respCGI);
+		std::string contentType = getCGIContentType(CGIHeader);
+		std::string statusCode = getCGIStatusCode(CGIHeader);
+		if (statusCode == "200") {
+			std::string body = getCGIBody(respCGI);
+			std::string bodySize = getCGIBodySize(body);
+			_response = handle200(contentType, bodySize, body);
+		} else if (statusCode == "302") {
+			std::string location = getCGILocation(CGIHeader);
+			_response = handle302(location);
+		} else if (statusCode == "500") {
+			_response = handle500(contentType);
+		} else {
+			_response = handle404(contentType);
+		}
 	} else if (returnCode == 301) {
 		handleRedir(foundLocation);
 	} else if (isListing(foundLocation, responseFilePath)) {
@@ -197,4 +221,162 @@ Response::Response(const Location* foundLocation, std::string responseFilePath, 
 	} else {
 		httpGetFormatter(responseFilePath, returnCode);
 	}
+}
+
+std::string getCGIHeader(std::string respCGI) {
+	std::size_t pos1 = respCGI.find("\r\n\r\n");
+	if (pos1 != std::string::npos) {
+		std::size_t pos2 = respCGI.find("\r\n\r\n", pos1 + 4);
+		if (pos2 != std::string::npos) {
+			return respCGI.substr(pos1 + 4, pos2 - pos1 - 4);
+		}
+	}
+	return "";
+}
+
+std::string getCGIContentType(std::string CGIHeader) {
+	std::string search = "Content-type:";
+	std::size_t pos = CGIHeader.find(search);
+	if (pos != std::string::npos) {
+		std::string contentType = CGIHeader.substr(pos + search.length());
+
+		std::size_t first = contentType.find_first_not_of(' ');
+		if (first != std::string::npos) {
+			contentType = contentType.substr(first);
+		}
+		std::size_t last = contentType.find_last_not_of("\r\n");
+		if (last != std::string::npos) {
+			contentType = contentType.substr(0, last + 1);
+		}
+		return contentType;
+	}
+	return "";
+}
+
+std::string getCGIStatusCode(std::string CGIHeader) {
+	std::string search = "Status:";
+	std::size_t pos = CGIHeader.find(search);
+	if (pos != std::string::npos) {
+		std::string status = CGIHeader.substr(pos + search.length());
+		std::size_t first = status.find_first_not_of(' ');
+		if (first != std::string::npos) {
+			status = status.substr(first);
+		}
+		std::size_t end = status.find(' ');
+		if (end != std::string::npos) {
+			status = status.substr(0, end);
+		}
+		return status;
+	}
+	return "200";
+}
+
+std::string getCGILocation(std::string CGIHeader) {
+	std::string search = "Location:";
+	std::size_t pos = CGIHeader.find(search);
+	if (pos != std::string::npos) {
+		std::string location = CGIHeader.substr(pos + search.length());
+		std::size_t first = location.find_first_not_of(' ');
+		if (first != std::string::npos) {
+			location = location.substr(first);
+		}
+		std::size_t end = location.find("\r\n");
+		if (end != std::string::npos) {
+			location = location.substr(0, end);
+		}
+		return location;
+	}
+	return "";
+}
+
+std::string getCGIBody(std::string respCGI) {
+	std::size_t pos1 = respCGI.find("\r\n\r\n");
+	if (pos1 != std::string::npos) {
+		std::size_t pos2 = respCGI.find("\r\n\r\n", pos1 + 4); // +4 to skip over the first "\r\n\r\n"
+		if (pos2 != std::string::npos) {
+			return respCGI.substr(pos2 + 4); // +4 to skip over the second "\r\n\r\n"
+		}
+	}
+	return "";
+}
+
+std::string getCGIBodySize(std::string body) {
+	std::stringstream ss;
+	ss << body.size();
+	return ss.str();
+}
+
+std::string handle200(std::string type, std::string len, std::string body) {
+	std::string resp = "";
+	resp += "HTTP/1.1 200 OK";
+	resp += "\r\n";
+	resp += "Content-Type: ";
+	resp += type;
+	resp += "\r\n";
+	resp += "Content-Length: ";
+	resp += len;
+	resp += "\r\n";
+	resp += "\r\n";
+	resp += body;
+	resp += "\r\n";
+	return resp;
+}
+
+std::string handle302(std::string location) {
+	std::string resp = "";
+	resp += "HTTP/1.1 302 Found\r\n";
+	resp += "Location: ";
+	resp += location;
+	resp += "\r\n\r\n";
+	return resp;
+}
+
+std::string handle404(std::string type) {
+	std::string body = "";
+	body += "<html>\r\n";
+	body += "<head>\r\n";
+	body += "<title>404 Not Found</title>\r\n";
+	body += "</head>\r\n";
+	body += "<body>\r\n";
+	body += "<h1>404</h1>\r\n";
+	body += "Not Found\r\n";
+	body += "</body>\r\n";
+	body += "</html>\r\n";
+
+	std::string resp = "";
+	resp += "HTTP/1.1 404 Not Found";
+	resp += "\r\n";
+	resp += "Content-Type: ";
+	resp += type;
+	resp += "\r\n";
+	resp += "Content-Length: ";
+	resp += body.size();
+	resp += "\r\n\r\n";
+	resp += body;
+	return resp;
+}
+
+std::string handle500(std::string type) {
+	std::string body = "";
+	body += "<html>\r\n";
+	body += "<head>\r\n";
+	body += "<title>500 Internal Server Error</title>\r\n";
+	body += "</head>\r\n";
+	body += "<body>\r\n";
+	body += "<h1>500</h1>\r\n";
+	body += "Internal Server Error\r\n";
+	body += "</body>\r\n";
+	body += "</html>\r\n";
+
+	std::string resp = "";
+	resp += "HTTP/1.1 500 Internal Server Error";
+	resp += "\r\n";
+	resp += "Content-Type: ";
+	resp += type;
+	resp += "\r\n";
+	resp += "Content-Length: ";
+	resp += body.size();
+	resp += "\r\n\r\n";
+	resp += body;
+	return resp;
 }
