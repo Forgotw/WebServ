@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   handleCGI.cpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
+/*   By: efailla <efailla@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/09 13:01:40 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/13 15:40:07 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/13 17:36:46 by efailla          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -121,7 +121,7 @@ char** generateEnvCgi(const Request& request, const ServerConfig* config, std::s
 	env["PATH_INFO"] = request.getURI().pathInfo;
 	env["QUERRY_STRING"] = request.getURI().querryString;
 	env["SCRIPT_NAME"] = request.getURI().path;
-	env["SCRIPT_FILENAME"] = "/Users/lsohler/WebServer/" + realPath;
+	env["SCRIPT_FILENAME"] = "/Users/efailla/WebServer/" + realPath;
 	env["REMOTE_HOST"] = headers.count("host") ? headers["host"] : "";
 	env["REMOTE_USER"] = headers.count("host") ? headers["host"] : "";
 	env["CONTENT_TYPE"] = headers.count("content-length") ? headers["content-type"] : "";

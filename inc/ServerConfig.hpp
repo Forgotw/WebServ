@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerConfig.hpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
+/*   By: efailla <efailla@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/12 16:25:31 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/13 15:30:50 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/13 18:03:29 by efailla          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,6 +54,8 @@ class ServerConfig {
 		ServerConfig	&operator=(ServerConfig const &other);
 
 		bool	isValidServerConfig();
+		bool 	isValidIPAddress();
+		bool	ServerConfig::isValidPort();
 		/*-----Set-----*/
 		void	setIP(const std::string &ip) { _ip = ip; }
 		void	setPort(const std::string &port) { _port = port; }

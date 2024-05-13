@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerConfig.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
+/*   By: efailla <efailla@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/12 16:26:12 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/13 15:30:18 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/13 18:28:18 by efailla          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -217,7 +217,45 @@ ServerConfig	&ServerConfig::operator=(ServerConfig const &other) {
 	return *this;
 }
 
+bool ServerConfig::isValidIPAddress()
+{
+    int num1, num2, num3, num4;
+    char end;
+
+    if (sscanf(_ip.c_str(), "%d.%d.%d.%d%c", &num1, &num2, &num3, &num4, &end) == 4) {
+        return (num1 >= 0 && num1 <= 255) &&
+               (num2 >= 0 && num2 <= 255) &&
+               (num3 >= 0 && num3 <= 255) &&
+               (num4 >= 0 && num4 <= 255);
+    }
+    return false;
+}
+
+bool ServerConfig::isValidPort()
+{
+	std::string portS = _port;
+     if (portS.empty()) {
+        return false;
+    }
+    int port = 0;
+    for (size_t i = 0; i < portS.size(); i++) {
+        if (!isdigit(_port[i])) {
+            return false;
+        }
+        port = 10 * port + (portS[i] - '0');
+        if (port > 65535) {
+            return false;
+        }
+    }
+    return true;
+}
+
 bool	ServerConfig::isValidServerConfig() {
+	// if (!isValidIPAddress())
+	// 	return false;
+	if (!isValidPort())
+		return false;
+	
 	return true;
 }
 
