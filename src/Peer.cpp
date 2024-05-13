@@ -125,10 +125,10 @@ void	Peer::writeResponse() {
 void	Peer::handleHttpRequest() {
 			const Server		*server = getServer();
 			const Request		request = *getRequest();
-			const Location*		foundLocation = server->findLocation(request.getURI().path);
 			request.printRequest();
+			const Location*		foundLocation = server->findLocation(request.getURI().path);
 			std::string			realPath = server->findRequestedPath(foundLocation, request.getURI().path);
-			std::cout << "realPath Before: " << realPath << "\n";
+			std::cout << "realPath Before1: " << realPath << "\n";
 			unsigned int		responseCode = server->generateResponseCode(foundLocation, realPath, request);
 			std::string			responseFilePath = server->generateReponseFilePath(responseCode, realPath);
 			std::cout << "realPath: " << realPath << " responseCode: " << responseCode << " " << " responseFilePath: " << responseFilePath << std::endl;

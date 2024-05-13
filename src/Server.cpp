@@ -182,10 +182,17 @@ std::string searchFindReplace(std::string& toSearch, const std::string& toFind, 
 
 std::string		Server::findRequestedPath(const Location* location, std::string path) const {
 	if (!location) {
+		std::cout << "No location\n";
 		return "";
 	}
 	if (location->isCgi()) {
-		std::string realCgiPath = location->getRoot() + path;
+		std::string	cgiRoot = location->getRoot();
+		if (!cgiRoot.empty() && cgiRoot.back() == '/' && path.front() == '/') {
+			path = path.substr(1);
+			std::cout << "cgiRoot is now: " << cgiRoot << "\n";
+		}
+		std::string realCgiPath = cgiRoot + path;
+		std::cout << "Location is cgi: " << realCgiPath << "\n";
 		struct stat sbCgi;
 		if (stat(realCgiPath.c_str(), &sbCgi) == -1) {
 			return "";
@@ -224,9 +231,9 @@ unsigned int	Server::generateResponseCode(const Location* location, std::string 
 	if (!request.isValidRequest()) {
 		return 400;
 	}
-	if (location && !location->getCgi().empty()) {
-		return	checkCgiError(location, realPath, request);
-	}
+	// if (location && !location->getCgi().empty()) {
+	// 	return	checkCgiError(location, realPath, request);
+	// }
 	if (location && location->getReturn().first > 0) {
 		return location->getReturn().first;
 	}
