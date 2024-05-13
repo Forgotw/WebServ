@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/09 13:01:40 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/13 20:40:38 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/13 20:53:22 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -325,18 +325,24 @@ std::string	CgiHandler::handleCGI(unsigned int* uiStatusCode, const Location* fo
 	std::string response;
 	std::cout << "Handle CGI\n";
 	std::string respCGI = generateCgiResponse(foundLocation, cgiFilePath, request, config);
+	std::cout << "respCGI: " << respCGI << "\n"; 
 	std::string CGIHeader = getCGIHeader(respCGI);
+	std::cout << "CGIHeader: " << CGIHeader << "\n"; 
 	std::string contentType = getCGIContentType(CGIHeader);
+	std::cout << "contentType: " << contentType << "\n"; 
 	std::string statusCode = getCGIStatusCode(CGIHeader);
+	std::cout << "statusCode: " << statusCode << "\n"; 
 	if (statusCode == "200") {
 		std::string body = getCGIBody(respCGI);
 		std::string bodySize = getCGIBodySize(body);
 		response = handle200(contentType, bodySize, body);
+		std::cout << "response: " << response << "\n";
 	} else if (statusCode == "302") {
 		std::string location = getCGILocation(CGIHeader);
 		response = handle302(location);
 	} else {
 		*uiStatusCode = std::atoi(statusCode.c_str());
+		std::cout << "Handle CGI problem: " << *uiStatusCode << "\n";
 	}
 	return response;
 }

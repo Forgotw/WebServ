@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/13 20:30:58 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/13 20:41:15 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/13 20:47:24 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -306,7 +306,7 @@ std::string		Server::ResponseRouter(const Request& request) const {
 	std::string			responseFilePath = generateReponseFilePath(respCode, realPath);
 	std::string			response;
 	if (foundLocation->isCgi() && respCode == 200) {
-		response = CgiHandler::handleCGI(&respCode, foundLocation, responseFilePath, request, getConfig());
+		response = CgiHandler::handleCGI(&respCode, foundLocation, responseFilePath, request, &getConfig());
 		if (respCode >= 400) {
 			responseFilePath = generateReponseFilePath(respCode, realPath);
 		} else {
@@ -319,6 +319,7 @@ std::string		Server::ResponseRouter(const Request& request) const {
 		response = Response::writeAutoIndexPage(responseFilePath);
 		return response;
 	}
+	std::cout << "Formatter\n";
 	response = Response::httpFormatter(responseFilePath, respCode);
 	return response;
 }
