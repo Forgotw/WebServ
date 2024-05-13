@@ -1,15 +1,14 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Response.hpp                                       :+:      :+:    :+:   */
+/*   CgiHandler.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/04/26 11:05:57 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/13 20:28:39 by lsohler          ###   ########.fr       */
+/*   Created: 2024/05/13 20:14:32 by lsohler           #+#    #+#             */
+/*   Updated: 2024/05/13 20:40:16 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
-
 
 #pragma once
 
@@ -18,25 +17,18 @@
 **		Include
 **==========================
 */
-#include <iostream>
 #include <string>
-#include <map>
-#include <vector>
-#include <sstream>
-#include <fstream>
-#include <ServerConfig.hpp>
-#include <Request.hpp>
-#include <dirent.h>
-#include <unistd.h>
+#include "ServerConfig.hpp"
+#include "Request.hpp"
+#include "Location.hpp"
 
-class Response {
+class CgiHandler {
 
 	private:
-		Response() {}
-		~Response() {}
+		CgiHandler() {}
+		~CgiHandler() {}
 
 	public:
-		static std::string		httpFormatter(const std::string& responseFilePath, unsigned int returnCode);
-		static std::string		writeAutoIndexPage(const std::string& responseFilePath);
-		static std::string		handleRedir(const Location* foundLocation);
+		static std::string	handleCGI(unsigned int* uiStatusCode, const Location* foundLocation, std::string responseFilePath, const Request& request, const ServerConfig* config);
+
 };

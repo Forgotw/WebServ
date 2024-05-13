@@ -126,13 +126,24 @@ void	Peer::handleHttpRequest() {
 			const Server		*server = getServer();
 			const Request		request = *getRequest();
 			request.printRequest();
-			const Location*		foundLocation = server->findLocation(request.getURI().path);
-			std::string			realPath = server->findRequestedPath(foundLocation, request.getURI().path);
-			std::cout << "realPath Before1: " << realPath << "\n";
-			unsigned int		responseCode = server->generateResponseCode(foundLocation, realPath, request);
-			std::string			responseFilePath = server->generateReponseFilePath(responseCode, realPath);
-			std::cout << "realPath: " << realPath << " responseCode: " << responseCode << " " << " responseFilePath: " << responseFilePath << std::endl;
-			Response			response(foundLocation, responseFilePath, responseCode, request, &server->getConfig());
-			setReponse(response.getResponse());
-			std::cout << "End of handleHTTPRequest\n";
+			std::string response;
+			response = server->ResponseRouter(request);
+			// const Location*		foundLocation = server->findLocation(request.getURI().path);
+			// std::string			realPath = server->findRequestedPath(foundLocation, request.getURI().path);
+			// std::cout << "realPath Before1: " << realPath << "\n";
+			// unsigned int		respCode = server->generateResponseCode(foundLocation, realPath, request);
+			// std::string			responseFilePath = server->generateReponseFilePath(respCode, realPath);
+			// std::string			response;
+			// if (foundLocation->isCgi() && respCode == 200) {
+			// 	response = server->ServerHandleCGI(respCode, foundLocation, responseFilePath, request);
+			// 	if (respCode >= 400) {
+			// 		responseFilePath = server->generateReponseFilePath(respCode, realPath);
+			// 	}
+			// } else if (respCode == 301) {
+			// 	response = server->handleRedir(foundLocation);
+			// } else if (server->isAutoIndex(foundLocation, responseFilePath)) {
+			// 	response = server->writeAutoIndexPage(responseFilePath);
+			// }
+			// response = server->httpFormatter(responseFilePath, respCode);
+			setReponse(response);
 }
