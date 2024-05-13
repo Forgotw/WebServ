@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: efailla <efailla@student.42.fr>            +#+  +:+       +#+        */
+/*   By: lray <lray@student.42lausanne.ch >         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/26 11:05:57 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/07 16:53:18 by efailla          ###   ########.fr       */
+/*   Updated: 2024/05/13 15:53:19 by lray             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,33 +32,21 @@
 class Response {
 
 	private:
-			ServerConfig					_config;
-			Request							_request;
-			std::string						_realPath;
-			std::string						_searchedPage;
-			std::string						_searchedLocation;
-			unsigned int					_returnCode;
-			std::string						_header;
-			std::string						_body;
-			// Route							_route;
-			// Location						_location;
-			bool							_isDir;
+		std::string						_response;
 
-			void			splitSearchedURI(const std::string& input);
-			void			httpGetFormatter();
-			unsigned int	findLocation(void);
-			void			findErrorPage(void);
-			void			writeListingPage(void);
-			unsigned int	recursiveSearchLocation(void);
-			bool			handleCookies();
+		void			httpGetFormatter(const std::string& responseFilePath, unsigned int returnCode);
+		void			writeListingPage(const std::string& responseFilePath);
+		void			handleRedir(const Location* foundLocation);
 
 	public:
 		Response() {}
 		Response(const ServerConfig &config, const Request &request);
-		Response(const Location* foundLocation, std::string responseFilePath, unsigned int responseCode, const Request& request);
+		Response(const Location* foundLocation, std::string responseFilePath, unsigned int returnCode, const Request& request, const ServerConfig* config);
 		Response(const std::string& Response);
 		~Response() {}
 
-		std::string getResponse() const { return _header + _body;}
+		std::string getResponse() const { return _response;}
 
 };
+
+std::string	handleCGI(const Location* foundLocation, std::string responseFilePath, const Request& request, const ServerConfig* config);

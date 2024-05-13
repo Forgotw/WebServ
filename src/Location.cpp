@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Location.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lray <lray@student.42lausanne.ch >         +#+  +:+       +#+        */
+/*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/04 11:25:41 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/06 14:43:27 by lray             ###   ########.fr       */
+/*   Updated: 2024/05/11 14:01:30 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@ Location::Location() :
 	_index(""),
 	_return(std::make_pair(0, "")),
 	_access(true),
-	_listing(false),
+	_autoindex(false),
 	_allocated(false) {
 }
 
@@ -34,7 +34,7 @@ Location::Location(const Location& other) :
 	_index(other._index),
 	_return(other._return),
 	_access(other._access),
-	_listing(other._listing),
+	_autoindex(other._autoindex),
 	_allocated(other._allocated) {
 }
 
@@ -50,7 +50,7 @@ Location	&Location::operator=(const Location& other) {
 		_index = other._index;
 		_return = other._return;
 		_access = other._access;
-		_listing = other._listing;
+		_autoindex = other._autoindex;
 		_allocated = other._allocated;
 	}
 	return *this;
@@ -117,8 +117,8 @@ void	locationHandleAccess(Location &location, std::vector<std::string> &tokens) 
 	tokenSetter(tokens, location, &Location::setAccess);
 }
 
-void	locationHandleListing(Location &location, std::vector<std::string> &tokens) {
-	tokenSetter(tokens, location, &Location::setListing);
+void	locationHandleAutoIndex(Location &location, std::vector<std::string> &tokens) {
+	tokenSetter(tokens, location, &Location::setAutoIndex);
 }
 
 typedef void (*locationHandler)(Location &, std::vector<std::string>&);
@@ -133,7 +133,7 @@ std::map<std::string, locationHandler> locationMap() {
 	myMap["index"] = &locationHandleIndex;
 	myMap["return"] = &locationHandleReturn;
 	myMap["access"] = &locationHandleAccess;
-	myMap["listing"] = &locationHandleListing;
+	myMap["autoindex"] = &locationHandleAutoIndex;
 
 	return myMap;
 }
@@ -160,7 +160,7 @@ Location::Location(unsigned int redirCode, std::string redirPath) :
 	_index(""),
 	_return(std::make_pair(redirCode, redirPath)),
 	_access(true),
-	_listing(false),
+	_autoindex(false),
 	_allocated(true) {
 }
 
@@ -173,7 +173,7 @@ Location::Location(std::vector<std::string> &tokens):
 	_index(""),
 	_return(std::make_pair(0, "")),
 	_access(true),
-	_listing(false),
+	_autoindex(false),
 	_allocated(false)
 {
 	std::map<std::string, locationHandler> map = locationMap();
@@ -215,6 +215,6 @@ void	Location::printLocation() const {
 	std::cout << "	Upload: " << _upload << std::endl;
 	std::cout << "	Index: " << _index << std::endl;
 	std::cout << "	Access: " << (_access ? "true" : "false") << std::endl;
-	std::cout << "	Listing: " << (_listing ? "true" : "false") << std::endl;
+	std::cout << "	AutoIndex: " << (_autoindex ? "true" : "false") << std::endl;
 	std::cout << "	Return: " << _return.first << " " << _return.second << std::endl;
 }

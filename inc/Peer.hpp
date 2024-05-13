@@ -21,13 +21,13 @@ public:
 	~Peer();
 
 	void				connect(int sockfd, struct sockaddr_in addr, Server* server);
-	unsigned int		treatRequest(std::string* filename);
-	std::string 		findErrorPage(unsigned int errorCode) const;
-	std::string			generateResponseHeader(unsigned int requestReturn);
-	std::string			generateResponseBody(const std::string& filename);
+	void				readRequest(void);
+	void				writeResponse(void);
+	void				handleHttpRequest(void);
 
 	/*-----Set-----*/
-	void	setRequest(std::string const &buffer);
+	void	setRequest(const std::string& buffer);
+	void	setRequestData(const std::vector<char>& requestData);
 	void	setReponse(std::string const &response);
 	void	setLastActivity();
 	void	reset();
@@ -49,7 +49,11 @@ private:
 	Request*			_request;
 	Server*				_server;
 	std::string			_response;
-	time_t			_lastActivity;
+	time_t				_lastActivity;
+	bool				_requestComplete;
+	bool				_headerComplete;
+
+
 };
 
 #endif

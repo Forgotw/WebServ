@@ -17,7 +17,7 @@
 #define LISTEN_BACKLOG 42
 
 Server::Server(ServerConfig &new_config) {
-	std::cout << "Creating Server object\n";
+	// std::cout << "Creating Server object\n";
 	_config = new_config;
 	int err;
 	struct addrinfo *resp;
@@ -30,7 +30,7 @@ Server::Server(ServerConfig &new_config) {
 
 	std::string	ip = this->getConfig().getIP();
 	std::string	port = this->getConfig().getPort();
-	std::cout << "IP: " << ip << "Port: " << port << std::endl;
+	// std::cout << "IP: " << ip << "Port: " << port << std::endl;
 	if (ip.empty()) {
 		ip = "0.0.0.0";
 	}
@@ -107,8 +107,46 @@ static std::string trimLastLoctation(std::string chaine) {
 	return chaine.substr(0, pos) + "/";
 }
 
+static const std::string cgiExtensions[] = {".cgi", ".pl", ".py", ".sh", ".php", ".rb"};
+
+static bool	isCgi(const std::string& path) {
+	size_t dotPosition = path.rfind('.');
+	if (dotPosition != std::string::npos) {
+		std::string extension = path.substr(dotPosition);
+
+		for (size_t i = 0; i < sizeof(cgiExtensions) / sizeof(cgiExtensions[0]); ++i) {
+			if (extension == cgiExtensions[i]) {
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+const Location*			Server::findCgiLocation(const std::string& path) const {
+	const std::map<std::string, Location>&				locations = _config.getLocations();
+	size_t dotPosition = path.rfind('.');
+	if (dotPosition != std::string::npos) {
+		std::string extension = path.substr(dotPosition);
+
+		for (size_t i = 0; i < sizeof(cgiExtensions) / sizeof(cgiExtensions[0]); ++i) {
+			if (extension == cgiExtensions[i]) {
+				std::map<std::string, Location>::const_iterator	it = locations.find("/*" + extension);
+				if (it != locations.end()) {
+					it->second.printLocation();
+					return &it->second;
+				}
+			}
+		}
+	}
+	return NULL;
+}
+
 const Location*		Server::findLocation(std::string path) const {
 	const std::map<std::string, Location>&				locations = _config.getLocations();
+	if (isCgi(path)) {
+		return	findCgiLocation(path);
+	}
 	while (true) {
 		std::map<std::string, Location>::const_iterator	it = locations.find(path);
 		if (path == "/" && it == locations.end()) {
@@ -146,11 +184,21 @@ std::string		Server::findRequestedPath(const Location* location, std::string pat
 	if (!location) {
 		return "";
 	}
+	if (location->isCgi()) {
+		std::string realCgiPath = location->getRoot() + path;
+		struct stat sbCgi;
+		if (stat(realCgiPath.c_str(), &sbCgi) == -1) {
+			return "";
+		} else {
+			return realCgiPath;
+		}
+	}
 	std::string	realPath = location->getRoot();
 	if (location->getLocationName() != path) {
 		realPath = searchFindReplace(path, location->getLocationName(), location->getRoot());
 	}
 	struct stat	sb;
+	std::cout << "Path before check stats: " << realPath << std::endl;
 	if (stat(realPath.c_str(), &sb) == -1) {
 		return "";
 	}
@@ -173,6 +221,12 @@ static bool urlContainRelativePath(std::string realPath) {
 }
 
 unsigned int	Server::generateResponseCode(const Location* location, std::string realPath, const Request& request) const {
+	if (!request.isValidRequest()) {
+		return 400;
+	}
+	if (location && !location->getCgi().empty()) {
+		return	checkCgiError(location, realPath, request);
+	}
 	if (location && location->getReturn().first > 0) {
 		return location->getReturn().first;
 	}
@@ -200,7 +254,11 @@ std::string		Server::generateReponseFilePath(unsigned int responseCode, std::str
 		std::map<int, std::string>::const_iterator	it = error_pages.find(responseCode);
 
 		if (it != error_pages.end()) {
-			responseFilePath = _config.getRoot() + "default_error/" + it->second;
+			responseFilePath = _config.getErrorDir() + it->second;
+				struct stat	sb;
+			if (stat(responseFilePath.c_str(), &sb) == -1) {
+				responseFilePath =  DEFAULT_ERROR_PAGE;
+			}
 		} else {
 			responseFilePath =  DEFAULT_ERROR_PAGE;
 		}

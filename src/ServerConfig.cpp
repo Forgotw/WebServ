@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerConfig.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lray <lray@student.42lausanne.ch >         +#+  +:+       +#+        */
+/*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/12 16:26:12 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/06 16:08:07 by lray             ###   ########.fr       */
+/*   Updated: 2024/05/13 15:30:18 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,6 +92,10 @@ void	handleErrorPage(ServerConfig &config, std::vector<std::string> &tokens) {
 	tokenSetter(tokens, config, &ServerConfig::setErrorPage);
 }
 
+void	handleErrorDir(ServerConfig &config, std::vector<std::string> &tokens) {
+	tokenSetter(tokens, config, &ServerConfig::setErrorPage);
+}
+
 void	handleRoot(ServerConfig &config, std::vector<std::string> &tokens) {
 	tokenSetter(tokens, config, &ServerConfig::setRoot);
 }
@@ -129,6 +133,7 @@ std::map<std::string, caseHandler> caseMap() {
 	myMap["access_log"] = &handleAccessLog;
 	myMap["error_log"] = &handleErrorLog;
 	myMap["error_page"] = &handleErrorPage;
+	myMap["error_dir"] = &handleErrorDir;
 	myMap["root"] = &handleRoot;
 	myMap["index"] = &handleIndex;
 	myMap["client_max_body_size"] = &handleClientMaxBodySize;
@@ -210,6 +215,10 @@ ServerConfig	&ServerConfig::operator=(ServerConfig const &other) {
 		_locations = other._locations;
 	}
 	return *this;
+}
+
+bool	ServerConfig::isValidServerConfig() {
+	return true;
 }
 
 /*--------------TESTING FUNCTIONS--------------*/

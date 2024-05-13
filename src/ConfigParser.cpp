@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ConfigParser.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lray <lray@student.42lausanne.ch >         +#+  +:+       +#+        */
+/*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/10 11:14:07 by lsohler@stu       #+#    #+#             */
-/*   Updated: 2024/05/05 13:13:31 by lray             ###   ########.fr       */
+/*   Updated: 2024/05/11 14:20:01 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,7 @@ int	checkTokens(std::vector<std::string> tokens) {
 		return 0;
 	}
 	std::cerr << "Parsing error: opened bracket" << std::endl;
-	return 1;
+	exit(EXIT_FAILURE);
 }
 
 std::vector<std::string>	configFileTokenizer(std::string filename) {
@@ -95,7 +95,7 @@ std::vector<std::vector<std::string> >	getTokensBlock(std::vector<std::string> t
 			}
 			// std::cout << "End of Tok2" << std::endl;
 			if (!vector.empty()) {
-				printTokens(vector);
+				// printTokens(vector);
 				tokens_block.push_back(vector);
 			}
 			if (it == tokens.end())
@@ -110,12 +110,12 @@ std::vector<ServerConfig>	configFileParser(std::string filename) {
 	std::vector<ServerConfig> serverConfigVector;
 
 	for (std::vector<std::vector<std::string> >::iterator it = tokens_block.begin(); it != tokens_block.end(); it++) {
-		std::cout << "Creating ServerConfig\n";
+		// std::cout << "Creating ServerConfig\n";
 		ServerConfig	newConfig(*it);
 		// newConfig.printServerConfig();
-		std::cout << std::endl;
+		// std::cout << std::endl;
 		serverConfigVector.push_back(newConfig);
 	}
-	std::cout << "Returning ServerConfig Vector\n";
+	// std::cout << "Returning ServerConfig Vector\n";
 	return serverConfigVector;
 }

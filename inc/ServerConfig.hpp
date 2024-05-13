@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerConfig.hpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lray <lray@student.42lausanne.ch >         +#+  +:+       +#+        */
+/*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/12 16:25:31 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/05 13:03:57 by lray             ###   ########.fr       */
+/*   Updated: 2024/05/13 15:30:50 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@
 
 #include <Location.hpp>
 
-#define DEF_MAX_BODY_SIZE 10 * 1024
+#define DEF_MAX_BODY_SIZE 10 * 1024 * 1024
 #define DEFAULT_ERROR_PAGE "www/default_error/404.html"
 #define CRITICAL_ERROR_PAGE "www/default_error/500.html"
 
@@ -41,6 +41,7 @@ class ServerConfig {
 		std::string						_access_log;
 		std::string						_error_log;
 		std::map<int, std::string>		_error_page;
+		std::string						_error_dir;
 		std::string						_root;
 		std::string						_index;
 		std::map<std::string, Location>	_locations;
@@ -52,6 +53,7 @@ class ServerConfig {
 		~ServerConfig(void);
 		ServerConfig	&operator=(ServerConfig const &other);
 
+		bool	isValidServerConfig();
 		/*-----Set-----*/
 		void	setIP(const std::string &ip) { _ip = ip; }
 		void	setPort(const std::string &port) { _port = port; }
@@ -60,6 +62,7 @@ class ServerConfig {
 		void	setAccessLog(const std::string &log) { _access_log = log; }
 		void	setErrorLog(const std::string &log) { _error_log = log; }
 		void	setErrorPage(const std::string &error) { _error_page.insert(std::make_pair(atoi(error.c_str()), error + ".html")); }
+		void	setErrorDir(const std::string &dir) { _error_dir = dir; }
 		void	setRoot(const std::string &root) { _root = root; }
 		void	setIndex(const std::string &index) { _index = index; }
 		void	setLocations(const Location &location) { _locations.insert(std::make_pair(location.getLocationName(), location)); }
@@ -72,6 +75,7 @@ class ServerConfig {
 		const std::string&						getAccessLog() const { return _access_log; }
 		const std::string&						getErrorLog() const { return _error_log; }
 		const std::map<int, std::string>&		getErrorPage() const { return _error_page; }
+		const std::string&						getErrorDir() const { return _error_dir; }
 		const std::string&						getRoot() const { return _root; }
 		const std::string&						getIndex() const { return _index; }
 		const std::map<std::string, Location>&	getLocations() const { return _locations; }

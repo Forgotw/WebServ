@@ -3,316 +3,179 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: efailla <efailla@student.42.fr>            +#+  +:+       +#+        */
+/*   By: lray <lray@student.42lausanne.ch >         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/06 18:51:50 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/06 18:18:55 by efailla          ###   ########.fr       */
+/*   Updated: 2024/05/13 15:53:18 by lray             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Request.hpp"
+#include <iostream>
+#include <fstream>
 
-/*
-Berners-Lee, et al.         Standards Track                    [Page 12]
-RFC 3986                   URI Generic Syntax               January 2005
-
-
-      reserved    = gen-delims / sub-delims
-
-      gen-delims  = ":" / "/" / "?" / "#" / "[" / "]" / "@"
-
-      sub-delims  = "!" / "$" / "&" / "'" / "(" / ")"
-                  / "*" / "+" / "," / ";" / "="
-
-
-2.3.  Unreserved Characters
-
-   Characters that are allowed in a URI but do not have a reserved
-   purpose are called unreserved.  These include uppercase and lowercase
-   letters, decimal digits, hyphen, period, underscore, and tilde.
-
-      unreserved  = ALPHA / DIGIT / "-" / "." / "_" / "~"
-
-
-3.  Syntax Components
-
-   The generic URI syntax consists of a hierarchical sequence of
-   components referred to as the scheme, authority, path, query, and
-   fragment.
-
-      URI         = scheme ":" hier-part [ "?" query ] [ "#" fragment ]
-
-      hier-part   = "//" authority path-abempty
-                  / path-absolute
-                  / path-rootless
-                  / path-empty
-
-   The scheme and path components are required, though the path may be
-   empty (no characters).  When authority is present, the path must
-   either be empty or begin with a slash ("/") character.  When
-   authority is not present, the path cannot begin with two slash
-   characters ("//").  These restrictions result in five different ABNF
-   rules for a path (Section 3.3), only one of which will match any
-   given URI reference.
-
-   The following are two example URIs and their component parts:
-
-         foo://example.com:8042/over/there?name=ferret#nose
-         \_/   \______________/\_________/ \_________/ \__/
-          |           |            |            |        |
-       scheme     authority       path        query   fragment
-*/
-
-typedef std::map<int, std::string> ErrorMap;
-
-void fillErrorMap(ErrorMap& errorMap) {
-	errorMap[400] = "Bad Request";
-	errorMap[401] = "Unauthorized";
-	errorMap[402] = "Payment Required";
-	errorMap[403] = "Forbidden";
-	errorMap[404] = "Not Found";
-	errorMap[405] = "Method Not Allowed";
-	errorMap[406] = "Not Acceptable";
-	errorMap[407] = "Proxy Authentication Required";
-	errorMap[408] = "Request Timeout";
-	errorMap[409] = "Conflict";
-	errorMap[410] = "Gone";
-	errorMap[411] = "Length Required";
-	errorMap[412] = "Precondition Failed";
-	errorMap[413] = "Payload Too Large";
-	errorMap[414] = "URI Too Long";
-	errorMap[415] = "Unsupported Media Type";
-	errorMap[416] = "Range Not Satisfiable";
-	errorMap[417] = "Expectation Failed";
-	errorMap[418] = "I'm a teapot";
-	errorMap[421] = "Misdirected Request";
-	errorMap[422] = "Unprocessable Entity";
-	errorMap[423] = "Locked";
-	errorMap[424] = "Failed Dependency";
-	errorMap[426] = "Upgrade Required";
-	errorMap[428] = "Precondition Required";
-	errorMap[429] = "Too Many Requests";
-	errorMap[431] = "Request Header Fields Too Large";
-	errorMap[451] = "Unavailable For Legal Reasons";
-}
-
-static const std::string header_fields[] = {
-		"Accept",
-		"Accept-Charset",
-		"Accept-Encoding",
-		"Accept-Language",
-		"Accept-Ranges",
-		"Age",
-		"Allow",
-		"Authorization",
-		"Cache-Control",
-		"Connection",
-		"Content-Encoding",
-		"Content-Language",
-		"Content-Length",
-		"Content-Location",
-		"Content-MD5",
-		"Content-Range",
-		"Content-Type",
-		"Date",
-		"ETag",
-		"Expect",
-		"Expires",
-		"From",
-		"Host",
-		"If-Match",
-		"If-Modified-Since",
-		"If-None-Match",
-		"If-Range",
-		"If-Unmodified-Since",
-		"Last-Modified",
-		"Location",
-		"Max-Forwards",
-		"Pragma",
-		"Proxy-Authenticate",
-		"Proxy-Authorization",
-		"Range",
-		"Referer",
-		"Retry-After",
-		"Server",
-		"TE",
-		"Trailer",
-		"Transfer-Encoding",
-		"Upgrade",
-		"User-Agent",
-		"Vary",
-		"Via",
-		"Warning",
-		"WWW-Authenticate",
-		"X-Forwarded-For"
+const char* HTTP_METHODS[] = {
+	"OPTIONS",
+	"GET",
+	"HEAD",
+	"POST",
+	"PUT",
+	"DELETE",
+	"TRACE",
+	"CONNECT"
 };
 
-static const std::string methods_syntax[] = {"GET", "POST", "DELETE"};
-
-static const std::string gen_delims = ":/?#[]@";
-
-static const std::string sub_delims = "!$&'()*+,;=";
-
-static const std::string unreserved[] = {"ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz", "0123456789", "-._~"};
-
-bool is_gen_delim(char character) {
-	return gen_delims.find(character) != std::string::npos;
-}
-
-bool is_sub_delim(char character) {
-	return sub_delims.find(character) != std::string::npos;
-}
-
-bool is_unreserved(char character) {
-	for (size_t i = 0; i < sizeof(unreserved) / sizeof(unreserved[0]); ++i) {
-		if (unreserved[i].find(character) != std::string::npos) {
+bool isInHTTPMethods(const std::string& method) {
+	for (size_t i = 0; i < sizeof(HTTP_METHODS) / sizeof(HTTP_METHODS[0]); ++i) {
+		if (method == HTTP_METHODS[i]) {
 			return true;
 		}
 	}
 	return false;
 }
 
-
-URI parseURI(const std::string &uriString) {
-	URI uri;
-
-	size_t schemeEnd = uriString.find("://");
-	if (schemeEnd != std::string::npos) {
-		uri.scheme = uriString.substr(0, schemeEnd);
+bool	Request::isValidRequest() const {
+	if (!isInHTTPMethods(_method)) {
+		return false;
 	}
-
-	size_t authorityStart = schemeEnd != std::string::npos ? schemeEnd + 3 : 0;
-	size_t pathStart = uriString.find("/", authorityStart);
-	if (pathStart != std::string::npos) {
-		uri.authority = uriString.substr(authorityStart, pathStart - authorityStart);
-	} else {
-		uri.authority = uriString.substr(authorityStart);
-		return uri;
+	if (_rawURI.empty()) {
+		return false;
 	}
-
-	size_t queryStart = uriString.find("?", pathStart);
-	size_t fragmentStart = uriString.find("#", pathStart);
-	if (queryStart != std::string::npos) {
-		uri.path = uriString.substr(pathStart, queryStart - pathStart);
-	} else if (fragmentStart != std::string::npos) {
-		uri.path = uriString.substr(pathStart, fragmentStart - pathStart);
-	} else {
-		uri.path = uriString.substr(pathStart);
+	if (_version != "HTTP/1.1") {
+		return false;
 	}
-
-	if (queryStart != std::string::npos) {
-		if (fragmentStart != std::string::npos) {
-			uri.query = uriString.substr(queryStart + 1, fragmentStart - queryStart - 1);
-		} else {
-			uri.query = uriString.substr(queryStart + 1);
-		}
-	}
-
-	if (fragmentStart != std::string::npos) {
-		uri.fragment = uriString.substr(fragmentStart + 1);
-	}
-
-	return uri;
-}
-struct HTTPRequest {
-	std::string method;
-	std::string uri;
-	std::string version;
-	std::map<std::string, std::string> headers;
-	std::string body;
-};
-
-std::vector<std::string> splitLines(const std::string& input) {
-	std::vector<std::string> lines;
-	std::istringstream stream(input);
-	std::string line;
-	while (getline(stream, line)) {
-		// std::cout << "Raw line: " << line << std::endl;
-		lines.push_back(line);
-	}
-	return lines;
-}
-
-std::string URIDecoder(const std::string &encoded) {
-    std::stringstream decoded;
-    std::string::const_iterator it = encoded.begin();
-    while (it != encoded.end()) {
-        if (*it == '%') {
-            ++it;
-            char hex1 = *it++;
-            char hex2 = *it++;
-            int hexValue;
-            std::stringstream hexStream;
-            hexStream << hex1 << hex2;				// colle les deux exas, et le transforme en
-            hexStream >> std::hex >> hexValue;		//		un int qui est ensuite casté en char
-            decoded << static_cast<char>(hexValue);	//		pour aller dans un stringstream
-        } else {
-            decoded << *it++;
-        }
-    }
-    return decoded.str();
-}
-
-HTTPRequest parseHTTPRequest(const std::string& request) {
-	HTTPRequest httpRequest;
-	std::vector<std::string> lines = splitLines(request);
-
-	std::istringstream firstLineStream(lines[0]);
-	firstLineStream >> httpRequest.method >> httpRequest.uri >> httpRequest.version;
-	httpRequest.uri = URIDecoder(httpRequest.uri); // decode UTF-8 en ascii
-	
-	for (size_t i = 1; i < lines.size(); ++i) {
-		size_t colonPos = lines[i].find(':');
-		if (colonPos != std::string::npos) {
-			std::string headerName = lines[i].substr(0, colonPos);
-			std::string headerValue = lines[i].substr(colonPos + 2);
-			httpRequest.headers.insert(make_pair(headerName, headerValue));
-		}
-	}
-
-	size_t emptyLineIndex = request.find("\r\n\r\n");
-	if (emptyLineIndex != std::string::npos) {
-		httpRequest.body = request.substr(emptyLineIndex + 4);
-	}
-
-	return httpRequest;
-}
-
-void printHTTPRequest(const HTTPRequest& httpRequest) {
-	std::cout<< "Method: " << httpRequest.method << std::endl;
-	std::cout<< "URI: " << httpRequest.uri << std::endl;
-	std::cout<< "HTTP Version: " << httpRequest.version << std::endl;
-	std::cout<< "Headers:" << std::endl;
-	for (std::map<std::string, std::string>::const_iterator it = httpRequest.headers.begin(); it != httpRequest.headers.end(); ++it) {
-		std::cout<< it->first << ": " << it->second << std::endl;
-	}
-	std::cout<< "Body: " << httpRequest.body << std::endl;
-}
-
-bool	isValidRequest(HTTPRequest httpRequest) {
-	(void)httpRequest;
 	return true;
 }
 
-std::string Request::toString() const {
-	std::ostringstream oss;
-	oss << this->_method << " " << this->_rawURI << " " << this->_version << "\r\n";
-	std::map<std::string, std::string>::const_iterator it = _headers.begin();
-	for (; it != this->_headers.end(); it++) {
-		oss << it->first << ": " << it->second;
+URI parseURI(const std::string &uriStringConst) {
+	std::string uriString = uriStringConst;
+	URI uri;
+
+	size_t querryStart = uriString.find("?");
+	if (querryStart != std::string::npos) {
+		uri.querryString = uriString.substr(querryStart);
+		uriString = uriString.substr(0, querryStart);
 	}
-	oss << "\r\n";
-	return oss.str();
+	size_t extensionStart = uriString.find(".");
+	size_t pathInfoStart;
+	if (extensionStart != std::string::npos) {
+		pathInfoStart = uriString.find("/", extensionStart);
+		if (pathInfoStart != std::string::npos) {
+			uri.pathInfo = uriString.substr(pathInfoStart);
+			uriString = uriString.substr(0, pathInfoStart);
+		}
+	}
+	uri.path = uriString;
+	return uri;
 }
 
-Request::Request(const std::string &httpRequestString) : _method(), _version(), _rawURI(), _URI(), _headers() {
-	HTTPRequest	httpRequest = parseHTTPRequest(httpRequestString);
-	if (isValidRequest(httpRequest)) {
-		_method = httpRequest.method;
-		_version = httpRequest.version;
-		_rawURI = httpRequest.uri;
-		_URI = parseURI(httpRequest.uri);
-		_headers = httpRequest.headers;
-		_body = httpRequest.body;
+
+void Request::parseRequestLine(const std::string& requestLine) {
+	std::istringstream iss(requestLine);
+	iss >> _method >> _rawURI >> _version;
+}
+
+void Request::parseHeaders(const std::string& headersData) {
+	std::istringstream iss(headersData);
+	std::string line;
+	while (std::getline(iss, line) && !line.empty()) {
+		size_t pos = line.find(":");
+		if (pos != std::string::npos) {
+			std::string key = line.substr(0, pos);
+			std::string value = line.substr(pos + 2);
+			value.erase(value.size() - 1);
+			_headers.insert(make_pair(key, value));
+		}
+	}
+}
+/*Voir RFC 7.2.1 Multipart: The common syntax*/
+static void testOnFile(std::string body, const std::string& boundary) {
+	std::size_t bin_start, bin_end;
+	if (body.empty() || boundary.empty()) {
+		return;
+	}
+	std::string boundary_start = "--" + boundary;
+	std::string boundary_end = "--" + boundary + "--";
+	std::cout << "boundary_start:    " << boundary_start << std::endl;
+	std::cout << "boundary_end:      " << boundary_end << std::endl;
+	bin_start = body.find(boundary);
+		if (bin_start == std::string::npos) {
+		std::cout << "Début du binaire non trouvé." << std::endl;
+		return;
+	}
+
+	bin_start = body.find("\r\n\r\n", bin_start);
+	if (bin_start == std::string::npos) {
+		std::cout << "Début du binaire non valide." << std::endl;
+		return;
+	}
+
+	bin_start += 4; // Saute les "\r\n\r\n"
+
+	bin_end = body.find(boundary_end, bin_start);
+	if (bin_end == std::string::npos) {
+		std::cout << "Fin du binaire non trouvée." << std::endl;
+		return;
+	}
+
+	std::string binary_data = body.substr(bin_start, bin_end - bin_start - 2);
+	std::ofstream file("request_binary", std::ios::binary);
+	if (file.is_open()) {
+		std::cout << "\n\n\n------------ECRITURE DU FICHIER------------\n";
+		std::cout << "Longueur: " << binary_data.length() << "\n";
+		std::cout << "Taille: " << binary_data.size() << "\n";
+		file.write(binary_data.c_str(), binary_data.size());
+		std::cout << "\n------------FIN DE L'ÉCRITURE DU FICHIER------------\n";
+	}
+}
+
+std::string extractBoundary(const std::string& en_tete) {
+	std::string boundary;
+	std::size_t pos_debut = en_tete.find("boundary=");
+
+	if (pos_debut != std::string::npos) {
+		boundary = en_tete.substr(pos_debut + 9, en_tete.length());
+	}
+	return boundary;
+}
+
+Request::Request(const std::string& request) : _method(""), _version(""), _rawURI(""), _URI(), _headers(), _body("") {
+	std::istringstream iss(request);
+	std::string requestLine;
+	std::getline(iss, requestLine);
+
+	parseRequestLine(requestLine);
+
+	size_t pos = request.find("\r\n\r\n");
+	if (pos != std::string::npos) {
+		parseHeaders(request.substr(0, pos + 4));
+		// printRequest();
+		_body = request.substr(pos + 4);
+		// std::cout << "Body: " << _body << std::endl;
+		bool debug = false;
+		if (debug && !_body.empty()) {
+			std::cout << "Before\n";
+			std::string contentType = (*_headers.find("Content-Type")).second;
+			std::cout << "contenType: " << contentType << "\n";
+			std::string boundary = extractBoundary(contentType);
+			std::cout << "boundary:          " << boundary << "\n";
+			std::cout << "After\n";
+			testOnFile(_body, boundary);
+			std::cout << "After2\n";
+		}
+	}
+	_URI = parseURI(_rawURI);
+}
+
+void Request::printRequest() const {
+	std::cout << "Method: " << _method << std::endl;
+	std::cout << "Version: " << _version << std::endl;
+	std::cout << "Raw URI: " << _rawURI << std::endl;
+	std::cout << "URI Path: " << _URI.path << std::endl;
+	std::cout << "URI PathInfo: " << _URI.pathInfo << std::endl;
+	std::cout << "URI Querry: " << _URI.querryString << std::endl;
+	std::cout << "Headers:" << std::endl;
+	for (std::map<std::string, std::string>::const_iterator it = _headers.begin(); it != _headers.end(); ++it) {
+		std::cout << "    " << it->first << ": " << it->second << std::endl;
 	}
 }
