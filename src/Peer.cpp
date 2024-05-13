@@ -134,4 +134,5 @@ void	Peer::handleHttpRequest() {
 			std::cout << "realPath: " << realPath << " responseCode: " << responseCode << " " << " responseFilePath: " << responseFilePath << std::endl;
 			Response			response(foundLocation, responseFilePath, responseCode, request, &server->getConfig());
 			setReponse(response.getResponse());
+			std::cout << "End of handleHTTPRequest\n";
 }

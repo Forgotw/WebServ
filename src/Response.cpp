@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 16:44:57 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/11 14:02:03 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/13 15:23:33 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -106,22 +106,26 @@ void	Response::writeListingPage(const std::string& responseFilePath) {
 
 
 void	Response::httpGetFormatter(const std::string& responseFilePath, unsigned int returnCode) {
+	std::cout << "responseFilePath in get formater: " << responseFilePath << std::endl;
 	std::stringstream response;
 	std::string htmlContent;
 	std::ifstream file(responseFilePath.c_str());
+	std::cout << "Breakpoints\n";
 	std::stringstream buffer;
 	buffer << file.rdbuf();
 	htmlContent = buffer.str();
+	std::cout << "Breakpoints1\n";
 	// Obtenir la taille du fichier
 	file.seekg(0, std::ios::end);
 	std::streampos fileSize = file.tellg();
 	file.seekg(0, std::ios::beg);
+	std::cout << "Breakpoints2, filesize:" << fileSize << "\n";
 
 	// std::cout << "FILESIZE: " << fileSize << "\n";
 	// Allouer une chaîne de la taille du fichier
 	std::string fileContent(fileSize, '\0');
 	file.read(&fileContent[0], fileSize);
-
+	std::cout << "Breakpoints3\n";
 	// Lire le contenu du fichier dans la chaîne
 	response << "HTTP/1.1 " << returnCode << " ";
 	switch (returnCode) {
@@ -156,17 +160,20 @@ void	Response::httpGetFormatter(const std::string& responseFilePath, unsigned in
 			response << "Internal Server Error";
 			break;
 	}
+	std::cout << "Breakpoints4\n";
 	response << "\r\n";
 	response << "Content-Type: " + getContentType(responseFilePath) + "\r\n";
 	response << "Content-Length: " << htmlContent.length() << "\r\n";
 	response << "\r\n";
+	std::cout << "Breakpoints5\n";
 	_response = response.str() + htmlContent;
 }
 
 bool	isAutoIndex(const Location* foundLocation, std::string& responseFilePath) {
 	struct stat	sb;
 	if (stat(responseFilePath.c_str(), &sb) == -1) {
-		throw std::runtime_error(std::string("stat: ") + std::strerror(errno));
+		// throw std::runtime_error(std::string("stat: ") + std::strerror(errno));
+		return false;
 	}
 	if (S_ISDIR(sb.st_mode) && foundLocation->getAutoIndex() && foundLocation->getIndex().empty()) {
 		return true;
@@ -191,10 +198,13 @@ Response::Response(const Location* foundLocation, std::string responseFilePath, 
 		std::cout << "Handle CGI\n";
 		_response = handleCGI(foundLocation, responseFilePath, request, config);
 	} else if (returnCode == 301) {
+		std::cout << "Handle 301\n";
 		handleRedir(foundLocation);
 	} else if (isAutoIndex(foundLocation, responseFilePath)) {
+		std::cout << "Handle AUTOINDEX\n";
 		writeListingPage(responseFilePath);
 	} else {
+		std::cout << "Handle GETFORMATTER\n";
 		httpGetFormatter(responseFilePath, returnCode);
 	}
 }

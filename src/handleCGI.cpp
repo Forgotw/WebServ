@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/09 13:01:40 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/09 19:30:25 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/13 15:40:07 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,6 +61,7 @@ unsigned int checkCgiError(const Location* location, std::string realPath, const
 	if (cgiRealPath.empty() || !isExecutable(cgiRealPath)) {
 		return	500;
 	}
+	
 	return 200;
 }
 /*

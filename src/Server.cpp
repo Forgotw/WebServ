@@ -185,14 +185,20 @@ std::string		Server::findRequestedPath(const Location* location, std::string pat
 		return "";
 	}
 	if (location->isCgi()) {
-		return location->getRoot() + path;
+		std::string realCgiPath = location->getRoot() + path;
+		struct stat sbCgi;
+		if (stat(realCgiPath.c_str(), &sbCgi) == -1) {
+			return "";
+		} else {
+			return realCgiPath;
+		}
 	}
 	std::string	realPath = location->getRoot();
 	if (location->getLocationName() != path) {
 		realPath = searchFindReplace(path, location->getLocationName(), location->getRoot());
 	}
-	std::cout << "Path before check stats: " << realPath << std::endl;
 	struct stat	sb;
+	std::cout << "Path before check stats: " << realPath << std::endl;
 	if (stat(realPath.c_str(), &sb) == -1) {
 		return "";
 	}
@@ -248,7 +254,11 @@ std::string		Server::generateReponseFilePath(unsigned int responseCode, std::str
 		std::map<int, std::string>::const_iterator	it = error_pages.find(responseCode);
 
 		if (it != error_pages.end()) {
-			responseFilePath = _config.getRoot() + "default_error/" + it->second;
+			responseFilePath = _config.getErrorDir() + it->second;
+				struct stat	sb;
+			if (stat(responseFilePath.c_str(), &sb) == -1) {
+				responseFilePath =  DEFAULT_ERROR_PAGE;
+			}
 		} else {
 			responseFilePath =  DEFAULT_ERROR_PAGE;
 		}
