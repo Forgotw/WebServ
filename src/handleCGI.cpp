@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/09 13:01:40 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/13 15:40:07 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/13 16:49:26 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,14 @@
 #include <iostream>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <cstring>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <sstream>
+#include <unistd.h>
+
+
+std::string trim(const std::string& str);
 
 bool isExecutable(const std::string& filePath) {
 	struct stat fileInfo;
@@ -61,76 +69,50 @@ unsigned int checkCgiError(const Location* location, std::string realPath, const
 	if (cgiRealPath.empty() || !isExecutable(cgiRealPath)) {
 		return	500;
 	}
-	
 	return 200;
 }
-/*
-fastcgi_param  GATEWAY_INTERFACE  CGI/1.1;
-fastcgi_param  SERVER_SOFTWARE    nginx;
-fastcgi_param  QUERY_STRING       $query_string;
-fastcgi_param  REQUEST_METHOD     $request_method;
-fastcgi_param  CONTENT_TYPE       $content_type;
-fastcgi_param  CONTENT_LENGTH     $content_length;
-fastcgi_param  SCRIPT_FILENAME    $document_root$fastcgi_script_name;
-fastcgi_param  SCRIPT_NAME        $fastcgi_script_name;
-fastcgi_param  REQUEST_URI        $request_uri;
-fastcgi_param  DOCUMENT_URI       $document_uri;
-fastcgi_param  DOCUMENT_ROOT      $document_root;
-fastcgi_param  SERVER_PROTOCOL    $server_protocol;
-fastcgi_param  REMOTE_ADDR        $remote_addr;
-fastcgi_param  REMOTE_PORT        $remote_port;
-fastcgi_param  SERVER_ADDR        $server_addr;
-fastcgi_param  SERVER_PORT        $server_port;
-fastcgi_param  SERVER_NAME        $server_name;
-      meta-variable-name =
-						"AUTH_TYPE" |
-						"CONTENT_LENGTH" |
-                           "CONTENT_TYPE" |
-						    "GATEWAY_INTERFACE" |
-                           "PATH_INFO" |
-                           "QUERY_STRING" |
-						    "REMOTE_ADDR" |
-                           "REMOTE_HOST" |
-						    "REMOTE_IDENT" |
-                           "REMOTE_USER" | 
-						   "REQUEST_METHOD" |
-                           "SCRIPT_NAME" | 
-						   "SERVER_NAME" |
-                           "SERVER_PORT" | 
-						   "SERVER_PROTOCOL" |
-                           "SERVER_SOFTWARE" |
-						   scheme |
-                           protocol-var-name |
-						   extension-var-name
-      protocol-var-name  = ( protocol | scheme ) "_" var-name
-      scheme             = alpha *( alpha | digit | "+" | "-" | "." )
-      var-name           = token
-      extension-var-name = token
-*/
+
 char** generateEnvCgi(const Request& request, const ServerConfig* config, std::string realPath) {
 	std::map<std::string, std::string> env;
 	std::map<std::string, std::string> headers = request.getHeaders();
 
-	env["SERVER_SOFTWARE"] = "WebServ/1.0";
-	env["SERVER_NAME"] = config->getServerName();
+	if (!request.getBody().empty()) {
+		std::stringstream ss;
+		ss << request.getBody().size();
+		env["CONTENT_LENGTH"] = ss.str();
+	} else {
+		env["CONTENT_LENGTH"] = "0";
+	}
+	env["CONTENT_TYPE"] = headers.count("Content-Type") ? headers["Content-Type"] : "application/x-www-form-urlencoded";
 	env["GATEWAY_INTERFACE"] = "CGI/1.1";
-
-	env["SERVER_PROTOCOL"] = "HTTP/1.1";
-	env["SERVER_PORT"] = config->getPort();
+	env["PATH_INFO"] = realPath;
+	std::string querryString = request.getURI().querryString;
+	if (!querryString.empty()) {
+ 		querryString = querryString.substr(1);
+	} else {
+		querryString = "";
+	}
+	env["QUERY_STRING"] = querryString;
+	std::string host = headers["Host"];
+	std::size_t pos = host.find(":");
+	if (pos != std::string::npos) {
+		host = host.substr(0, pos);
+	}
+	env["REMOTE_ADDR"] = host;
+	env["REMOTE_HOST"] = headers["Host"];
 	env["REQUEST_METHOD"] = request.getMethod();
-	env["PATH_INFO"] = request.getURI().pathInfo;
-	env["QUERRY_STRING"] = request.getURI().querryString;
 	env["SCRIPT_NAME"] = request.getURI().path;
-	env["SCRIPT_FILENAME"] = "/Users/lsohler/WebServer/" + realPath;
-	env["REMOTE_HOST"] = headers.count("host") ? headers["host"] : "";
-	env["REMOTE_USER"] = headers.count("host") ? headers["host"] : "";
-	env["CONTENT_TYPE"] = headers.count("content-length") ? headers["content-type"] : "";
-	env["CONTENT_LENGTH"] = headers.count("content-length") ? headers["content-length"] : "";
+	env["SERVER_NAME"] = config->getIP(); // FIXME: Il faudrait changer pour le hostname pour mettre server name si il y en a un
+	env["SERVER_PORT"] = config->getPort();
+	env["SERVER_PROTOCOL"] = "HTTP/1.1";
+	env["SERVER_SOFTWARE"] = "WebServ/1.0";
+	env["SCRIPT_FILENAME"] = realPath;
 	env["HTTP_ACCEPT"] = headers.count("Accept") ? headers["Accept"] : "";
 	env["HTTP_ACCEPT_LANGUAGE"] = headers.count("Accept-Language") ? headers["Accept-Language"] : "";
 	env["HTTP_USER_AGENT"] = headers.count("User-Agent") ? headers["User-Agent"] : "";
 	env["HTTP_COOKIE"] = headers.count("Cookie") ? headers["Cookie"] : "";
 	env["HTTP_REFERER"] = headers.count("Referer") ? headers["Referer"] : "";
+	env["REDIRECT_STATUS"] = "200";
 
 	char **envp = new char *[env.size() + 1];
 	int i = 0;
@@ -158,106 +140,12 @@ void	printEnv(char **env) {
 	}
 }
 
-// std::string	generateCgiResponse(const Location* foundLocation, std::string responseFilePath, const Request& request, const ServerConfig* config) {
-// 	std::string response;
-// 	std::string binary = searchBinary(foundLocation->getCgi());
-// 	char* args[] = {&binary[0], &responseFilePath[0], NULL};
-// 	char** envp = generateEnvCgi(request, config, responseFilePath);
-// 	int pipefd[2];
-// 	int	stdinpipefd[2];
-// 	if (pipe(pipefd) == -1 || pipe(stdinpipefd) == -1) {
-// 		throw std::runtime_error(std::string("pipe: ") + std::strerror(errno));
-// 	}
-// 	pid_t pid = fork();
-// 	if (pid == -1) {
-// 		throw std::runtime_error(std::string("fork: ") + std::strerror(errno));
-// 	}
-// 	if (pid == 0) {
-// 		if (dup2(stdinpipefd[0], STDIN_FILENO) == -1) {
-// 			throw std::runtime_error(std::string("dup2: ") + std::strerror(errno));
-// 		}
-// 		if (dup2(pipefd[1], STDOUT_FILENO) == -1) {
-// 			throw std::runtime_error(std::string("dup2: ") + std::strerror(errno));
-// 		}
-// 		close(pipefd[0]);
-// 		close(pipefd[1]);
-// 		close(stdinpipefd[0]);
-// 		write(stdinpipefd[1], request.getBody().c_str(), request.getBody().size());
-// 		close(stdinpipefd[1]);
-
-// 		// std::cerr << "START OF BODY\n" << request.getBody() << "END OF BODY\n";
-// 		execve(&binary[0], args, envp);
-// 		throw std::runtime_error(std::string("execve: ") + std::strerror(errno));
-// 	} else {
-// 		int status;
-// 		close(pipefd[1]);
-
-//         // Écrire le corps de la requête dans le descripteur d'écriture du tube
-// 		char buffer[BUFSIZ];
-// 		int bytesRead;
-// 		std::stringstream output;
-// 		while ((bytesRead = read(pipefd[0], buffer, BUFSIZ)) > 0) {
-// 			output.write(buffer, bytesRead);
-// 		}
-// 		close(pipefd[0]);
-// 		// std::cout << "RESPONSE\n" << output.str() << "END OF RESPONSE\n";
-// 		std::string cgiOutput = output.str();
-// 		response += "HTTP/1.1 200 OK\r\n\r\n";
-// 		response += cgiOutput;
-// 		waitpid(pid, &status, 0);
-// 	}
-// 	std::cout << "RESPONSE\n" << response << "END OF RESPONSE\n";
-// 	return response;
-// }
-
-// std::string generateCgiResponse(const Location* foundLocation, std::string responseFilePath, const Request& request, const ServerConfig* config) {
-//     std::string response;
-//     std::string binary = searchBinary(foundLocation->getCgi());
-//     char* args[] = {&binary[0], &responseFilePath[0], NULL};
-//     char** envp = generateEnvCgi(request, config, responseFilePath);
-//     int pipefd[2];
-//     if (pipe(pipefd) == -1) {
-//         throw std::runtime_error(std::string("pipe: ") + std::strerror(errno));
-//     }
-//     pid_t pid = fork();
-//     if (pid == -1) {
-//         throw std::runtime_error(std::string("fork: ") + std::strerror(errno));
-//     }
-//     if (pid == 0) {
-//         if (dup2(pipefd[0], STDIN_FILENO) == -1) {
-//             throw std::runtime_error(std::string("dup2: ") + std::strerror(errno));
-//         }
-//         close(pipefd[0]);
-//         close(pipefd[1]);
-//         execve(&binary[0], args, envp);
-//         throw std::runtime_error(std::string("execve: ") + std::strerror(errno));
-//     } else {
-//         int status;
-//         close(pipefd[0]);
-//         // Écrire le corps de la requête dans le descripteur d'écriture du tube
-//         write(pipefd[1], request.getBody().c_str(), request.getBody().size());
-//         close(pipefd[1]); // Fermer le descripteur d'écriture après avoir écrit le corps de la requête
-//         waitpid(pid, &status, 0);
-//         // Lire la réponse du fichier temporaire
-// 		response += "HTTP/1.1 200 OK\r\n\r\n";
-//         std::ifstream responseFile(responseFilePath);
-//         if (responseFile) {
-//             std::ostringstream oss;
-//             oss << responseFile.rdbuf();
-//             response += oss.str();
-//         } else {
-//             throw std::runtime_error("Failed to open response file");
-//         }
-//     }
-//     return response;
-// }
-
 std::string generateCgiResponse(const Location* foundLocation, std::string responseFilePath, const Request& request, const ServerConfig* config) {
     std::string response;
     std::string binary = searchBinary(foundLocation->getCgi());
     char* args[] = {&binary[0], &responseFilePath[0], NULL};
     char** envp = generateEnvCgi(request, config, responseFilePath);
-	printEnv(envp);
+	//printEnv(envp);
     int pipefd[2];
     int stdinpipefd[2];
     if (pipe(pipefd) == -1 || pipe(stdinpipefd) == -1) {
@@ -274,33 +162,53 @@ std::string generateCgiResponse(const Location* foundLocation, std::string respo
         if (dup2(stdinpipefd[0], STDIN_FILENO) == -1) {
             throw std::runtime_error(std::string("dup2: ") + std::strerror(errno));
         }
-        close(pipefd[0]);
-        close(pipefd[1]);
-        close(stdinpipefd[0]);
-        close(stdinpipefd[1]);
-
+		if (close(pipefd[0]) == -1 || close(pipefd[1]) == -1 || close(stdinpipefd[0]) == -1 || close(stdinpipefd[1]) == -1) {
+			throw std::runtime_error(std::string("close: ") + std::strerror(errno));
+		}
         execve(&binary[0], args, envp);
-        throw std::runtime_error(std::string("execve: ") + std::strerror(errno));
+		throw std::runtime_error(std::string("execve: ") + std::strerror(errno));
     } else {
         int status;
-        close(pipefd[1]);
-        close(stdinpipefd[0]);
-        close(stdinpipefd[1]);
+		if (close(pipefd[1]) == -1 || close(stdinpipefd[0]) == -1) {
+			throw std::runtime_error(std::string("close: ") + std::strerror(errno));
+		}
+
         // Écrire le corps de la requête dans le descripteur d'écriture du tube
-        write(stdinpipefd[1], request.getBody().c_str(), request.getBody().size());
-        close(stdinpipefd[1]); // Fermer le descripteur d'écriture après avoir écrit le corps de la requête
+
+		if (request.getMethod() == "POST") {
+			ssize_t writeResp = write(stdinpipefd[1], request.getBody().data(), request.getBody().size());
+			if (writeResp == -1) {
+				throw std::runtime_error(std::string("write: ") + std::strerror(errno));
+			}
+		}
+		// Fermer le descripteur d'écriture après avoir écrit le corps de la requête
+        if (close(stdinpipefd[1]) == -1) {
+			throw std::runtime_error(std::string("close: ") + std::strerror(errno));
+		}
 
         char buffer[BUFSIZ];
         int bytesRead;
         std::stringstream output;
-        while ((bytesRead = read(pipefd[0], buffer, BUFSIZ)) > 0) {
-            output.write(buffer, bytesRead);
-        }
-        close(pipefd[0]);
+		while (true) {
+			bytesRead = read(pipefd[0], buffer, BUFSIZ);
+			if (bytesRead < 0) {
+				throw std::runtime_error(std::string("read: ") + std::strerror(errno));
+			} else if (bytesRead == 0) {
+				break;
+			} else {
+				output.write(buffer, bytesRead);
+			}
+		}
+		if (close(pipefd[0]) == -1) {
+			throw std::runtime_error(std::string("close: ") + std::strerror(errno));
+		}
         std::string cgiOutput = output.str();
         response += "HTTP/1.1 200 OK\r\n\r\n";
         response += cgiOutput;
-        waitpid(pid, &status, 0);
+        pid_t waitResp = waitpid(pid, &status, 0);
+		if (waitResp == -1) {
+			throw std::runtime_error(std::string("waitpid: ") + std::strerror(errno));
+		}
     }
 	deleteEnv(envp);
     return response;
@@ -309,5 +217,14 @@ std::string generateCgiResponse(const Location* foundLocation, std::string respo
 
 
 std::string	handleCGI(const Location* foundLocation, std::string responseFilePath, const Request& request, const ServerConfig* config) {
-	return generateCgiResponse(foundLocation, responseFilePath, request, config);
+	return generateCgiResponse(foundLocation, responseFilePath, request, config);;
+}
+
+std::string trim(const std::string& str)
+{
+    std::string::size_type first = str.find_first_not_of(' ');
+    if (first == std::string::npos)
+        return ""; // str est tout blanc ou vide
+    std::string::size_type last = str.find_last_not_of(' ');
+    return str.substr(first, (last - first + 1));
 }

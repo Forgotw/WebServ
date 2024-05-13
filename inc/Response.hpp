@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/26 11:05:57 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/09 16:43:42 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/13 16:52:07 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,7 @@ class Response {
 		std::string						_response;
 
 		void			httpGetFormatter(const std::string& responseFilePath, unsigned int returnCode);
-		void			writeListingPage(const std::string& responseFilePath);
+		void			writeAutoIndexPage(const std::string& responseFilePath);
 		void			handleRedir(const Location* foundLocation);
 
 	public:
