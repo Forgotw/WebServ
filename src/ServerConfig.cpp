@@ -6,7 +6,7 @@
 /*   By: efailla <efailla@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/12 16:26:12 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/13 18:28:18 by efailla          ###   ########.fr       */
+/*   Updated: 2024/05/14 17:25:18 by efailla          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -93,7 +93,7 @@ void	handleErrorPage(ServerConfig &config, std::vector<std::string> &tokens) {
 }
 
 void	handleErrorDir(ServerConfig &config, std::vector<std::string> &tokens) {
-	tokenSetter(tokens, config, &ServerConfig::setErrorPage);
+	tokenSetter(tokens, config, &ServerConfig::setErrorDir);
 }
 
 void	handleRoot(ServerConfig &config, std::vector<std::string> &tokens) {
@@ -170,6 +170,10 @@ ServerConfig::ServerConfig(std::vector<std::string> tokens) :
 			tokenNotRecognized(tokens);
 		}
 	}
+	if (!isValidServerConfig())
+		std::cout << "config NON valide" << std::endl;
+	else
+		std::cout << "config valide" << std::endl;
 }
 
 ServerConfig::ServerConfig(void) :
@@ -250,12 +254,136 @@ bool ServerConfig::isValidPort()
     return true;
 }
 
+bool ServerConfig::isValidServerName() {
+    for (size_t i = 0; i < _server_name.length(); ++i) {
+        char currentChar = _server_name[i];
+        if (!(isalnum(currentChar) || currentChar == '-' || currentChar == '.')) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool hasDuplicates(const std::vector<std::string>& vec) {
+    for (size_t i = 0; i < vec.size(); ++i) {
+        for (size_t j = i + 1; j < vec.size(); ++j) {
+            if (vec[i] == vec[j]) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+bool isValidHttpMethods(const std::vector<std::string>& methods) {
+    // if (methods.empty()) {
+    //     return false;
+    // }
+    if (hasDuplicates(methods)) {
+        return false;
+    }
+    for (size_t i = 0; i < methods.size(); ++i) {
+        if (methods[i] != "POST" && methods[i] != "GET" && methods[i] != "DELETE") {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool isPathAccessible(const std::string& path) {
+    if (access(path.c_str(), F_OK) != -1) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+bool isFileAccessible(const std::string& filePath) {
+    if (access(filePath.c_str(), R_OK) != -1) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+bool	isValidReturn(std::string returnLoc, std::map<std::string, Location> &locations)
+{
+	std::map<std::string, Location>::iterator it;
+	for (it = locations.begin(); it != locations.end(); ++it)
+	{
+		if (returnLoc == it->first)
+			break;
+	}
+	if (it == locations.end())
+		return false;
+	else
+		return true;
+}
+
+bool ServerConfig::isValidLocation() {
+    if (_locations.empty())
+        return false;
+    
+    std::map<std::string, Location>::iterator it;
+    for (it = _locations.begin(); it != _locations.end(); ++it) {
+        if (!isValidHttpMethods(it->second.getMethods()))
+		{
+			std::cout << "methods non valide" << std::endl;
+            return false;
+		}
+		if (!it->second.getReturn().second.empty() && !isValidReturn(it->second.getReturn().second, _locations))
+        {
+			std::cout << "return non valide" << std::endl;
+            return false;
+		}
+        if (it->second.getReturn().second.empty() && !isPathAccessible(it->second.getRoot()))
+        {
+			std::cout << "root non valide" << std::endl;
+            return false;
+		}
+        if (!it->second.getUpload().empty() && !isPathAccessible(it->second.getUpload()))
+        {
+			std::cout << "upload non valide" << std::endl;
+            return false;
+		}
+        if (!it->second.getIndex().empty() && !isFileAccessible(it->second.getRoot() + it->second.getIndex()))
+        {
+			std::cout << "index non valide" << std::endl;
+            return false;
+		}
+    }
+    return true;
+}
+
 bool	ServerConfig::isValidServerConfig() {
 	// if (!isValidIPAddress())
 	// 	return false;
 	if (!isValidPort())
+	{
+		std::cout << "Port non valide" << std::endl;
 		return false;
-	
+	}
+	if (!_error_dir.empty() && !isPathAccessible(_error_dir))
+	{
+		std::cout << "error dir non valide" << std::endl;
+		std::cout << _error_dir << std::endl;
+		return false;
+	}
+	if (_client_max_body_size < 0)
+	{
+		std::cout << "client max body size non valide" << std::endl;
+		return false;
+	}
+	// if (!isValidServerName())
+	// {
+	// 	std::cout << "server name non valide" << std::endl;
+	// 	return false;
+	// }
+	if (!isValidLocation())
+	{
+		std::cout << "location non valide" << std::endl;
+		return false;
+	}
 	return true;
 }
 

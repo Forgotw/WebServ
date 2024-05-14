@@ -6,7 +6,7 @@
 /*   By: efailla <efailla@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/12 16:25:31 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/13 18:03:29 by efailla          ###   ########.fr       */
+/*   Updated: 2024/05/14 15:26:33 by efailla          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,7 +55,9 @@ class ServerConfig {
 
 		bool	isValidServerConfig();
 		bool 	isValidIPAddress();
-		bool	ServerConfig::isValidPort();
+		bool	isValidPort();
+		bool 	isValidServerName();
+		bool	isValidLocation();
 		/*-----Set-----*/
 		void	setIP(const std::string &ip) { _ip = ip; }
 		void	setPort(const std::string &port) { _port = port; }
