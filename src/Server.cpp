@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/13 20:30:58 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/13 20:47:24 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/18 15:55:00 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -220,7 +220,7 @@ std::string		Server::findRequestedPath(const Location* location, std::string pat
 		realPath = searchFindReplace(path, location->getLocationName(), location->getRoot());
 	}
 	struct stat	sb;
-	std::cout << "Path before check stats: " << realPath << std::endl;
+	// std::cout << "Path before check stats: " << realPath << std::endl;
 	if (stat(realPath.c_str(), &sb) == -1) {
 		return "";
 	}
@@ -301,7 +301,7 @@ std::string		Server::generateReponseFilePath(unsigned int responseCode, std::str
 std::string		Server::ResponseRouter(const Request& request) const {
 	const Location*		foundLocation = findLocation(request.getURI().path);
 	std::string			realPath = findRequestedPath(foundLocation, request.getURI().path);
-	std::cout << "realPath Before1: " << realPath << "\n";
+	// std::cout << "realPath Before1: " << realPath << "\n";
 	unsigned int		respCode = generateResponseCode(foundLocation, realPath, request);
 	std::string			responseFilePath = generateReponseFilePath(respCode, realPath);
 	std::string			response;
@@ -319,7 +319,7 @@ std::string		Server::ResponseRouter(const Request& request) const {
 		response = Response::writeAutoIndexPage(responseFilePath);
 		return response;
 	}
-	std::cout << "Formatter\n";
+	// std::cout << "Formatter\n";
 	response = Response::httpFormatter(responseFilePath, respCode);
 	return response;
 }

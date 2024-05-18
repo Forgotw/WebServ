@@ -123,27 +123,10 @@ void	Peer::writeResponse() {
 }
 
 void	Peer::handleHttpRequest() {
-			const Server		*server = getServer();
-			const Request		request = *getRequest();
-			request.printRequest();
-			std::string response;
-			response = server->ResponseRouter(request);
-			// const Location*		foundLocation = server->findLocation(request.getURI().path);
-			// std::string			realPath = server->findRequestedPath(foundLocation, request.getURI().path);
-			// std::cout << "realPath Before1: " << realPath << "\n";
-			// unsigned int		respCode = server->generateResponseCode(foundLocation, realPath, request);
-			// std::string			responseFilePath = server->generateReponseFilePath(respCode, realPath);
-			// std::string			response;
-			// if (foundLocation->isCgi() && respCode == 200) {
-			// 	response = server->ServerHandleCGI(respCode, foundLocation, responseFilePath, request);
-			// 	if (respCode >= 400) {
-			// 		responseFilePath = server->generateReponseFilePath(respCode, realPath);
-			// 	}
-			// } else if (respCode == 301) {
-			// 	response = server->handleRedir(foundLocation);
-			// } else if (server->isAutoIndex(foundLocation, responseFilePath)) {
-			// 	response = server->writeAutoIndexPage(responseFilePath);
-			// }
-			// response = server->httpFormatter(responseFilePath, respCode);
-			setReponse(response);
+			// const Server		*server = getServer();
+			// const Request		request = *getRequest();
+			// std::string response;
+			// response = server->ResponseRouter(request);
+			// std::cout << "response: " << response << std::endl;
+			setReponse("HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: 7\r\n\r\nbonjour");
 }
