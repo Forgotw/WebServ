@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/12 16:25:31 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/13 15:30:50 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/21 12:37:34 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,6 +36,7 @@ class ServerConfig {
 	private:
 		std::string						_ip;
 		std::string						_port;
+		std::string						_host;
 		unsigned int					_client_max_body_size;
 		std::string						_server_name;
 		std::string						_access_log;
@@ -44,6 +45,7 @@ class ServerConfig {
 		std::string						_error_dir;
 		std::string						_root;
 		std::string						_index;
+		std::string						_upload;
 		std::map<std::string, Location>	_locations;
 
 	public:
@@ -65,11 +67,13 @@ class ServerConfig {
 		void	setErrorDir(const std::string &dir) { _error_dir = dir; }
 		void	setRoot(const std::string &root) { _root = root; }
 		void	setIndex(const std::string &index) { _index = index; }
+		void	setUpload(const std::string &upload) { _upload = upload; }
 		void	setLocations(const Location &location) { _locations.insert(std::make_pair(location.getLocationName(), location)); }
 
 		/*-----Get-----*/
 		const std::string&						getIP() const { return _ip; }
 		const std::string&						getPort() const { return _port; }
+		const std::string&						getHost() const { return _host; }
 		unsigned int							getClientMaxBodySize() const { return _client_max_body_size; }
 		const std::string&						getServerName() const { return _server_name; }
 		const std::string&						getAccessLog() const { return _access_log; }
@@ -78,6 +82,7 @@ class ServerConfig {
 		const std::string&						getErrorDir() const { return _error_dir; }
 		const std::string&						getRoot() const { return _root; }
 		const std::string&						getIndex() const { return _index; }
+		const std::string&						getUpload() const { return _upload; }
 		const std::map<std::string, Location>&	getLocations() const { return _locations; }
 		/*-----Set Utils-----*/
 

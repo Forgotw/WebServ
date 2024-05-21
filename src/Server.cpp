@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/13 20:30:58 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/18 15:55:00 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/21 12:48:04 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -201,7 +201,7 @@ std::string		Server::findRequestedPath(const Location* location, std::string pat
 	}
 	if (location->isCgi()) {
 		std::string	cgiRoot = location->getRoot();
-		if (!cgiRoot.empty() && cgiRoot.back() == '/' && path.front() == '/') {
+		if (!cgiRoot.empty() && cgiRoot.back() == '/' && path[0] == '/') {
 			path = path.substr(1);
 			std::cout << "cgiRoot is now: " << cgiRoot << "\n";
 		}

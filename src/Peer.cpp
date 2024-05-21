@@ -123,10 +123,9 @@ void	Peer::writeResponse() {
 }
 
 void	Peer::handleHttpRequest() {
-			// const Server		*server = getServer();
-			// const Request		request = *getRequest();
-			// std::string response;
-			// response = server->ResponseRouter(request);
-			// std::cout << "response: " << response << std::endl;
-			setReponse("HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: 7\r\n\r\nbonjour");
+			const Server		*server = getServer();
+			const Request		request = *getRequest();
+			std::string response;
+			response = server->ResponseRouter(request);
+			setReponse(response);
 }
