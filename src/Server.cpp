@@ -1,4 +1,18 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Server.cpp                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/05/13 20:30:58 by lsohler           #+#    #+#             */
+/*   Updated: 2024/05/21 12:48:04 by lsohler          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "Server.hpp"
+#include "Response.hpp"
+#include "CgiHandler.hpp"
 
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -182,12 +196,20 @@ std::string searchFindReplace(std::string& toSearch, const std::string& toFind, 
 
 std::string		Server::findRequestedPath(const Location* location, std::string path) const {
 	if (!location) {
+		std::cout << "No location\n";
 		return "";
 	}
 	if (location->isCgi()) {
-		std::string realCgiPath = location->getRoot() + path;
+		std::string	cgiRoot = location->getRoot();
+		if (!cgiRoot.empty() && cgiRoot.back() == '/' && path[0] == '/') {
+			path = path.substr(1);
+			std::cout << "cgiRoot is now: " << cgiRoot << "\n";
+		}
+		std::string realCgiPath = cgiRoot + path;
+		std::cout << "Location is cgi: " << realCgiPath << "\n";
 		struct stat sbCgi;
 		if (stat(realCgiPath.c_str(), &sbCgi) == -1) {
+			std::cout << "return NULL for cgi\n";
 			return "";
 		} else {
 			return realCgiPath;
@@ -198,7 +220,7 @@ std::string		Server::findRequestedPath(const Location* location, std::string pat
 		realPath = searchFindReplace(path, location->getLocationName(), location->getRoot());
 	}
 	struct stat	sb;
-	std::cout << "Path before check stats: " << realPath << std::endl;
+	// std::cout << "Path before check stats: " << realPath << std::endl;
 	if (stat(realPath.c_str(), &sb) == -1) {
 		return "";
 	}
@@ -206,6 +228,17 @@ std::string		Server::findRequestedPath(const Location* location, std::string pat
 		realPath += location->getIndex();
 	}
 	return realPath;
+}
+
+static bool	isAutoIndex(const Location* foundLocation, std::string& responseFilePath) {
+	struct stat	sb;
+	if (stat(responseFilePath.c_str(), &sb) == -1) {
+		throw std::runtime_error(std::string("stat: ") + std::strerror(errno));
+	}
+	if (S_ISDIR(sb.st_mode) && foundLocation->getAutoIndex() && foundLocation->getIndex().empty()) {
+		return true;
+	}
+	return false;
 }
 
 static bool	isAllowedMethod(std::vector<std::string> methods, std::string method) {
@@ -224,9 +257,6 @@ unsigned int	Server::generateResponseCode(const Location* location, std::string 
 	if (!request.isValidRequest()) {
 		return 400;
 	}
-	if (location && !location->getCgi().empty()) {
-		return	checkCgiError(location, realPath, request);
-	}
 	if (location && location->getReturn().first > 0) {
 		return location->getReturn().first;
 	}
@@ -236,6 +266,9 @@ unsigned int	Server::generateResponseCode(const Location* location, std::string 
 	if (!location || realPath.empty()) {
 		return 404;
 	}
+	if (location && !location->getCgi().empty()) {
+		return	checkCgiError(location, realPath, request);
+	}
 	if (!haveAccess(location->getAccess(), realPath)) {
 		return 403;
 	}
@@ -244,7 +277,6 @@ unsigned int	Server::generateResponseCode(const Location* location, std::string 
 	}
 	return 200;
 }
-
 
 std::string		Server::generateReponseFilePath(unsigned int responseCode, std::string realPath) const {
 	std::string responseFilePath = realPath;
@@ -264,4 +296,30 @@ std::string		Server::generateReponseFilePath(unsigned int responseCode, std::str
 		}
 	}
 	return responseFilePath;
+}
+
+std::string		Server::ResponseRouter(const Request& request) const {
+	const Location*		foundLocation = findLocation(request.getURI().path);
+	std::string			realPath = findRequestedPath(foundLocation, request.getURI().path);
+	// std::cout << "realPath Before1: " << realPath << "\n";
+	unsigned int		respCode = generateResponseCode(foundLocation, realPath, request);
+	std::string			responseFilePath = generateReponseFilePath(respCode, realPath);
+	std::string			response;
+	if (foundLocation->isCgi() && respCode == 200) {
+		response = CgiHandler::handleCGI(&respCode, foundLocation, responseFilePath, request, &getConfig());
+		if (respCode >= 400) {
+			responseFilePath = generateReponseFilePath(respCode, realPath);
+		} else {
+			return response;
+		}
+	} else if (respCode == 301) {
+		response = Response::handleRedir(foundLocation);
+		return response;
+	} else if (isAutoIndex(foundLocation, responseFilePath)) {
+		response = Response::writeAutoIndexPage(responseFilePath);
+		return response;
+	}
+	// std::cout << "Formatter\n";
+	response = Response::httpFormatter(responseFilePath, respCode);
+	return response;
 }

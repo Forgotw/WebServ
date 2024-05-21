@@ -6,7 +6,7 @@
 /*   By: lray <lray@student.42lausanne.ch >         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 16:44:57 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/13 15:53:52 by lray             ###   ########.fr       */
+/*   Updated: 2024/05/18 15:54:06 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,7 +62,7 @@ std::string getContentType(const std::string& filename) {
 	}
 }
 
-void	Response::writeListingPage(const std::string& responseFilePath) {
+std::string		Response::writeAutoIndexPage(const std::string& responseFilePath) {
 	std::string httpResponse = "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n";
 	httpResponse += "<!DOCTYPE html>\n";
 	httpResponse += "<html>\n";
@@ -99,36 +99,32 @@ void	Response::writeListingPage(const std::string& responseFilePath) {
 		}
 		closedir(dir);
 	} else {
-		return ;
+		return "";
 	}
 	httpResponse += "</ul>\n";
 	httpResponse += "</body>\n";
 	httpResponse += "</html>\n";
-	_response = httpResponse;
+	return httpResponse;
 }
 
 
-void	Response::httpGetFormatter(const std::string& responseFilePath, unsigned int returnCode) {
-	std::cout << "responseFilePath in get formater: " << responseFilePath << std::endl;
+std::string	Response::httpFormatter(const std::string& responseFilePath, unsigned int returnCode) {
 	std::stringstream response;
 	std::string htmlContent;
 	std::ifstream file(responseFilePath.c_str());
-	std::cout << "Breakpoints\n";
 	std::stringstream buffer;
 	buffer << file.rdbuf();
 	htmlContent = buffer.str();
-	std::cout << "Breakpoints1\n";
 	// Obtenir la taille du fichier
 	file.seekg(0, std::ios::end);
 	std::streampos fileSize = file.tellg();
 	file.seekg(0, std::ios::beg);
-	std::cout << "Breakpoints2, filesize:" << fileSize << "\n";
 
 	// std::cout << "FILESIZE: " << fileSize << "\n";
 	// Allouer une chaîne de la taille du fichier
 	std::string fileContent(fileSize, '\0');
 	file.read(&fileContent[0], fileSize);
-	std::cout << "Breakpoints3\n";
+
 	// Lire le contenu du fichier dans la chaîne
 	response << "HTTP/1.1 " << returnCode << " ";
 	switch (returnCode) {
@@ -163,51 +159,21 @@ void	Response::httpGetFormatter(const std::string& responseFilePath, unsigned in
 			response << "Internal Server Error";
 			break;
 	}
-	std::cout << "Breakpoints4\n";
 	response << "\r\n";
 	response << "Content-Type: " + getContentType(responseFilePath) + "\r\n";
 	response << "Content-Length: " << htmlContent.length() << "\r\n";
 	response << "\r\n";
-	std::cout << "Breakpoints5\n";
-	_response = response.str() + htmlContent;
+	return (response.str() + htmlContent);
 }
 
-bool	isAutoIndex(const Location* foundLocation, std::string& responseFilePath) {
-	struct stat	sb;
-	if (stat(responseFilePath.c_str(), &sb) == -1) {
-		// throw std::runtime_error(std::string("stat: ") + std::strerror(errno));
-		return false;
+std::string		Response::handleRedir(const Location* foundLocation) {
+	std::string response;
+	response += "HTTP/1.1 301 Moved Permanently\r\n";
+	response += "Location: ";
+	response += foundLocation->getReturn().second;
+	response += "\r\n";
+	if (foundLocation->getAllocated()) {
+		delete foundLocation;
 	}
-	if (S_ISDIR(sb.st_mode) && foundLocation->getAutoIndex() && foundLocation->getIndex().empty()) {
-		return true;
-	}
-	return false;
-}
-
-void	Response::handleRedir(const Location* foundLocation) {
-		_response += "HTTP/1.1 301 Moved Permanently\r\n";
-		_response += "Location: ";
-		_response += foundLocation->getReturn().second;
-		_response += "\r\n";
-		if (foundLocation->getAllocated()) {
-			delete foundLocation;
-		}
-}
-
-
-
-Response::Response(const Location* foundLocation, std::string responseFilePath, unsigned int returnCode, const Request& request, const ServerConfig* config) {
-	if (foundLocation->isCgi() && returnCode == 200) {
-		std::cout << "Handle CGI\n";
-		_response = handleCGI(foundLocation, responseFilePath, request, config);
-	} else if (returnCode == 301) {
-		std::cout << "Handle 301\n";
-		handleRedir(foundLocation);
-	} else if (isAutoIndex(foundLocation, responseFilePath)) {
-		std::cout << "Handle AUTOINDEX\n";
-		writeListingPage(responseFilePath);
-	} else {
-		std::cout << "Handle GETFORMATTER\n";
-		httpGetFormatter(responseFilePath, returnCode);
-	}
+	return response;
 }

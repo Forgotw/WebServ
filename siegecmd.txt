@@ -1,0 +1,1 @@
+siege -b -c 100 -t 1M 127.0.01:8080 > siege_log.txt

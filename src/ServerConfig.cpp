@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/12 16:26:12 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/13 15:30:18 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/21 12:44:45 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,6 +50,21 @@ void	printTokenUntilSemicolon(std::vector<std::string> &tokens) {
 	std::cout << std::endl;
 }
 
+bool isValidIP(const std::string& ip) {
+    std::istringstream iss(ip);
+    std::string token;
+    int count = 0;
+    while (std::getline(iss, token, '.')) {
+        if (++count > 4) return false; // Plus de 4 parties signifie que ce n'est pas une adresse IP valide
+        for (size_t i = 0; i < token.size(); ++i) {
+            if (!isdigit(token[i])) return false; // Si un caractère n'est pas un chiffre, ce n'est pas une adresse IP valide
+        }
+        int num = std::atoi(token.c_str());
+        if (num < 0 || num > 255) return false; // Chaque partie doit être entre 0 et 255
+    }
+    return count == 4; // Il doit y avoir exactement 4 parties
+}
+
 typedef void (ServerConfig::*SetterFunction)(const std::string&);
 
 static void tokenSetter(std::vector<std::string>& tokens, ServerConfig &config, SetterFunction setter) {
@@ -68,8 +83,20 @@ void	handleListen(ServerConfig &config, std::vector<std::string> &tokens) {
 	tokenSetter(tokens, config, &ServerConfig::setPort);
 }
 
-void	handleIP(ServerConfig &config, std::vector<std::string> &tokens) {
-	tokenSetter(tokens, config, &ServerConfig::setIP);
+void	handleHost(ServerConfig &config, std::vector<std::string> &tokens) {
+	tokens.erase(tokens.begin());
+	while (!tokens.empty()) {
+		if (*tokens.begin() == ";") {
+			tokens.erase(tokens.begin());
+			break;
+		}
+        if (isValidIP(*tokens.begin())) {
+    		config.setIP(*tokens.begin());
+        } else if (tokens.begin()->find('.') == std::string::npos) { // FIXEME: Faut-il exclure server name si il y a un . dedans ? genre google.com
+            config.setServerName(*tokens.begin());
+        }
+		tokens.erase(tokens.begin());
+	}
 }
 
 void	handleClientMaxBodySize(ServerConfig &config, std::vector<std::string> &tokens) {
@@ -104,6 +131,10 @@ void	handleIndex(ServerConfig &config, std::vector<std::string> &tokens) {
 	tokenSetter(tokens, config, &ServerConfig::setIndex);
 }
 
+void	handleUpload(ServerConfig &config, std::vector<std::string> &tokens) {
+	tokenSetter(tokens, config, &ServerConfig::setUpload);
+}
+
 void	tokenNotRecognized(std::vector<std::string> &tokens) {
 	std::cerr << "TOKEN NOT RECOGNIZED: ";
 	while (!tokens.empty()) {
@@ -127,7 +158,7 @@ typedef void (*caseHandler)(ServerConfig&, std::vector<std::string>&);
 std::map<std::string, caseHandler> caseMap() {
 	std::map<std::string, caseHandler> myMap;
 
-	myMap["ip"] = &handleIP;
+	myMap["host"] = &handleHost;
 	myMap["listen"] = &handleListen;
 	myMap["server_name"] = &handleServerName;
 	myMap["access_log"] = &handleAccessLog;
@@ -136,6 +167,7 @@ std::map<std::string, caseHandler> caseMap() {
 	myMap["error_dir"] = &handleErrorDir;
 	myMap["root"] = &handleRoot;
 	myMap["index"] = &handleIndex;
+	myMap["upload"] = &handleUpload;
 	myMap["client_max_body_size"] = &handleClientMaxBodySize;
 	myMap["location"] = &handleLocation;
 
@@ -150,12 +182,14 @@ bool keyExists(const std::string& key, std::map<std::string, caseHandler> map) {
 ServerConfig::ServerConfig(std::vector<std::string> tokens) :
 	_ip(),
 	_port(),
+    _host(),
 	_client_max_body_size(DEF_MAX_BODY_SIZE),
 	_server_name(),
 	_access_log(""),
 	_error_log(""),
 	_root(""),
 	_index(""),
+	_upload(""),
 	_locations()
 {
 	std::map<std::string, caseHandler> map = caseMap();
@@ -170,11 +204,13 @@ ServerConfig::ServerConfig(std::vector<std::string> tokens) :
 			tokenNotRecognized(tokens);
 		}
 	}
+    _host = getServerName().empty() ? getIP() : getServerName();
 }
 
 ServerConfig::ServerConfig(void) :
 	_ip(),
 	_port(),
+	_host(),
 	_client_max_body_size(0),
 	_server_name(),
 	_access_log(""),
@@ -182,12 +218,14 @@ ServerConfig::ServerConfig(void) :
 	_error_page(),
 	_root(""),
 	_index(""),
+	_upload(""),
 	_locations() {
 }
 
 ServerConfig::ServerConfig(ServerConfig const &other) :
 	_ip(other._ip),
 	_port(other._port),
+	_host(other._host),
 	_client_max_body_size(other._client_max_body_size),
 	_server_name(other._server_name),
 	_access_log(other._access_log),
@@ -195,6 +233,7 @@ ServerConfig::ServerConfig(ServerConfig const &other) :
 	_error_page(other._error_page),
 	_root(other._root),
 	_index(other._index),
+	_upload(other._upload),
 	_locations(other._locations) {
 }
 
@@ -205,6 +244,7 @@ ServerConfig	&ServerConfig::operator=(ServerConfig const &other) {
 	if (this != &other) {
 		_ip = other._ip;
 		_port = other._port;
+		_host = other._host;
 		_client_max_body_size = other._client_max_body_size;
 		_server_name = other._server_name;
 		_access_log = other._access_log;
@@ -212,6 +252,7 @@ ServerConfig	&ServerConfig::operator=(ServerConfig const &other) {
 		_error_page = other._error_page;
 		_root = other._root;
 		_index = other._index;
+		_upload = other._upload;
 		_locations = other._locations;
 	}
 	return *this;
@@ -225,16 +266,18 @@ bool	ServerConfig::isValidServerConfig() {
 
 
 void	ServerConfig::printServerConfig(void) const {
-	std::cout << "IP:" << _ip << std::endl;
-	std::cout << "Port:" << _port << std::endl;
+	std::cout << "IP: " << _ip << std::endl;
+	std::cout << "Port: " << _port << std::endl;
+	std::cout << "Host: " << _host << std::endl;
 	std::cout << "Client Max Body Size: " << _client_max_body_size << std::endl;
 	std::cout << "Server Name: " << _server_name << std::endl;
 	std::cout << "Access Log: " << _access_log << std::endl;
 	std::cout << "Error Log: " << _error_log << std::endl;
 	std::cout << "Root: " << _root << std::endl;
-	std::cout << "Index:" << _index << std::endl;
+	std::cout << "Index: " << _index << std::endl;
+	std::cout << "Upload: " << _upload << std::endl;
 	std::cout << std::endl;
-	std::cout << "Locations:" << std::endl;
+	std::cout << "---Locations---" << std::endl;
 	for (std::map<std::string, Location>::const_iterator it = _locations.begin(); it != _locations.end(); ++it) {
 		it->second.printLocation();
 	}

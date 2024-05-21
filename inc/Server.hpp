@@ -23,9 +23,9 @@ public:
 	const Location*		findLocation(std::string path) const;
 	std::string			findRequestedPath(const Location* location, std::string path) const;
 	unsigned int		generateResponseCode(const Location* location, std::string realPath, const Request& request) const;
-	std::string			generateReponseFilePath(unsigned int responseCode, std::string realPath) const;
-	
-
+	std::string			generateReponseFilePath(unsigned int code, std::string realPath) const;
+	std::string			ServerHandleCGI(unsigned int& code, const Location* foundLocation, const std::string& cgiFilePath, const Request& request);
+	std::string			ResponseRouter(const Request& request) const;
 private:
 	int				_sockfd;
 	bool			_isRunning;
