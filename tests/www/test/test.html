@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<link rel="icon" type="image/jpg" href="/favicon.jpg">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test de réponse du serveur web</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        p {
+            margin-bottom: 10px;
+        }
+        pre {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Test de réponse du serveur web</h1>
+        <p>Voici quelques exemples de réponses que vous pouvez tester :</p>
+        
+        <h2>Réponse HTTP 200 OK</h2>
+        <pre>
+HTTP/1.1 200 OK
+Content-Type: text/html
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Page d'accueil</title>
+</head>
+<body>
+    <h1>Bienvenue sur notre site web!</h1>
+    <p>Ceci est une page d'accueil.</p>
+</body>
+</html>
+        </pre>
+        
+        <h2>Réponse HTTP 404 Not Found</h2>
+        <pre>
+HTTP/1.1 404 Not Found
+Content-Type: text/plain
+
+404 - Page non trouvée
+        </pre>
+        
+        <!-- Ajoutez d'autres exemples de réponses ici -->
+    </div>
+</body>
+</html>

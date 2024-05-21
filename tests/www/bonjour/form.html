@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulaire POST</title>
+</head>
+<body>
+    <h2>Formulaire POST</h2>
+    <form action="traitement.php" method="POST">
+        <label for="firstname">Prénom :</label><br>
+        <input type="text" id="firstname" name="firstname"><br>
+        <label for="lastname">Nom :</label><br>
+        <input type="text" id="lastname" name="lastname"><br><br>
+        <input type="submit" value="Envoyer">
+    </form>
+	<h2>Formulaire GET</h2>
+    <form action="traitement.php" method="GET">
+        <label for="firstname">Prénom :</label><br>
+        <input type="text" id="firstname" name="firstname"><br>
+        <label for="lastname">Nom :</label><br>
+        <input type="text" id="lastname" name="lastname"><br><br>
+        <input type="submit" value="Envoyer">
+    </form>
+	<h2>Upload de fichier</h2>
+    <form action="traitement.php" method="POST" enctype="multipart/form-data">
+        <label for="file">Sélectionnez un fichier :</label>
+        <input type="file" name="file" id="file"><br><br>
+        <input type="submit" value="Uploader">
+    </form>
+</body>
+</html>
