@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
+/*   By: lray <lray@student.42lausanne.ch >         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/06 18:51:50 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/11 13:51:34 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/13 15:53:18 by lray             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -109,7 +109,7 @@ static void testOnFile(std::string body, const std::string& boundary) {
 		std::cout << "Début du binaire non valide." << std::endl;
 		return;
 	}
-	
+
 	bin_start += 4; // Saute les "\r\n\r\n"
 
 	bin_end = body.find(boundary_end, bin_start);

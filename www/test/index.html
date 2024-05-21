@@ -11,7 +11,35 @@
             color: #333;
             margin: 0;
             padding: 0;
+			text-align: center;
         }
+
+		.my-button {
+			display: inline-block;
+ 			align-items: center;
+			font-size:x-large;
+			text-align: center;
+			font-family: Arial, Helvetica, sans-serif;
+			text-decoration: none;
+			margin: 20px;
+			padding: 1em 2em;
+			width: 100px;
+			background-color: #007bff;
+			color:white;
+			border-radius: 10px;
+			box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+		}
+
+		.my-button:hover {
+			background-color: #0063ce;
+			box-shadow: 0 10px 10px rgba(0, 0, 0, 0.1);
+			
+		}
+
+		.my-button:active {
+			background-color: white;
+			color: #0063ce;
+		}
 
         .container {
             max-width: 800px;
@@ -35,8 +63,14 @@
 </head>
 <body>
     <div class="container">
-        <h1>Webserv 42</h1>
-        <p>Bienvenue sur notre serveur Web personnalisé !</p>
+        <h1>Accueil</h1>
+        <p>Bienvenue sur notre WebServ !</p>
     </div>
+	<a href="/database/" class="my-button">
+		Database
+	</a>
+	<a href="/bonjour/" class="my-button">
+		Bonjour
+	</a>
 </body>
 </html>

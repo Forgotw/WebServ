@@ -3,7 +3,7 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
+/*   By: lray <lray@student.42lausanne.ch >         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 16:44:57 by lsohler           #+#    #+#             */
 /*   Updated: 2024/05/18 15:54:06 by lsohler          ###   ########.fr       */
@@ -68,6 +68,7 @@ std::string		Response::writeAutoIndexPage(const std::string& responseFilePath) {
 	httpResponse += "<html>\n";
 	httpResponse += "<head>\n";
 	httpResponse += "<title>File List</title>\n";
+	httpResponse += "<link rel=\"stylesheet\" href=\"/style/listing.css\">\n";
 	httpResponse += "</head>\n";
 	httpResponse += "<body>\n";
 	httpResponse += "<h1>File List</h1>\n";
@@ -84,8 +85,10 @@ std::string		Response::writeAutoIndexPage(const std::string& responseFilePath) {
 				httpResponse += ent->d_name;
 				if (ent->d_type == DT_DIR) {
 					httpResponse += "/";
+					httpResponse += "\" class=\"dir\">";
 				}
-				httpResponse += "\">";
+				else
+					httpResponse += "\" class=\"jsp\">";
 				httpResponse += ent->d_name;
 				if (ent->d_type == DT_DIR) {
 					httpResponse += "/";
