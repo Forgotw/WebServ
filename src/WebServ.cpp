@@ -16,7 +16,7 @@
 #include <fstream>
 
 
-#define TIMEOUT 100
+#define TIMEOUT 30
 
 WebServ::WebServ(std::vector<ServerConfig>& serverConfigVector) {
 	std::cout << "Creating WebServ objet.\n";
@@ -38,13 +38,13 @@ WebServ::~WebServ() {
 void WebServ::start() {
 	startServers();
 	int activity;
-	struct timeval timeout;
+/* 	struct timeval timeout;
 	timeout.tv_sec = 0;
-	timeout.tv_usec = 1;
+	timeout.tv_usec = 1; */
 	for (;;) {
 		checkTimeout();
 		setupSets();
-		activity = select(FD_SETSIZE, &this->_readfds, &this->_writefds, NULL, &timeout);
+		activity = select(FD_SETSIZE, &this->_readfds, &this->_writefds, NULL, NULL);
 		if (activity < 0) {
 			throw std::runtime_error(std::string("select: ") + std::strerror(errno));
 		}
@@ -95,6 +95,7 @@ void WebServ::setupSets() {
 void WebServ::checkTimeout() {
 	for (int i = 0; i < FD_SETSIZE; i++) {
 		if (this->_peers[i].getStatus() != Peer::EMPTY && time(NULL) - this->_peers[i].getLastActivity() > TIMEOUT) {
+			std::cout << "Timeout!!\n";
 			this->_peers[i].reset();
 		}
 	}
@@ -118,7 +119,7 @@ void WebServ::handleNewConnection() {
 					break;
 				}
 			}
-			if (i == FD_SETSIZE) {
+			if (i >= FD_SETSIZE) {
 				std::cout << "Server full" << std::endl;
 				close(newSocket);
 			}

@@ -6,7 +6,7 @@
 /*   By: lray <lray@student.42lausanne.ch >         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/13 20:30:58 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/22 13:53:46 by lray             ###   ########.fr       */
+/*   Updated: 2024/05/22 19:25:01 by lray             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,10 +28,9 @@
 #include <cerrno>
 #include <algorithm>
 
-#define LISTEN_BACKLOG 42
+#define LISTEN_BACKLOG 255
 
 Server::Server(ServerConfig &new_config) {
-	// std::cout << "Creating Server object\n";
 	_config = new_config;
 	int err;
 	struct addrinfo *resp;
@@ -44,7 +43,6 @@ Server::Server(ServerConfig &new_config) {
 
 	std::string	ip = this->getConfig().getIP();
 	std::string	port = this->getConfig().getPort();
-	// std::cout << "IP: " << ip << "Port: " << port << std::endl;
 	if (ip.empty()) {
 		ip = "0.0.0.0";
 	}
