@@ -16,7 +16,7 @@
 #include <fstream>
 
 
-#define TIMEOUT 10
+#define TIMEOUT 100
 
 WebServ::WebServ(std::vector<ServerConfig>& serverConfigVector) {
 	std::cout << "Creating WebServ objet.\n";
@@ -40,16 +40,15 @@ void WebServ::start() {
 	int activity;
 	struct timeval timeout;
 	timeout.tv_sec = 0;
-	timeout.tv_usec = 300000;
+	timeout.tv_usec = 1;
 	for (;;) {
 		checkTimeout();
 		setupSets();
-		activity = select(FD_SETSIZE, &this->_readfds, &this->_writefds, &this->_exceptfds, &timeout);
+		activity = select(FD_SETSIZE, &this->_readfds, &this->_writefds, NULL, &timeout);
 		if (activity < 0) {
 			throw std::runtime_error(std::string("select: ") + std::strerror(errno));
 		}
 		if (activity > 0) {
-			handleExcept();
 			handleNewConnection();
 			handlePeerRequest();
 			handlePeerResponse();
@@ -69,7 +68,6 @@ void WebServ::addServerToSet() {
 	std::vector<Server *>::iterator it = this->_serverSockets.begin();
 	for (; it != this->_serverSockets.end(); it++) {
 		FD_SET((*it)->getSocket(), &this->_readfds);
-		FD_SET((*it)->getSocket(), &this->_exceptfds);
 	}
 }
 void WebServ::addPeerToReadSet() {
@@ -86,21 +84,12 @@ void WebServ::addPeerToWriteSet() {
 		}
 	}
 }
-void WebServ::addFdToExceptSet() {
-	for (int i = 0; i < FD_SETSIZE; i++) {
-		if (this->_peers[i].getStatus() != Peer::EMPTY) {
-			FD_SET(this->_peers[i].getSocket(), &this->_exceptfds);
-		}
-	}
-}
 void WebServ::setupSets() {
 	FD_ZERO(&this->_readfds);
 	FD_ZERO(&this->_writefds);
-	FD_ZERO(&this->_exceptfds);
 	addServerToSet();
 	addPeerToReadSet();
 	addPeerToWriteSet();
-	addFdToExceptSet();
 }
 
 void WebServ::checkTimeout() {
@@ -149,14 +138,6 @@ void WebServ::handlePeerResponse() {
 	for (size_t i = 0; i < FD_SETSIZE; i++) {
 		if (FD_ISSET(this->_peers[i].getSocket(), &this->_writefds)) {
 			_peers[i].writeResponse();
-		}
-	}
-}
-void WebServ::handleExcept() {
-	for (size_t i = 0; i < FD_SETSIZE; i++) {
-		if (FD_ISSET(this->_peers[i].getSocket(), &this->_exceptfds)) {
-			std::cout << "ERROR on: " << i << std::endl;
-			this->_peers[i].reset();
 		}
 	}
 }
