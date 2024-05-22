@@ -6,7 +6,7 @@
 /*   By: lray <lray@student.42lausanne.ch >         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/12 15:27:33 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/05 21:47:41 by lray             ###   ########.fr       */
+/*   Updated: 2024/05/22 15:02:22 by lray             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,9 +24,13 @@ int main(int ac, char **av) {
 	} else {
 		configFilePath = av[1];
 	}
-	std::vector<ServerConfig> serverConfigVector = configFileParser(configFilePath);
-	WebServ master(serverConfigVector);
-	master.start();
+	try {
+		std::vector<ServerConfig> serverConfigVector = configFileParser(configFilePath);
+		WebServ master(serverConfigVector);
+		master.start();
+	} catch (std::exception &e) {
+		std::cout << "[!] " << e.what() << "\n";
+	}
 	return 0;
 }
 // #include <unistd.h>
