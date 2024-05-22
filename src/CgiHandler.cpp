@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   CgiHandler.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
+/*   By: lray <lray@student.42lausanne.ch >         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/09 13:01:40 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/21 12:13:40 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/22 13:50:33 by lray             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,9 @@
 #include <sstream>
 #include <dirent.h>
 #include <string>
+#include <cerrno>
+
+#define BUFSIZ 1024
 
 bool isExecutable(const std::string& filePath) {
 	struct stat fileInfo;
@@ -326,13 +329,13 @@ std::string	CgiHandler::handleCGI(unsigned int* uiStatusCode, const Location* fo
 	std::string response;
 	std::cout << "Handle CGI\n";
 	std::string respCGI = generateCgiResponse(foundLocation, cgiFilePath, request, config);
-	std::cout << "respCGI: " << respCGI << "\n"; 
+	std::cout << "respCGI: " << respCGI << "\n";
 	std::string CGIHeader = getCGIHeader(respCGI);
-	std::cout << "CGIHeader: " << CGIHeader << "\n"; 
+	std::cout << "CGIHeader: " << CGIHeader << "\n";
 	std::string contentType = getCGIContentType(CGIHeader);
-	std::cout << "contentType: " << contentType << "\n"; 
+	std::cout << "contentType: " << contentType << "\n";
 	std::string statusCode = getCGIStatusCode(CGIHeader);
-	std::cout << "statusCode: " << statusCode << "\n"; 
+	std::cout << "statusCode: " << statusCode << "\n";
 	if (statusCode == "200") {
 		std::string body = getCGIBody(respCGI);
 		std::string bodySize = getCGIBodySize(body);

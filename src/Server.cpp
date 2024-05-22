@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
+/*   By: lray <lray@student.42lausanne.ch >         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/13 20:30:58 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/21 12:48:04 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/22 13:53:46 by lray             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -201,7 +201,7 @@ std::string		Server::findRequestedPath(const Location* location, std::string pat
 	}
 	if (location->isCgi()) {
 		std::string	cgiRoot = location->getRoot();
-		if (!cgiRoot.empty() && cgiRoot.back() == '/' && path[0] == '/') {
+		if (!cgiRoot.empty() && cgiRoot[cgiRoot.size() - 1] == '/' && path[0] == '/') {
 			path = path.substr(1);
 			std::cout << "cgiRoot is now: " << cgiRoot << "\n";
 		}

@@ -3,14 +3,17 @@
 /*                                                        :::      ::::::::   */
 /*   Location.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
+/*   By: lray <lray@student.42lausanne.ch >         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/04 11:25:41 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/11 14:01:30 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/22 13:55:48 by lray             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Location.hpp"
+
+
+#include <cstdlib>
 
 Location::Location() :
 	_locationName(""),
