@@ -18,7 +18,7 @@ public:
 	~Server();
 
 	void 	run();
-	std::string	newSession();
+	sessions*	newSession();
 
 	/*-----Set-----*/
 	void addSession(const std::string& sessionID, const sessions& session) {
@@ -36,7 +36,9 @@ public:
 	std::string						generateReponseFilePath(unsigned int code, std::string realPath) const;
 	std::string						ServerHandleCGI(unsigned int& code, const Location* foundLocation, const std::string& cgiFilePath, const Request& request);
 	std::string						ResponseRouter(const Request& request) const;
-	std::map<std::string, sessions> getSessions();
+	std::map<std::string, sessions>& getSessions() {
+        return _sessions;
+    }
 
 private:
 	int								_sockfd;

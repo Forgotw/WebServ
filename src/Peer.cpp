@@ -79,19 +79,30 @@ void	Peer::handleCookies()
 		sessionID = value.substr(pos + delimiter.length());
 		std::cout << "session reconnue :" << sessionID << std::endl;
 	}
-	if (!sessionID.empty())
-	{
-		this->_session = (this->_server->getSessions().find(sessionID)->second);
-	}
+	if (!sessionID.empty()) {
+        std::map<std::string, sessions>& sessionsMap = _server->getSessions();
+        std::map<std::string, sessions>::iterator it = sessionsMap.find(sessionID);
+
+        if (it != sessionsMap.end())
+		{
+            this->_session = &(it->second);
+            std::cout << "Session trouvée pour l'ID : " << sessionID << std::endl;
+        }
+		else
+		{
+            this->_session = _server->newSession();
+            std::cout << "Nouvelle session créée avec un nouvel ID." << std::endl;
+        }
+    }
 	else
 	{
-		sessionID = _server->newSession();
-		this->_session = (this->_server->getSessions().find(sessionID)->second);
-		//std::cout << _server->getSessions().find(sessionID)->second.sessionID << std::endl;
-		//std::cout << _session.sessionID << std::endl;
-		_cookie = generateSetCookieHeader(_session.sessionID);
-	}
+        this->_session = _server->newSession();
+		std::cout << _session->sessionID;
+		_cookie = generateSetCookieHeader(this->_session->sessionID);
+        std::cout << "Nouvelle session créée avec un nouvel ID." << std::endl;
+    }
 }
+
 
 void	Peer::readRequest() {
 	char buffer[1024];

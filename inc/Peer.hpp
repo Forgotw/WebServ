@@ -55,7 +55,7 @@ private:
 	time_t				_lastActivity;
 	bool				_requestComplete;
 	bool				_headerComplete;
-	sessions			_session;
+	sessions*			_session;
 	std::string			_cookie;
 
 
