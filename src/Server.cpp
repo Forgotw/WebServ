@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
+/*   By: efailla <efailla@42Lausanne.ch>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/13 20:30:58 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/21 12:48:04 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/23 12:41:06 by efailla          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -322,4 +322,28 @@ std::string		Server::ResponseRouter(const Request& request) const {
 	// std::cout << "Formatter\n";
 	response = Response::httpFormatter(responseFilePath, respCode);
 	return response;
+}
+
+std::map<std::string, sessions> Server::getSessions()
+{
+	return this->_sessions;
+}
+
+std::string generateSessionId() {
+    std::stringstream ss;
+    for (int i = 0; i < 32; ++i) {
+        ss << std::hex << (std::rand() % 16);
+    }
+    return ss.str();
+}
+
+std::string	Server::newSession()
+{
+	std::string sessionID = generateSessionId();
+	sessions session;
+	_sessions[sessionID] = session;
+	//std::cout << sessionID << std::endl;
+	_sessions[sessionID].info = "coucou";
+	_sessions[sessionID].sessionID = sessionID;
+	return sessionID;
 }

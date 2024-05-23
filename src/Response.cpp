@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lray <lray@student.42lausanne.ch >         +#+  +:+       +#+        */
+/*   By: efailla <efailla@42Lausanne.ch>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 16:44:57 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/18 15:54:06 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/23 10:44:50 by efailla          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -162,6 +162,7 @@ std::string	Response::httpFormatter(const std::string& responseFilePath, unsigne
 	response << "\r\n";
 	response << "Content-Type: " + getContentType(responseFilePath) + "\r\n";
 	response << "Content-Length: " << htmlContent.length() << "\r\n";
+	//response << "Set-Cookie: SESSIONID=4242; Path=/; HttpOnly" << "\r\n";
 	response << "\r\n";
 	return (response.str() + htmlContent);
 }
@@ -177,3 +178,4 @@ std::string		Response::handleRedir(const Location* foundLocation) {
 	}
 	return response;
 }
+

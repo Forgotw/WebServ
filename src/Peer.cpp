@@ -60,6 +60,39 @@ void Peer::reset() {
 	this->_lastActivity = 0;
 }
 
+std::string generateSetCookieHeader(const std::string& sessionId) {
+    std::stringstream ss;
+    ss << "Set-Cookie: SESSIONID=" << sessionId << "; Path=/; HttpOnly";
+    return ss.str();
+}
+
+void	Peer::handleCookies()
+{
+	std::string value = this->_request->getHeaders().find("Cookie")->second;
+	std::string sessionID;
+	std::string delimiter = "=";
+	//std::cout << "value : " << value << std::endl;
+	//std::cout << this->_request->getHeaders().find("Cookie")->second << std::endl;
+	size_t pos = value.find(delimiter);
+	if (pos != std::string::npos)
+	{
+		sessionID = value.substr(pos + delimiter.length());
+		std::cout << "session reconnue :" << sessionID << std::endl;
+	}
+	if (!sessionID.empty())
+	{
+		this->_session = (this->_server->getSessions().find(sessionID)->second);
+	}
+	else
+	{
+		sessionID = _server->newSession();
+		this->_session = (this->_server->getSessions().find(sessionID)->second);
+		//std::cout << _server->getSessions().find(sessionID)->second.sessionID << std::endl;
+		//std::cout << _session.sessionID << std::endl;
+		_cookie = generateSetCookieHeader(_session.sessionID);
+	}
+}
+
 void	Peer::readRequest() {
 	char buffer[1024];
 	std::string			requestData;
@@ -92,6 +125,9 @@ void	Peer::readRequest() {
 	}
 	if (_requestComplete) {
 		setRequest(requestData);
+		this->_request->printRequest();
+		// lire les cookies et set la session
+		handleCookies();
 		setLastActivity();
 		_requestComplete = false;
 		_headerComplete = false;
@@ -122,10 +158,23 @@ void	Peer::writeResponse() {
 	}
 }
 
+void setCookie(std::string& response, std::string cookie)
+{
+        std::string delimiter = "\r\n";
+        size_t pos = response.find(delimiter);
+
+        if (pos != std::string::npos) {
+            response.insert(pos + delimiter.length(), cookie + delimiter);
+        }
+    }
+
 void	Peer::handleHttpRequest() {
 			const Server		*server = getServer();
 			const Request		request = *getRequest();
 			std::string response;
 			response = server->ResponseRouter(request);
+			if (!_cookie.empty())
+				setCookie(response, _cookie);
+			//std::cout << response << std::endl;
 			setReponse(response);
 }
