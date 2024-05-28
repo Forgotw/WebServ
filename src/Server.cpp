@@ -6,7 +6,7 @@
 /*   By: efailla <efailla@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/13 20:30:58 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/28 15:40:09 by efailla          ###   ########.fr       */
+/*   Updated: 2024/05/28 17:02:19 by efailla          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,7 @@
 
 Server::Server(ServerConfig &new_config) {
 	// std::cout << "Creating Server object\n";
+	_sessions.reserve(100000);
 	_config = new_config;
 	int err;
 	struct addrinfo *resp;
@@ -91,7 +92,7 @@ Server::~Server() {
 	this->_isRunning = false;
 	std::cout << "close socket: " << this->_sockfd << std::endl;
 
-	clearVector(_sessions);
+	//clearVector(_sessions);
 	// for (std::map<std::string, sessions>::iterator it = _sessions.begin(); it != _sessions.end(); it++)
 	// 	delete &it->second;
 	
@@ -342,12 +343,19 @@ std::string		Server::ResponseRouter(const Request& request) const {
 // 	return this->_sessions;
 // }
 
-std::string generateSessionId() {
-    std::stringstream ss;
-    for (int i = 0; i < 32; ++i) {
-        ss << std::hex << (std::rand() % 16);
-    }
-    return ss.str();
+// std::string generateSessionId() {
+//     std::stringstream ss;
+//     for (int i = 0; i < 32; ++i) {
+//         ss << std::hex << (std::rand() % 16);
+//     }
+//     return ss.str();
+// }
+
+std::string generateIncrementalString() {
+    static int counter = 0;
+    std::string result = std::to_string(counter);
+    ++counter;
+    return result;
 }
 
 std::string generateRandomString() {
@@ -360,7 +368,7 @@ std::string generateRandomString() {
     // Seed for random number generator
     static bool initialized = false;
     if (!initialized) {
-        srand(time(0));
+        srand(static_cast<unsigned int>(time(0)));
         initialized = true;
     }
 
@@ -374,14 +382,14 @@ std::string generateRandomString() {
     return randomString;
 }
 
-sessions* Server::newSession() {
-       // std::string newSessionID = generateSessionId();
-	   	std::string newSessionID = generateRandomString();
-        sessions *newSession = new sessions;
-		newSession->info = "coucou";
-		newSession->username = "";
-		newSession->sessionID = newSessionID;
-        _sessions.push_back(newSession);
+sessions Server::newSession() {
+      	std::string newSessionID = generateIncrementalString();
+	   	// std::string newSessionID = generateRandomString();
+        sessions newSession;
+        newSession.info = "coucou";
+        newSession.username = "";
+        newSession.sessionID = newSessionID;
 		
+        _sessions.push_back(newSession);
         return newSession;
     }
