@@ -18,6 +18,7 @@ Peer::~Peer() {
 	if (this->_request) {
 		delete this->_request;
 	}
+	// delete this->_session;
 }
 
 void Peer::connect(int sockfd, struct sockaddr_in addr, Server* server) {
@@ -66,11 +67,25 @@ std::string generateSetCookieHeader(const std::string& sessionId) {
     return ss.str();
 }
 
+// Définition de la fonction pour imprimer les sessions
+void printSessions(const std::vector<sessions*>& sessionsvec) {
+    std::vector<sessions*>::const_iterator it = sessionsvec.begin();
+    while (it != sessionsvec.end()) {
+        sessions* session = *it;
+        std::cout << "SessionID: " << session->sessionID << std::endl;
+        std::cout << "Info: " << session->info << std::endl;
+        std::cout << "Username: " << session->username << std::endl;
+        std::cout << "------------------------" << std::endl;
+        ++it;
+    }
+}
+
+
 void	Peer::handleCookies()
 {
 	std::string value = this->_request->getHeaders().find("Cookie")->second;
-	std::string sessionID;
-	std::string delimiter = "=";
+	std::string sessionID = "";
+	std::string delimiter = "SESSIONID=";
 	//std::cout << "value : " << value << std::endl;
 	//std::cout << this->_request->getHeaders().find("Cookie")->second << std::endl;
 	size_t pos = value.find(delimiter);
@@ -80,17 +95,25 @@ void	Peer::handleCookies()
 		std::cout << "session reconnue :" << sessionID << std::endl;
 	}
 	if (!sessionID.empty()) {
-        std::map<std::string, sessions>& sessionsMap = _server->getSessions();
-        std::map<std::string, sessions>::iterator it = sessionsMap.find(sessionID);
-
-        if (it != sessionsMap.end())
+        // std::map<std::string, sessions>& sessionsMap = _server->getSessions();
+        // std::map<std::string, sessions>::iterator it = sessionsMap.find(sessionID);
+		std::vector<sessions*>& sessionsvec = _server->getSessions();
+		std::vector<sessions*>::iterator it = sessionsvec.begin();
+		// std::cout << "sessions tab :\n";
+		// printSessions(sessionsvec);
+		//std::cout << "\n";
+		while (it != sessionsvec.end() && (*it)->sessionID != sessionID)
+			it++;
+        if (it != sessionsvec.end())
 		{
-            this->_session = &(it->second);
+            this->_session = (*it);
+			_cookie = generateSetCookieHeader(this->_session->sessionID);
             std::cout << "Session trouvée pour l'ID : " << sessionID << std::endl;
         }
 		else
 		{
             this->_session = _server->newSession();
+			_cookie = generateSetCookieHeader(this->_session->sessionID);
             std::cout << "Nouvelle session créée avec un nouvel ID." << std::endl;
         }
     }

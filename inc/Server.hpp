@@ -21,8 +21,8 @@ public:
 	sessions*	newSession();
 
 	/*-----Set-----*/
-	void addSession(const std::string& sessionID, const sessions& session) {
-        _sessions[sessionID] = session;}
+	// void addSession(const std::string& sessionID, const sessions& session) {
+    //     _sessions[sessionID] = session;}
 
 
 	/*-----Get-----*/
@@ -36,7 +36,7 @@ public:
 	std::string						generateReponseFilePath(unsigned int code, std::string realPath) const;
 	std::string						ServerHandleCGI(unsigned int& code, const Location* foundLocation, const std::string& cgiFilePath, const Request& request);
 	std::string						ResponseRouter(const Request& request) const;
-	std::map<std::string, sessions>& getSessions() {
+	std::vector<sessions*>& getSessions() {
         return _sessions;
     }
 
@@ -44,7 +44,7 @@ private:
 	int								_sockfd;
 	bool							_isRunning;
 	ServerConfig					_config;
-	std::map<std::string, sessions> _sessions;
+	std::vector<sessions*> 			_sessions;
 
 };
 std::ostream &operator<<(std::ostream &os, Server const &ref);

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: efailla <efailla@42Lausanne.ch>            +#+  +:+       +#+        */
+/*   By: efailla <efailla@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/13 20:30:58 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/23 14:07:50 by efailla          ###   ########.fr       */
+/*   Updated: 2024/05/28 15:40:09 by efailla          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,7 @@
 
 #include <string>
 #include <cstring>
+#include <vector>
 #include <sstream>
 #include <iostream>
 #include <ostream>
@@ -76,12 +77,24 @@ Server::Server(ServerConfig &new_config) {
 	this->_isRunning = false;
 }
 
+void clearVector(std::vector<sessions*>& vec) {
+    for (size_t i = 0; i < vec.size(); ++i) {
+        delete vec[i];
+    }
+    vec.clear();
+}
+
 Server::~Server() {
 	if (close(this->_sockfd) == -1) {
 		throw std::runtime_error(std::string("close: ") + std::strerror(errno));
 	}
 	this->_isRunning = false;
 	std::cout << "close socket: " << this->_sockfd << std::endl;
+
+	clearVector(_sessions);
+	// for (std::map<std::string, sessions>::iterator it = _sessions.begin(); it != _sessions.end(); it++)
+	// 	delete &it->second;
+	
 }
 
 void Server::run() {
@@ -337,11 +350,38 @@ std::string generateSessionId() {
     return ss.str();
 }
 
+std::string generateRandomString() {
+    static const char alphanum[] =
+        "0123456789"
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        "abcdefghijklmnopqrstuvwxyz";
+    static const int stringLength = 15;
+
+    // Seed for random number generator
+    static bool initialized = false;
+    if (!initialized) {
+        srand(time(0));
+        initialized = true;
+    }
+
+    std::string randomString;
+    randomString.reserve(stringLength);
+
+    for (int i = 0; i < stringLength; ++i) {
+        randomString += alphanum[rand() % (sizeof(alphanum) - 1)];
+    }
+
+    return randomString;
+}
+
 sessions* Server::newSession() {
-        std::string newSessionID = generateSessionId();
-        sessions newSession;
-		newSession.info = "coucou";
-		newSession.sessionID = newSessionID;
-        _sessions[newSessionID] = newSession;
-        return &_sessions[newSessionID];
+       // std::string newSessionID = generateSessionId();
+	   	std::string newSessionID = generateRandomString();
+        sessions *newSession = new sessions;
+		newSession->info = "coucou";
+		newSession->username = "";
+		newSession->sessionID = newSessionID;
+        _sessions.push_back(newSession);
+		
+        return newSession;
     }
