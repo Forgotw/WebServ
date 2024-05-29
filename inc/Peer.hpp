@@ -25,8 +25,7 @@ public:
 	void				writeResponse(void);
 	void				handleHttpRequest(void);
 
-	void				handleCookies();
-	void				handleCookies2();
+	void				handleCookies(std::string &request);
 	
 
 	/*-----Set-----*/
@@ -58,8 +57,6 @@ private:
 	bool				_headerComplete;
 	sessions			_session;
 	std::string			_cookie;
-
-
 };
 
 #endif

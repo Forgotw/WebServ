@@ -6,7 +6,7 @@
 /*   By: efailla <efailla@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/13 20:30:58 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/29 14:58:33 by efailla          ###   ########.fr       */
+/*   Updated: 2024/05/29 18:50:26 by efailla          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -382,20 +382,9 @@ std::string generateRandomString() {
     return randomString;
 }
 
-sessions Server::newSession() {
-      	std::string newSessionID = generateIncrementalString();
-	   	// std::string newSessionID = generateRandomString();
-        sessions newSession;
-        newSession.info = "coucou";
-        newSession.username = "";
-        newSession.sessionID = newSessionID;
-		
-        _sessions.push_back(newSession);
-        return newSession;
-    }
-
-void Server::newSession2(sessions& session) {
+void Server::newSession(sessions& session) {
         session.info = "coucou";
         session.username = "";
+		std::cout << session.sessionID << " from newsession" << std::endl;
         _sessions.push_back(session);
     }
