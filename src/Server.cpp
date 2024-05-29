@@ -6,7 +6,7 @@
 /*   By: efailla <efailla@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/13 20:30:58 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/28 17:02:19 by efailla          ###   ########.fr       */
+/*   Updated: 2024/05/29 14:58:33 by efailla          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -392,4 +392,10 @@ sessions Server::newSession() {
 		
         _sessions.push_back(newSession);
         return newSession;
+    }
+
+void Server::newSession2(sessions& session) {
+        session.info = "coucou";
+        session.username = "";
+        _sessions.push_back(session);
     }

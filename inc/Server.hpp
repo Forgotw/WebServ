@@ -19,6 +19,7 @@ public:
 
 	void 	run();
 	sessions	newSession();
+	void	newSession2(sessions& session);
 
 	/*-----Set-----*/
 	// void addSession(const std::string& sessionID, const sessions& session) {

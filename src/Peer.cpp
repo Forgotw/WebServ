@@ -162,6 +162,86 @@ void	Peer::handleCookies()
     }
 }
 
+std::string generateIncrementalString2() {
+    static int counter = 0;
+    std::string result = std::to_string(counter);
+    ++counter;
+    return result;
+}
+
+std::string generateRandomString2() {
+    static const char alphanum[] =
+        "0123456789"
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        "abcdefghijklmnopqrstuvwxyz";
+    static const int stringLength = 15;
+
+    // Seed for random number generator
+    static bool initialized = false;
+    if (!initialized) {
+        srand(static_cast<unsigned int>(time(0)));
+        initialized = true;
+    }
+
+    std::string randomString;
+    randomString.reserve(stringLength);
+
+    for (int i = 0; i < stringLength; ++i) {
+        randomString += alphanum[rand() % (sizeof(alphanum) - 1)];
+    }
+
+    return randomString;
+}
+
+void	Peer::handleCookies2()
+{
+	std::string value = this->_request->getHeaders().find("Cookie")->second;
+	std::string sessionID = "";
+	std::string delimiter = "SESSIONID=";
+	sessions session;
+	//std::cout << "value : " << value << std::endl;
+	//std::cout << this->_request->getHeaders().find("Cookie")->second << std::endl;
+	size_t pos = value.find(delimiter);
+	if (pos != std::string::npos)
+	{
+		sessionID = value.substr(pos + delimiter.length());
+		std::cout << "session reconnue :" << sessionID << std::endl;
+	}
+	if (!sessionID.empty())
+	{
+		std::vector<sessions>& sessionsvec = _server->getSessions();
+		std::vector<sessions>::iterator it = sessionsvec.begin();
+		// std::cout << "sessions tab :\n";
+		// printSessions(sessionsvec);
+		//std::cout << "\n";
+		while (it != sessionsvec.end() && (*it).sessionID != sessionID)
+			it++;
+        if (it != sessionsvec.end())
+		{
+            this->_session = (*it);
+			_cookie = generateSetCookieHeader(this->_session.sessionID);
+            std::cout << "Session trouvée pour l'ID : " << sessionID << std::endl;
+        }
+		else
+		{
+			session.sessionID = generateIncrementalString2();
+			//session.sessionID = generateRandomString2();
+            _server->newSession2(session);
+			this->_session = session;
+			_cookie = generateSetCookieHeader(this->_session.sessionID);
+            std::cout << "Nouvelle session créée avec un nouvel ID." << std::endl;
+        }
+    }
+	else
+	{
+        session.sessionID = generateIncrementalString2();
+		//session.sessionID = generateRandomString2();
+        _server->newSession2(session);
+		this->_session = session;
+		_cookie = generateSetCookieHeader(this->_session.sessionID);
+        std::cout << "Nouvelle session créée avec un nouvel ID." << std::endl;
+    }
+}
 
 void	Peer::readRequest() {
 	char buffer[1024];
@@ -197,7 +277,7 @@ void	Peer::readRequest() {
 		setRequest(requestData);
 		this->_request->printRequest();
 		// lire les cookies et set la session
-		handleCookies();
+		handleCookies2();
 		setLastActivity();
 		_requestComplete = false;
 		_headerComplete = false;

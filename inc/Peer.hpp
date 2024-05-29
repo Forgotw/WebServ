@@ -26,6 +26,7 @@ public:
 	void				handleHttpRequest(void);
 
 	void				handleCookies();
+	void				handleCookies2();
 	
 
 	/*-----Set-----*/
