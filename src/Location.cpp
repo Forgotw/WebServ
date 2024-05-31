@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/04 11:25:41 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/31 10:13:42 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/31 18:02:40 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -188,8 +188,8 @@ Location::Location(std::vector<std::string> &tokens):
 {
 	std::map<std::string, locationHandler> map = locationMap();
 
-	tokens.erase(tokens.begin());
 	if (*tokens.begin() != "{") {
+        std::cout << "Locations name: " << *tokens.begin() << std::endl;
 		_locationName = *tokens.begin();
 		tokens.erase(tokens.begin());
 	}
@@ -211,6 +211,7 @@ Location::Location(std::vector<std::string> &tokens):
 			tokenLocationNotRecognized(tokens);
 		}
 	}
+    std::cout << "-------Locations name after: " << *tokens.begin() << std::endl;
 }
 
 void	Location::printLocation() const {

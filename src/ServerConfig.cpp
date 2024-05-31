@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/12 16:26:12 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/21 12:44:45 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/31 18:16:02 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -149,8 +149,23 @@ void	tokenNotRecognized(std::vector<std::string> &tokens) {
 }
 
 void	handleLocation(ServerConfig &config, std::vector<std::string> &tokens) {
-	Location	newLocation(tokens);
-	config.setLocations(newLocation);
+    std::cout << "handleLocation: " << *tokens.begin() << std::endl;
+    tokens.erase(tokens.begin());
+    std::cout << "handleLocation 2: " << *tokens.begin() << std::endl;
+    if (tokens.empty()) {
+        std::cout << "Locations return;\n";
+        return ;
+    }
+    if (*tokens.begin() == "~") {
+        std::cout << "handleLocation 3: " << *tokens.begin() << std::endl;
+        tokens.erase(tokens.begin());
+        std::cout << "Found cgi location: " << *tokens.begin() << std::endl;
+        Location	newLocation(tokens);
+        config.setCgiLocations(newLocation);
+    } else {
+        Location	newLocation(tokens);
+        config.setLocations(newLocation);
+    }
 }
 
 typedef void (*caseHandler)(ServerConfig&, std::vector<std::string>&);
@@ -190,7 +205,8 @@ ServerConfig::ServerConfig(std::vector<std::string> tokens) :
 	_root(""),
 	_index(""),
 	_upload(""),
-	_locations()
+	_locations(),
+	_cgiLocations()
 {
 	std::map<std::string, caseHandler> map = caseMap();
 	// for (std::vector<std::string>::iterator it = tokens.begin(); it != tokens.end(); ++it) {
@@ -219,7 +235,8 @@ ServerConfig::ServerConfig(void) :
 	_root(""),
 	_index(""),
 	_upload(""),
-	_locations() {
+	_locations(),
+	_cgiLocations() {
 }
 
 ServerConfig::ServerConfig(ServerConfig const &other) :
@@ -234,7 +251,8 @@ ServerConfig::ServerConfig(ServerConfig const &other) :
 	_root(other._root),
 	_index(other._index),
 	_upload(other._upload),
-	_locations(other._locations) {
+	_locations(other._locations),
+	_cgiLocations(other._cgiLocations) {
 }
 
 ServerConfig::~ServerConfig(void) {
@@ -254,6 +272,7 @@ ServerConfig	&ServerConfig::operator=(ServerConfig const &other) {
 		_index = other._index;
 		_upload = other._upload;
 		_locations = other._locations;
+		_cgiLocations = other._cgiLocations;
 	}
 	return *this;
 }
@@ -279,6 +298,10 @@ void	ServerConfig::printServerConfig(void) const {
 	std::cout << std::endl;
 	std::cout << "---Locations---" << std::endl;
 	for (std::map<std::string, Location>::const_iterator it = _locations.begin(); it != _locations.end(); ++it) {
+		it->second.printLocation();
+	}
+	std::cout << "---cgiLocations---" << std::endl;
+	for (std::map<std::string, Location>::const_iterator it = _cgiLocations.begin(); it != _cgiLocations.end(); ++it) {
 		it->second.printLocation();
 	}
 }

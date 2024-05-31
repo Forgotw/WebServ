@@ -51,6 +51,19 @@ def main():
         filename = os.path.basename(fileitem.filename)
         filepath = os.path.join(UPLOAD_DIR, filename)
 
+        # Si le fichier existe déjà, ajouter "_copy" au nom
+        if os.path.exists(filepath):
+            base, extension = os.path.splitext(filename)
+            copy_number = 1
+            new_filename = f"{base}_copy{extension}"
+            new_filepath = os.path.join(UPLOAD_DIR, new_filename)
+            while os.path.exists(new_filepath):
+                copy_number += 1
+                new_filename = f"{base}_copy{copy_number}{extension}"
+                new_filepath = os.path.join(UPLOAD_DIR, new_filename)
+            filename = new_filename
+            filepath = new_filepath
+
         # Écrire le fichier sur le disque
         with open(filepath, 'wb') as f:
             f.write(fileitem.file.read())

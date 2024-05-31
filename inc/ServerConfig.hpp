@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/12 16:25:31 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/21 12:37:34 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/31 17:48:53 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,6 +47,7 @@ class ServerConfig {
 		std::string						_index;
 		std::string						_upload;
 		std::map<std::string, Location>	_locations;
+		std::map<std::string, Location>	_cgiLocations;
 
 	public:
 		ServerConfig(void);
@@ -69,6 +70,7 @@ class ServerConfig {
 		void	setIndex(const std::string &index) { _index = index; }
 		void	setUpload(const std::string &upload) { _upload = upload; }
 		void	setLocations(const Location &location) { _locations.insert(std::make_pair(location.getLocationName(), location)); }
+		void	setCgiLocations(const Location &cgiLocation) { _cgiLocations.insert(std::make_pair(cgiLocation.getLocationName(), cgiLocation)); }
 
 		/*-----Get-----*/
 		const std::string&						getIP() const { return _ip; }

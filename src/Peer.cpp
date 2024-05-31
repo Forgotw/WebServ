@@ -110,9 +110,7 @@ void Peer::readRequest() {
 		_requestComplete = false;
 		_headerComplete = false;
 	} else {
-		// std::cout << "------ERROR--------\n";
-        // std::cout << requestData;
-		// std::cout << "------ERROR--------\n";
+		std::cout << "------ERROR--------\n";
 		reset();
 	}
 }
