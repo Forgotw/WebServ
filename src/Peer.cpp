@@ -102,17 +102,17 @@ void Peer::readRequest() {
 		// }
 	}
 	if (_requestComplete) {
-		std::cout << "------SUCCESS-------\n";
-        std::cout << requestData;
-		std::cout << "------SUCCESS--------\n";
+		// std::cout << "------SUCCESS-------\n";
+        // std::cout << requestData;
+		// std::cout << "------SUCCESS--------\n";
 		setRequest(requestData);
 		setLastActivity();
 		_requestComplete = false;
 		_headerComplete = false;
 	} else {
-		std::cout << "------ERROR--------\n";
-        std::cout << requestData;
-		std::cout << "------ERROR--------\n";
+		// std::cout << "------ERROR--------\n";
+        // std::cout << requestData;
+		// std::cout << "------ERROR--------\n";
 		reset();
 	}
 }
