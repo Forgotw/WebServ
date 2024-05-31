@@ -155,8 +155,8 @@ void	Peer::handleCookies(std::string &request)
         }
 		else
 		{
-			session.sessionID = generateIncrementalString2();
-			//session.sessionID = generateRandomString2();
+			// session.sessionID = generateIncrementalString2();
+			session.sessionID = generateRandomString2();
             _server->newSession(session);
 			this->_session = session;
 			_cookie = generateSetCookieHeader(this->_session.sessionID);
@@ -165,8 +165,8 @@ void	Peer::handleCookies(std::string &request)
     }
 	else
 	{
-        session.sessionID = generateIncrementalString2();
-		//session.sessionID = generateRandomString2();
+        // session.sessionID = generateIncrementalString2();
+		session.sessionID = generateRandomString2();
         _server->newSession(session);
 		this->_session = session;
 		_cookie = generateSetCookieHeader(this->_session.sessionID);
