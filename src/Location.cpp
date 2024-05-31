@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/04 11:25:41 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/11 14:01:30 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/31 10:13:42 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@ Location::Location() :
 	_cgi(""),
 	_upload(""),
 	_index(""),
+    _client_max_body_size(DEF_MAX_BODY_SIZE),
 	_return(std::make_pair(0, "")),
 	_access(true),
 	_autoindex(false),
@@ -32,6 +33,7 @@ Location::Location(const Location& other) :
 	_cgi(other._cgi),
 	_upload(other._upload),
 	_index(other._index),
+	_client_max_body_size(other._client_max_body_size),
 	_return(other._return),
 	_access(other._access),
 	_autoindex(other._autoindex),
@@ -48,6 +50,7 @@ Location	&Location::operator=(const Location& other) {
 		_cgi = other._cgi;
 		_upload = other._upload;
 		_index = other._index;
+        _client_max_body_size = other._client_max_body_size;
 		_return = other._return;
 		_access = other._access;
 		_autoindex = other._autoindex;
@@ -91,6 +94,10 @@ void	locationHandleIndex(Location &location, std::vector<std::string> &tokens) {
 	tokenSetter(tokens, location, &Location::setIndex);
 }
 
+void	locationHandleBodySize(Location &location, std::vector<std::string> &tokens) {
+	tokenSetter(tokens, location, &Location::setIndex);
+}
+
 void	locationHandleReturn(Location &location, std::vector<std::string> &tokens) {
 	std::pair<unsigned int, std::string> returnPair;
 	returnPair.first = 0;
@@ -131,6 +138,7 @@ std::map<std::string, locationHandler> locationMap() {
 	myMap["cgi"] = &locationHandleCgi;
 	myMap["upload"] = &locationHandleUpload;
 	myMap["index"] = &locationHandleIndex;
+	myMap["clientMaxBodySize"] = &locationHandleBodySize;
 	myMap["return"] = &locationHandleReturn;
 	myMap["access"] = &locationHandleAccess;
 	myMap["autoindex"] = &locationHandleAutoIndex;
@@ -158,6 +166,7 @@ Location::Location(unsigned int redirCode, std::string redirPath) :
 	_cgi(""),
 	_upload(""),
 	_index(""),
+	_client_max_body_size(DEF_MAX_BODY_SIZE),
 	_return(std::make_pair(redirCode, redirPath)),
 	_access(true),
 	_autoindex(false),
@@ -171,6 +180,7 @@ Location::Location(std::vector<std::string> &tokens):
 	_cgi(""),
 	_upload(""),
 	_index(""),
+	_client_max_body_size(DEF_MAX_BODY_SIZE),
 	_return(std::make_pair(0, "")),
 	_access(true),
 	_autoindex(false),
@@ -214,6 +224,7 @@ void	Location::printLocation() const {
 	std::cout << "	CGI: " << _cgi << std::endl;
 	std::cout << "	Upload: " << _upload << std::endl;
 	std::cout << "	Index: " << _index << std::endl;
+	std::cout << "	MaxBodySize: " << _index << std::endl;
 	std::cout << "	Access: " << (_access ? "true" : "false") << std::endl;
 	std::cout << "	AutoIndex: " << (_autoindex ? "true" : "false") << std::endl;
 	std::cout << "	Return: " << _return.first << " " << _return.second << std::endl;

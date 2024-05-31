@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/09 13:01:40 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/21 12:13:40 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/31 13:09:14 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -100,7 +100,7 @@ char** generateEnvCgi(const Request& request, const ServerConfig* config, std::s
 	env["REMOTE_HOST"] = headers["Host"];
 	env["REQUEST_METHOD"] = request.getMethod();
 	env["SCRIPT_NAME"] = request.getURI().path;
-	env["SERVER_NAME"] = config->getServerName().empty() ? config->getIP() : config->getServerName(); // FIXME: Il faudrait changer pour le hostname pour mettre server name si il y en a un
+	env["SERVER_NAME"] = config->getHost();
 	env["SERVER_PORT"] = config->getPort();
 	env["TMPDIR"] = config->getUpload();
 	env["SERVER_PROTOCOL"] = "HTTP/1.1";
@@ -144,7 +144,6 @@ std::string generateCgiResponse(const Location* foundLocation, std::string respo
     std::string binary = searchBinary(foundLocation->getCgi());
     char* args[] = {&binary[0], &responseFilePath[0], NULL};
     char** envp = generateEnvCgi(request, config, responseFilePath);
-	//printEnv(envp);
     int pipefd[2];
     int stdinpipefd[2];
     if (pipe(pipefd) == -1 || pipe(stdinpipefd) == -1) {
@@ -202,8 +201,7 @@ std::string generateCgiResponse(const Location* foundLocation, std::string respo
 			throw std::runtime_error(std::string("close: ") + std::strerror(errno));
 		}
         std::string cgiOutput = output.str();
-        response += "HTTP/1.1 200 OK\r\n\r\n";
-        response += cgiOutput;
+        response = cgiOutput;
         pid_t waitResp = waitpid(pid, &status, 0);
 		if (waitResp == -1) {
 			throw std::runtime_error(std::string("waitpid: ") + std::strerror(errno));
@@ -214,52 +212,44 @@ std::string generateCgiResponse(const Location* foundLocation, std::string respo
 }
 
 
-std::string getCGIHeader(std::string respCGI) {
-	std::size_t pos1 = respCGI.find("\r\n\r\n");
-	if (pos1 != std::string::npos) {
-		std::size_t pos2 = respCGI.find("\r\n\r\n", pos1 + 4);
-		if (pos2 != std::string::npos) {
-			return respCGI.substr(pos1 + 4, pos2 - pos1 - 4);
-		}
-	}
-	return "";
+std::string getCGIHeader(const std::string& respCGI) {
+    std::size_t pos = respCGI.find("\r\n\r\n");
+    if (pos != std::string::npos) {
+        return respCGI.substr(0, pos + 4);
+    }
+    return "";
 }
 
-std::string getCGIContentType(std::string CGIHeader) {
-	std::string search = "Content-type:";
-	std::size_t pos = CGIHeader.find(search);
-	if (pos != std::string::npos) {
-		std::string contentType = CGIHeader.substr(pos + search.length());
-
-		std::size_t first = contentType.find_first_not_of(' ');
-		if (first != std::string::npos) {
-			contentType = contentType.substr(first);
-		}
-		std::size_t last = contentType.find_last_not_of("\r\n");
-		if (last != std::string::npos) {
-			contentType = contentType.substr(0, last + 1);
-		}
-		return contentType;
-	}
-	return "";
+std::string getCGIContentType(const std::string& CGIHeader) {
+    std::string contentType = "Content-Type: ";
+    std::size_t startPos = CGIHeader.find(contentType);
+    if (startPos != std::string::npos) {
+        startPos += contentType.length();
+        std::size_t endPos = CGIHeader.find("\r\n", startPos);
+        if (endPos != std::string::npos) {
+            std::string result = CGIHeader.substr(startPos, endPos - startPos);
+            std::cout << "Found Content-Type: " << result << std::endl;  // Debug output
+            return result;
+        } else {
+            std::cout << "End of line not found after Content-Type" << std::endl;  // Debug output
+        }
+    } else {
+        std::cout << "Content-Type not found" << std::endl;  // Debug output
+    }
+    return "";
 }
 
-std::string getCGIStatusCode(std::string CGIHeader) {
-	std::string search = "Status:";
-	std::size_t pos = CGIHeader.find(search);
-	if (pos != std::string::npos) {
-		std::string status = CGIHeader.substr(pos + search.length());
-		std::size_t first = status.find_first_not_of(' ');
-		if (first != std::string::npos) {
-			status = status.substr(first);
-		}
-		std::size_t end = status.find(' ');
-		if (end != std::string::npos) {
-			status = status.substr(0, end);
-		}
-		return status;
-	}
-	return "200";
+std::string getCGIStatusCode(const std::string& CGIHeader) {
+    std::string status = "Status: ";
+    std::size_t startPos = CGIHeader.find(status);
+    if (startPos != std::string::npos) {
+        startPos += status.length();
+        std::size_t endPos = CGIHeader.find("\r\n", startPos);
+        if (endPos != std::string::npos) {
+            return CGIHeader.substr(startPos, endPos - startPos);
+        }
+    }
+    return "200";
 }
 
 std::string getCGILocation(std::string CGIHeader) {
@@ -283,11 +273,8 @@ std::string getCGILocation(std::string CGIHeader) {
 std::string getCGIBody(std::string respCGI) {
 	std::size_t pos1 = respCGI.find("\r\n\r\n");
 	if (pos1 != std::string::npos) {
-		std::size_t pos2 = respCGI.find("\r\n\r\n", pos1 + 4); // +4 to skip over the first "\r\n\r\n"
-		if (pos2 != std::string::npos) {
-			return respCGI.substr(pos2 + 4); // +4 to skip over the second "\r\n\r\n"
-		}
-	}
+    	return respCGI.substr(pos1); // +4 to skip over the second "\r\n\r\n"
+    }
 	return "";
 }
 
@@ -322,28 +309,77 @@ std::string handle302(std::string location) {
 	return resp;
 }
 
+std::string httpFormatterCGI(std::string contentType, std::string bodySize, std::string body, std::string location, std::string strStatusCode) {
+	std::string response = "HTTP/1.1 ";
+    unsigned int statusCode = std::atoi(strStatusCode.c_str());
+	switch (statusCode) {
+		case 200:
+			response += "200 OK";
+			break;
+		case 201:
+			response += "201 OK";
+			break;
+		case 302:
+			response += "302 Found\r\n";
+			response += "Location: ";
+			response += location;
+			response += "\r\n\r\n";
+			return response;
+		case 400:
+			response += "400 Bad Request";
+			break;
+		case 404:
+			response += "404 Not Found";
+			break;
+		default:
+			response += "Internal Server Error";
+			break;
+	}
+    response += "\r\n";
+	response += "Content-Type: ";
+	response += contentType;
+	response += "\r\n";
+	response += "Content-Length: ";
+	response += bodySize;
+	response += "\r\n";
+	response += "\r\n";
+	response += body;
+	response += "\r\n";
+    return response;
+}
+
 std::string	CgiHandler::handleCGI(unsigned int* uiStatusCode, const Location* foundLocation, std::string cgiFilePath, const Request& request, const ServerConfig* config) {
 	std::string response;
-	std::cout << "Handle CGI\n";
+	// std::cout << "Handle CGI\n";
 	std::string respCGI = generateCgiResponse(foundLocation, cgiFilePath, request, config);
-	std::cout << "respCGI: " << respCGI << "\n"; 
+	// std::cout << "respCGI: " << respCGI << "\n";
 	std::string CGIHeader = getCGIHeader(respCGI);
-	std::cout << "CGIHeader: " << CGIHeader << "\n"; 
+	// std::cout << "CGIHeader: " << CGIHeader << "\n";
 	std::string contentType = getCGIContentType(CGIHeader);
-	std::cout << "contentType: " << contentType << "\n"; 
+	// std::cout << "contentType: " << contentType << "\n";
 	std::string statusCode = getCGIStatusCode(CGIHeader);
-	std::cout << "statusCode: " << statusCode << "\n"; 
-	if (statusCode == "200") {
-		std::string body = getCGIBody(respCGI);
-		std::string bodySize = getCGIBodySize(body);
-		response = handle200(contentType, bodySize, body);
-		std::cout << "response: " << response << "\n";
-	} else if (statusCode == "302") {
-		std::string location = getCGILocation(CGIHeader);
-		response = handle302(location);
-	} else {
-		*uiStatusCode = std::atoi(statusCode.c_str());
-		std::cout << "Handle CGI problem: " << *uiStatusCode << "\n";
-	}
+	// std::cout << "statusCode: " << statusCode << "\n";
+	std::string body = getCGIBody(respCGI);
+	// std::cout << "body: " << body << "\n";
+	std::string bodySize = getCGIBodySize(body);
+	// std::cout << "bodySize: " << bodySize << "\n";
+    std::string location = "";
+	if (statusCode == "302") {
+		location = getCGILocation(CGIHeader);
+    }
+	// if (statusCode == "200") {
+	// 	std::string body = getCGIBody(respCGI);
+	// 	std::string bodySize = getCGIBodySize(body);
+	// 	response = handle200(contentType, bodySize, body);
+	// 	std::cout << "response: " << response << "\n";
+	// } else if (statusCode == "302") {
+	// 	std::string location = getCGILocation(CGIHeader);
+	// 	response = handle302(location);
+	// } else {
+	// 	*uiStatusCode = std::atoi(statusCode.c_str());
+	// 	std::cout << "Handle CGI problem: " << *uiStatusCode << "\n";
+	// }
+    response = httpFormatterCGI(contentType, bodySize, body, location, statusCode);
+    *uiStatusCode = 200; // TODO: handleCGI a ete refactor, may be on a plus besoin de cette variable, a discuter.
 	return response;
 }

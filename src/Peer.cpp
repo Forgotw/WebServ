@@ -60,66 +60,78 @@ void Peer::reset() {
 	this->_lastActivity = 0;
 }
 
-void	Peer::readRequest() {
-	char buffer[1024];
-	std::string			requestData;
+void Peer::readRequest() {
+	char buffer[4096];
+	std::string requestData;
 	size_t contentLength = 0;
+	std::string::size_type headerEndPos;
+
+	size_t maxBodySize = DEF_MAX_BODY_SIZE;
+
 	while (!_requestComplete) {
-		ssize_t bytesRead = recv(getSocket(), buffer, sizeof(buffer), MSG_DONTWAIT);
+		memset(buffer, 0, sizeof(buffer)); // Clear the buffer
+		ssize_t bytesRead = recv(getSocket(), buffer, sizeof(buffer) - 1, MSG_DONTWAIT); // Leave space for null terminator
+
 		if (bytesRead > 0) {
 			requestData.append(buffer, bytesRead);
 			if (!_headerComplete) {
-				if (strstr(&requestData[0], "\r\n\r\n")) {
-					// std::cout << "Header Complete------------\n";
+				headerEndPos = requestData.find("\r\n\r\n");
+				if (headerEndPos != std::string::npos) {
 					_headerComplete = true;
-					char* contentLengthPtr = strstr(&requestData[0], "Content-Length:");
-					if (contentLengthPtr) {
-						contentLength = atoi(contentLengthPtr + strlen("Content-Length:"));
+					std::string::size_type contentLengthPos = requestData.find("Content-Length:");
+					if (contentLengthPos != std::string::npos) {
+						contentLength = atoi(requestData.substr(contentLengthPos + strlen("Content-Length:")).c_str());
+						if (contentLength > maxBodySize) {
+							reset();
+							return;
+						}
 					}
 				}
 			}
 			if (_headerComplete) {
-				// std::cout << "Checking if _requestComplete-------------\n";
-				if (requestData.size() - (strstr(&requestData[0], "\r\n\r\n") - &requestData[0]) >= contentLength) {
+				if (requestData.size() - (headerEndPos + 4) >= contentLength) {
 					_requestComplete = true;
 				}
 			}
-		} else if (bytesRead == 0 || (bytesRead < 0 && (errno == EWOULDBLOCK || errno == EAGAIN))) {
-			break;
-		} else if (bytesRead < 0) {
-			throw std::runtime_error(std::string("recv: ") + std::strerror(errno));
 		}
+		// } else if (bytesRead == 0) {
+		// 	break;
+		// } else {
+		// 	_requestComplete = false;
+		// 	break;
+		// }
 	}
 	if (_requestComplete) {
+		std::cout << "------SUCCESS-------\n";
+        std::cout << requestData;
+		std::cout << "------SUCCESS--------\n";
 		setRequest(requestData);
 		setLastActivity();
 		_requestComplete = false;
 		_headerComplete = false;
 	} else {
+		std::cout << "------ERROR--------\n";
+        std::cout << requestData;
+		std::cout << "------ERROR--------\n";
 		reset();
 	}
 }
 
-void	Peer::writeResponse() {
+void Peer::writeResponse() {
 	ssize_t httpReponseLen = getResponse().size();
 	ssize_t totalByteWritten = 0;
 
-	for (;;) {
+	while (totalByteWritten < httpReponseLen) {
 		ssize_t byteWritten = send(getSocket(), getResponse().c_str() + totalByteWritten, httpReponseLen - totalByteWritten, MSG_DONTWAIT);
-		if (byteWritten < 0) {
-			if (errno == EWOULDBLOCK || errno == EAGAIN) {
-				continue;
-			}
-			throw std::runtime_error(std::string("send: ") + std::strerror(errno));
-		} else {
-			totalByteWritten += byteWritten;
-			if (totalByteWritten >= httpReponseLen) {
-				setLastActivity();
-				reset();
-				break;
-			}
+		if (byteWritten <= 0) {
+			reset();
+			return;
 		}
+		totalByteWritten += byteWritten;
 	}
+
+	setLastActivity();
+	reset();
 }
 
 void	Peer::handleHttpRequest() {

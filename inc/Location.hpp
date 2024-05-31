@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/04 11:24:57 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/11 14:00:53 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/05/31 10:30:03 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,10 @@
 #include <vector>
 #include <map>
 
+#define DEF_MAX_BODY_SIZE 10 * 1024 * 1024
+
+unsigned int	maxBodySizeConverter(const std::string& maxSizeString);
+
 class Location {
 
 	private:
@@ -32,6 +36,7 @@ class Location {
 		std::string								_cgi;
 		std::string								_upload;
 		std::string								_index;
+		unsigned int					        _client_max_body_size;
 		std::pair<unsigned int, std::string>	_return;
 		bool									_access;
 		bool									_autoindex;
@@ -53,6 +58,7 @@ class Location {
 		void setCgi(const std::string& cgi) { _cgi = cgi; }
 		void setUpload(const std::string& upload) { _upload = upload; }
 		void setIndex(const std::string& index) { _index = index; }
+		void setBodySize(const std::string& size) { _client_max_body_size = maxBodySizeConverter(size); }
 		void setReturn(const std::pair<unsigned int, std::string>& ret) { _return = ret; }
 		void setAccess(const std::string& access) { _access = true; if (access == "false") _access = false; }
 		void setAutoIndex(const std::string& autoindex) { _autoindex = true; if (autoindex == "false") _autoindex = false; }
@@ -64,6 +70,7 @@ class Location {
 		const std::string& getCgi() const { return _cgi; }
 		const std::string& getUpload() const { return _upload; }
 		const std::string& getIndex() const { return _index; }
+		const unsigned int& getMaxBody() const { return _client_max_body_size; }
 		const std::pair<unsigned int, std::string>& getReturn() const { return _return; }
 		bool getAccess() const { return _access; }
 		bool getAutoIndex() const { return _autoindex; }

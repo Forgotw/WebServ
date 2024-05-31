@@ -15,7 +15,7 @@ SRCS 		:= $(addprefix src/, \
 OBJS		:= $(SRCS:.cpp=.o)
 
 CC 			:= c++
-CFLAGS		:= -Wall -Wextra -Werror -std=c++98 -Iinc/ -O3
+CFLAGS		:= -Wall -Wextra -Werror -g -std=c++98 -Iinc/ -O3
 
 RM			:= rm -f
 MAKEFLAGS   += --no-print-directory
