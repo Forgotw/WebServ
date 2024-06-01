@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/12 16:26:12 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/31 18:16:02 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/06/01 11:40:16 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -298,10 +298,10 @@ void	ServerConfig::printServerConfig(void) const {
 	std::cout << std::endl;
 	std::cout << "---Locations---" << std::endl;
 	for (std::map<std::string, Location>::const_iterator it = _locations.begin(); it != _locations.end(); ++it) {
-		it->second.printLocation();
+		std::cout << it->second;
 	}
 	std::cout << "---cgiLocations---" << std::endl;
 	for (std::map<std::string, Location>::const_iterator it = _cgiLocations.begin(); it != _cgiLocations.end(); ++it) {
-		it->second.printLocation();
+		std::cout << it->second;
 	}
 }

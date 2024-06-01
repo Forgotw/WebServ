@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/12 16:25:31 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/31 17:48:53 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/06/01 11:21:38 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,6 +86,7 @@ class ServerConfig {
 		const std::string&						getIndex() const { return _index; }
 		const std::string&						getUpload() const { return _upload; }
 		const std::map<std::string, Location>&	getLocations() const { return _locations; }
+		const std::map<std::string, Location>&	getCgiLocations() const { return _cgiLocations; }
 		/*-----Set Utils-----*/
 
 		/*--------- Debugging --------*/

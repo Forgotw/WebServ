@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/09 13:01:40 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/31 13:09:14 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/06/01 12:30:33 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,28 @@
 #include <dirent.h>
 #include <string>
 
+std::string getAbsolutePath(const std::string& localPath) {
+    char resolvedPath[PATH_MAX];
+    if (realpath(localPath.c_str(), resolvedPath) == nullptr) {
+        return "";
+    }
+    return std::string(resolvedPath);
+}
+
+bool isScriptExecutable(const std::string& filePath) {
+    std::cout << "isScriptExecutable: " << filePath <<  " : ";
+    if (access(filePath.c_str(), X_OK) == 0) {
+        std::cout << "YES\n";
+    } else {
+        std::cout << "NO\n";
+    }
+    return access(filePath.c_str(), X_OK) == 0;
+}
+
 bool isExecutable(const std::string& filePath) {
+    std::cout << "isExecutable: " << filePath << std::endl;
+    if (filePath.empty())
+        return false;
 	struct stat fileInfo;
 	if (stat(filePath.c_str(), &fileInfo) != 0) {
 		return false;
@@ -60,13 +81,17 @@ std::string	searchBinary(const std::string& cgiName) {
 	return "";
 }
 
-unsigned int checkCgiError(const Location* location, std::string realPath, const Request& request) {
-	(void)request;
-	(void)realPath;
-	std::string	cgiRealPath = searchBinary(location->getCgi());
+unsigned int checkCgiError(const std::string& cgiBin, const std::string& realPath) {
+	std::string	cgiRealPath = searchBinary(cgiBin);
 	if (cgiRealPath.empty() || !isExecutable(cgiRealPath)) {
+        std::cout << "Check cgi error: 500\n";
 		return	500;
 	}
+    if (!isScriptExecutable(getAbsolutePath(realPath))) {
+        std::cout << "Check cgi error: 403\n";
+        return 403;
+    }
+    std::cout << "Check cgi error: 200\n";
 	return 200;
 }
 
@@ -139,9 +164,10 @@ void	printEnv(char **env) {
 	}
 }
 
-std::string generateCgiResponse(const Location* foundLocation, std::string responseFilePath, const Request& request, const ServerConfig* config) {
+std::string generateCgiResponse(const Location* foundLocation, const Location* cgiLocation, std::string responseFilePath, const Request& request, const ServerConfig* config) {
+    (void)foundLocation; // TODO: ici pour peut être gerer max body etc;
     std::string response;
-    std::string binary = searchBinary(foundLocation->getCgi());
+    std::string binary = searchBinary(cgiLocation->getCgi());
     char* args[] = {&binary[0], &responseFilePath[0], NULL};
     char** envp = generateEnvCgi(request, config, responseFilePath);
     int pipefd[2];
@@ -348,10 +374,10 @@ std::string httpFormatterCGI(std::string contentType, std::string bodySize, std:
     return response;
 }
 
-std::string	CgiHandler::handleCGI(unsigned int* uiStatusCode, const Location* foundLocation, std::string cgiFilePath, const Request& request, const ServerConfig* config) {
+std::string	CgiHandler::handleCGI(unsigned int* uiStatusCode, const Location* foundLocation, const Location* cgiLocation, std::string cgiFilePath, const Request& request, const ServerConfig* config) {
 	std::string response;
 	// std::cout << "Handle CGI\n";
-	std::string respCGI = generateCgiResponse(foundLocation, cgiFilePath, request, config);
+	std::string respCGI = generateCgiResponse(foundLocation, cgiLocation, cgiFilePath, request, config);
 	// std::cout << "respCGI: " << respCGI << "\n";
 	std::string CGIHeader = getCGIHeader(respCGI);
 	// std::cout << "CGIHeader: " << CGIHeader << "\n";

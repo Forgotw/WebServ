@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/04 11:24:57 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/31 10:30:03 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/06/01 11:38:05 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,5 +79,5 @@ class Location {
 		/*------------*/
 		bool isCgi(void) const { return !_cgi.empty(); }
 		/*-----Debug-----*/
-		void	printLocation(void) const;
 };
+std::ostream &operator<<(std::ostream &os, Location const &ref);

@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/04 11:25:41 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/31 18:02:40 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/06/01 11:51:48 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@ Location::Location() :
 	_cgi(""),
 	_upload(""),
 	_index(""),
-    _client_max_body_size(DEF_MAX_BODY_SIZE),
+    _client_max_body_size(0),
 	_return(std::make_pair(0, "")),
 	_access(true),
 	_autoindex(false),
@@ -135,7 +135,7 @@ std::map<std::string, locationHandler> locationMap() {
 
 	myMap["methods"] = &locationHandleMethods;
 	myMap["root"] = &locationHandleRoot;
-	myMap["cgi"] = &locationHandleCgi;
+	myMap["cgi_bin"] = &locationHandleCgi;
 	myMap["upload"] = &locationHandleUpload;
 	myMap["index"] = &locationHandleIndex;
 	myMap["clientMaxBodySize"] = &locationHandleBodySize;
@@ -166,7 +166,7 @@ Location::Location(unsigned int redirCode, std::string redirPath) :
 	_cgi(""),
 	_upload(""),
 	_index(""),
-	_client_max_body_size(DEF_MAX_BODY_SIZE),
+	_client_max_body_size(0),
 	_return(std::make_pair(redirCode, redirPath)),
 	_access(true),
 	_autoindex(false),
@@ -180,7 +180,7 @@ Location::Location(std::vector<std::string> &tokens):
 	_cgi(""),
 	_upload(""),
 	_index(""),
-	_client_max_body_size(DEF_MAX_BODY_SIZE),
+	_client_max_body_size(0),
 	_return(std::make_pair(0, "")),
 	_access(true),
 	_autoindex(false),
@@ -214,19 +214,63 @@ Location::Location(std::vector<std::string> &tokens):
     std::cout << "-------Locations name after: " << *tokens.begin() << std::endl;
 }
 
-void	Location::printLocation() const {
-	std::cout << "  Location: " << _locationName << std::endl;
-	std::cout << "	Methods:";
-	for (size_t i = 0; i < _methods.size(); ++i) {
-			std::cout << " " << _methods[i];
-	}
-	std::cout << std::endl;
-	std::cout << "	Root: " << _root << std::endl;
-	std::cout << "	CGI: " << _cgi << std::endl;
-	std::cout << "	Upload: " << _upload << std::endl;
-	std::cout << "	Index: " << _index << std::endl;
-	std::cout << "	MaxBodySize: " << _index << std::endl;
-	std::cout << "	Access: " << (_access ? "true" : "false") << std::endl;
-	std::cout << "	AutoIndex: " << (_autoindex ? "true" : "false") << std::endl;
-	std::cout << "	Return: " << _return.first << " " << _return.second << std::endl;
+// std::ostream &operator<<(std::ostream &os, Location const &ref) { {
+// 	os << "  Location: " << ref.getLocationName() << std::endl
+// 	    << "	Methods:";
+// 	for (size_t i = 0; i <  ref.getMethods().size(); ++i) {
+// 			os << " " << ref.getMethods()[i];
+// 	}
+//     os << std::endl;
+// 	os << "	Root: " << ref.getRoot() << std::endl
+// 	    << "	CGI: " << ref.getCgi() << std::endl
+// 	    << "	Upload: " << ref.getUpload() << std::endl
+// 	    << "	Index: " << ref.getIndex() << std::endl
+// 	    << "	MaxBodySize: " << ref.getMaxBody() << std::endl
+// 	    << "	Access: " << (ref.getAccess() ? "true" : "false") << std::endl
+// 	    << "	AutoIndex: " << (ref.getAutoIndex() ? "true" : "false") << std::endl
+// 	    << "	Return: " << ref.getReturn().first << " " << ref.getReturn().second << std::endl;
+// }
+
+std::ostream &operator<<(std::ostream &os, Location const &ref) {
+    os << "  Location: " << ref.getLocationName() << std::endl;
+
+    if (!ref.getMethods().empty()) {
+        os << "	Methods:";
+        for (size_t i = 0; i < ref.getMethods().size(); ++i) {
+            os << " " << ref.getMethods()[i];
+        }
+        os << std::endl;
+    }
+
+    if (!ref.getRoot().empty()) {
+        os << "	Root: " << ref.getRoot() << std::endl;
+    }
+
+    if (!ref.getCgi().empty()) {
+        os << "	CGI: " << ref.getCgi() << std::endl;
+    }
+
+    if (!ref.getUpload().empty()) {
+        os << "	Upload: " << ref.getUpload() << std::endl;
+    }
+
+    if (!ref.getIndex().empty()) {
+        os << "	Index: " << ref.getIndex() << std::endl;
+    }
+
+    if (ref.getMaxBody() > 0) {
+        os << "	MaxBodySize: " << ref.getMaxBody() << std::endl;
+    }
+    if (ref.getAccess() == false) {
+        os << "	Access: " << "false" << std::endl;
+    }
+    if (ref.getAutoIndex() == true) {
+        os << "	AutoIndex: " << "true" << std::endl;
+    }
+
+    if (ref.getReturn().first != 0 || !ref.getReturn().second.empty()) {
+        os << "	Return: " << ref.getReturn().first << " " << ref.getReturn().second << std::endl;
+    }
+
+    return os;
 }
