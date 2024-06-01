@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/09 13:01:40 by lsohler           #+#    #+#             */
-/*   Updated: 2024/06/01 12:30:33 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/06/01 14:17:58 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -106,12 +106,14 @@ char** generateEnvCgi(const Request& request, const ServerConfig* config, std::s
 	} else {
 		env["CONTENT_LENGTH"] = "0";
 	}
-	env["CONTENT_TYPE"] = headers.count("Content-Type") ? headers["Content-Type"] : "application/x-www-form-urlencoded";
+	// env["CONTENT_TYPE"] = headers.count("Content-Type") ? headers["Content-Type"] : "application/x-www-form-urlencoded";
+	env["CONTENT_TYPE"] = headers.count("Content-Type") ? headers["Content-Type"] : "";
 	env["GATEWAY_INTERFACE"] = "CGI/1.1";
-	env["PATH_INFO"] = realPath;
+	env["PATH_INFO"] = request.getURI().pathInfo;
 	std::string querryString = request.getURI().querryString;
 	if (!querryString.empty()) {
  		querryString = querryString.substr(1);
+        std::cout << "Querry String2: " << querryString << std::endl;
 	} else {
 		querryString = "";
 	}
@@ -130,18 +132,20 @@ char** generateEnvCgi(const Request& request, const ServerConfig* config, std::s
 	env["TMPDIR"] = config->getUpload();
 	env["SERVER_PROTOCOL"] = "HTTP/1.1";
 	env["SERVER_SOFTWARE"] = "WebServ/1.0";
-	env["SCRIPT_FILENAME"] = realPath;
+	env["SCRIPT_FILENAME"] = getAbsolutePath(realPath);
 	env["HTTP_ACCEPT"] = headers.count("Accept") ? headers["Accept"] : "";
 	env["HTTP_ACCEPT_LANGUAGE"] = headers.count("Accept-Language") ? headers["Accept-Language"] : "";
 	env["HTTP_USER_AGENT"] = headers.count("User-Agent") ? headers["User-Agent"] : "";
 	env["HTTP_COOKIE"] = headers.count("Cookie") ? headers["Cookie"] : "";
 	env["HTTP_REFERER"] = headers.count("Referer") ? headers["Referer"] : "";
 	env["REDIRECT_STATUS"] = "200";
-
+    // std::cout << "\n\n------------ENV CREATE--------\n";
+    // std::cout << "SCRIPT_NAME";
 	char **envp = new char *[env.size() + 1];
 	int i = 0;
 	for (std::map<std::string, std::string>::iterator it = env.begin(); it != env.end(); ++it)
 	{
+        std::cout << it->first << " : " << it->second << std::endl;
 		envp[i] = new char[it->second.size() + it->first.size() + 2];
 		envp[i] = strcpy(envp[i], (it->first + "=" + it->second).c_str());
 		i++;
@@ -310,31 +314,6 @@ std::string getCGIBodySize(std::string body) {
 	return ss.str();
 }
 
-std::string handle200(std::string type, std::string len, std::string body) {
-	std::string resp = "";
-	resp += "HTTP/1.1 200 OK";
-	resp += "\r\n";
-	resp += "Content-Type: ";
-	resp += type;
-	resp += "\r\n";
-	resp += "Content-Length: ";
-	resp += len;
-	resp += "\r\n";
-	resp += "\r\n";
-	resp += body;
-	resp += "\r\n";
-	return resp;
-}
-
-std::string handle302(std::string location) {
-	std::string resp = "";
-	resp += "HTTP/1.1 302 Found\r\n";
-	resp += "Location: ";
-	resp += location;
-	resp += "\r\n\r\n";
-	return resp;
-}
-
 std::string httpFormatterCGI(std::string contentType, std::string bodySize, std::string body, std::string location, std::string strStatusCode) {
 	std::string response = "HTTP/1.1 ";
     unsigned int statusCode = std::atoi(strStatusCode.c_str());
@@ -393,18 +372,6 @@ std::string	CgiHandler::handleCGI(unsigned int* uiStatusCode, const Location* fo
 	if (statusCode == "302") {
 		location = getCGILocation(CGIHeader);
     }
-	// if (statusCode == "200") {
-	// 	std::string body = getCGIBody(respCGI);
-	// 	std::string bodySize = getCGIBodySize(body);
-	// 	response = handle200(contentType, bodySize, body);
-	// 	std::cout << "response: " << response << "\n";
-	// } else if (statusCode == "302") {
-	// 	std::string location = getCGILocation(CGIHeader);
-	// 	response = handle302(location);
-	// } else {
-	// 	*uiStatusCode = std::atoi(statusCode.c_str());
-	// 	std::cout << "Handle CGI problem: " << *uiStatusCode << "\n";
-	// }
     response = httpFormatterCGI(contentType, bodySize, body, location, statusCode);
     *uiStatusCode = 200; // TODO: handleCGI a ete refactor, may be on a plus besoin de cette variable, a discuter.
 	return response;

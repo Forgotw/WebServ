@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/13 20:30:58 by lsohler           #+#    #+#             */
-/*   Updated: 2024/06/01 12:14:43 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/06/01 14:56:15 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -261,6 +261,9 @@ unsigned int	Server::generateResponseCode(const Location* location, const Locati
 	if (location && location->getReturn().first > 0) {
 		return location->getReturn().first;
 	}
+	if (!isAllowedMethod(location->getMethods(), request.getMethod())) {
+		return 405;
+	}
 	if (urlContainRelativePath(request.getURI().path)) {
 		return 401;
 	}
@@ -274,9 +277,6 @@ unsigned int	Server::generateResponseCode(const Location* location, const Locati
 	if (!haveAccess(location->getAccess(), realPath)) {
 		return 403;
 	}
-	if (!isAllowedMethod(location->getMethods(), request.getMethod())) {
-		return 405;
-	}
 	return 200;
 }
 
@@ -289,6 +289,7 @@ std::string		Server::generateReponseFilePath(unsigned int responseCode, std::str
 
 		if (it != error_pages.end()) {
 			responseFilePath = _config.getErrorDir() + it->second;
+            std::cout << "Error file in generate: " << responseFilePath << std::endl;
 				struct stat	sb;
 			if (stat(responseFilePath.c_str(), &sb) == -1) {
 				responseFilePath =  DEFAULT_ERROR_PAGE;
@@ -302,6 +303,11 @@ std::string		Server::generateReponseFilePath(unsigned int responseCode, std::str
 
 std::string		Server::ResponseRouter(const Request& request) const {
 	const Location*		foundLocation = findLocation(request.getURI().path);
+    if (foundLocation != nullptr) {
+        std::cout << "\n\n-------Found Location--------\n" << *foundLocation << std::endl;
+    } else {
+        std::cout << "\n\n-------no Location--------\n";
+    }
 	std::string			realPath = findRequestedPath(foundLocation, request.getURI().path);
     std::cout << "realPath: " << realPath << std::endl;
     const Location*     cgiLocation = findCgiLocation(realPath);
@@ -312,6 +318,7 @@ std::string		Server::ResponseRouter(const Request& request) const {
         // nginx renvoie 404 si il n'y pas de loc approprié pour le cgi
     }
 	unsigned int		respCode = generateResponseCode(foundLocation, cgiLocation, realPath, request);
+    std::cout << "respCode: " << respCode << std::endl;
 	std::string			responseFilePath = generateReponseFilePath(respCode, realPath);
     std::cout << "responseFilePath: " << responseFilePath << std::endl;
 	std::string			response = "";

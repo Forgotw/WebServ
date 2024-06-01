@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/04 11:25:41 by lsohler           #+#    #+#             */
-/*   Updated: 2024/06/01 11:51:48 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/06/01 15:16:05 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,7 +95,7 @@ void	locationHandleIndex(Location &location, std::vector<std::string> &tokens) {
 }
 
 void	locationHandleBodySize(Location &location, std::vector<std::string> &tokens) {
-	tokenSetter(tokens, location, &Location::setIndex);
+	tokenSetter(tokens, location, &Location::setBodySize);
 }
 
 void	locationHandleReturn(Location &location, std::vector<std::string> &tokens) {

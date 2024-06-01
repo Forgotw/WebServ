@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/12 16:26:12 by lsohler           #+#    #+#             */
-/*   Updated: 2024/06/01 11:40:16 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/06/01 15:05:46 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -120,7 +120,7 @@ void	handleErrorPage(ServerConfig &config, std::vector<std::string> &tokens) {
 }
 
 void	handleErrorDir(ServerConfig &config, std::vector<std::string> &tokens) {
-	tokenSetter(tokens, config, &ServerConfig::setErrorPage);
+	tokenSetter(tokens, config, &ServerConfig::setErrorDir);
 }
 
 void	handleRoot(ServerConfig &config, std::vector<std::string> &tokens) {
@@ -202,6 +202,7 @@ ServerConfig::ServerConfig(std::vector<std::string> tokens) :
 	_server_name(),
 	_access_log(""),
 	_error_log(""),
+    _error_dir(""),
 	_root(""),
 	_index(""),
 	_upload(""),
@@ -232,6 +233,7 @@ ServerConfig::ServerConfig(void) :
 	_access_log(""),
 	_error_log(""),
 	_error_page(),
+    _error_dir(""),
 	_root(""),
 	_index(""),
 	_upload(""),
@@ -248,6 +250,7 @@ ServerConfig::ServerConfig(ServerConfig const &other) :
 	_access_log(other._access_log),
 	_error_log(other._error_log),
 	_error_page(other._error_page),
+    _error_dir(other._error_dir),
 	_root(other._root),
 	_index(other._index),
 	_upload(other._upload),
@@ -268,6 +271,7 @@ ServerConfig	&ServerConfig::operator=(ServerConfig const &other) {
 		_access_log = other._access_log;
 		_error_log = other._error_log;
 		_error_page = other._error_page;
+        _error_dir= other._error_dir;
 		_root = other._root;
 		_index = other._index;
 		_upload = other._upload;
@@ -292,6 +296,7 @@ void	ServerConfig::printServerConfig(void) const {
 	std::cout << "Server Name: " << _server_name << std::endl;
 	std::cout << "Access Log: " << _access_log << std::endl;
 	std::cout << "Error Log: " << _error_log << std::endl;
+	std::cout << "Error Dir: " << _error_dir << std::endl;
 	std::cout << "Root: " << _root << std::endl;
 	std::cout << "Index: " << _index << std::endl;
 	std::cout << "Upload: " << _upload << std::endl;
