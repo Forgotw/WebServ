@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/13 20:30:58 by lsohler           #+#    #+#             */
-/*   Updated: 2024/06/01 14:56:15 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/06/01 17:04:32 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -328,7 +328,7 @@ std::string		Server::ResponseRouter(const Request& request) const {
         std::cout << "Not cgi !!!!!!\n";
     }
 	if (isCgi(responseFilePath) && respCode == 200) {
-		response = CgiHandler::handleCGI(&respCode, foundLocation, cgiLocation, responseFilePath, request, &getConfig());
+		response = CgiHandler::handleCGI(foundLocation, cgiLocation, responseFilePath, request, &getConfig());
 		if (respCode >= 400) {
 			responseFilePath = generateReponseFilePath(respCode, realPath);
 		} else {

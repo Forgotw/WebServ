@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/04 11:25:41 by lsohler           #+#    #+#             */
-/*   Updated: 2024/06/01 15:16:05 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/06/01 16:45:32 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@ Location::Location() :
 	_methods(),
 	_root(""),
 	_cgi(""),
+    _fast_cgi_pass(""),
 	_upload(""),
 	_index(""),
     _client_max_body_size(0),
@@ -31,6 +32,7 @@ Location::Location(const Location& other) :
 	_methods(other._methods),
 	_root(other._root),
 	_cgi(other._cgi),
+    _fast_cgi_pass(other._fast_cgi_pass);
 	_upload(other._upload),
 	_index(other._index),
 	_client_max_body_size(other._client_max_body_size),
@@ -48,6 +50,7 @@ Location	&Location::operator=(const Location& other) {
 		_methods = other._methods;
 		_root = other._root;
 		_cgi = other._cgi;
+        _fast_cgi_pass = other._fast_cgi_pass;
 		_upload = other._upload;
 		_index = other._index;
         _client_max_body_size = other._client_max_body_size;
@@ -84,6 +87,10 @@ void	locationHandleRoot(Location &location, std::vector<std::string> &tokens) {
 
 void	locationHandleCgi(Location &location, std::vector<std::string> &tokens) {
 	tokenSetter(tokens, location, &Location::setCgi);
+}
+
+void	locationHandleFastCgiPass(Location &location, std::vector<std::string> &tokens) {
+	tokenSetter(tokens, location, &Location::setFastCgiPass);
 }
 
 void	locationHandleUpload(Location &location, std::vector<std::string> &tokens) {
@@ -136,6 +143,7 @@ std::map<std::string, locationHandler> locationMap() {
 	myMap["methods"] = &locationHandleMethods;
 	myMap["root"] = &locationHandleRoot;
 	myMap["cgi_bin"] = &locationHandleCgi;
+	myMap["fastcgi_pass"] = &locationHandleFastCgiPass;
 	myMap["upload"] = &locationHandleUpload;
 	myMap["index"] = &locationHandleIndex;
 	myMap["clientMaxBodySize"] = &locationHandleBodySize;
@@ -164,6 +172,7 @@ Location::Location(unsigned int redirCode, std::string redirPath) :
 	_methods(),
 	_root(""),
 	_cgi(""),
+    _fast_cgi_pass(""),
 	_upload(""),
 	_index(""),
 	_client_max_body_size(0),
@@ -178,6 +187,7 @@ Location::Location(std::vector<std::string> &tokens):
 	_methods(),
 	_root(""),
 	_cgi(""),
+    _fast_cgi_pass(""),
 	_upload(""),
 	_index(""),
 	_client_max_body_size(0),

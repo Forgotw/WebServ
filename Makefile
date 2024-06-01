@@ -4,6 +4,7 @@ SRCS 		:= $(addprefix src/, \
 	main.cpp \
 	ConfigParser.cpp \
 	CgiHandler.cpp \
+	FastCgiHandler.cpp \
 	Location.cpp \
 	Peer.cpp \
 	Request.cpp \
@@ -45,5 +46,10 @@ re :
 info-%:
 	$(MAKE) --dry-run --always-make $* | grep -v "info"
 
-.PHONY : clean fclean re info-
+php-fpm:
+	/usr/sbin/php-fpm --nodaemonize --fpm-config /Users/lsohler/WebServer/var/php-fpm.d/php-fpm.conf
+	chown lsohler:2022_lausanne /Users/lsohler/WebServer/var/php-fpm.d/tmp
+	chmod 755 Users/lsohler/WebServer/var/php-fpm.d/tmp
+
+.PHONY : clean fclean re info- php-fpm
 .SILENT :

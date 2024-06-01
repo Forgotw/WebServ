@@ -6,11 +6,12 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/09 13:01:40 by lsohler           #+#    #+#             */
-/*   Updated: 2024/06/01 14:17:58 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/06/01 17:44:36 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "CgiHandler.hpp"
+#include "FastCgiHandler.hpp"
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -58,6 +59,7 @@ bool isExecutable(const std::string& filePath) {
 	}
 	return false;
 }
+
 
 std::string	searchBinary(const std::string& cgiName) {
 	std::string pathVariable = std::getenv("PATH");
@@ -113,7 +115,6 @@ char** generateEnvCgi(const Request& request, const ServerConfig* config, std::s
 	std::string querryString = request.getURI().querryString;
 	if (!querryString.empty()) {
  		querryString = querryString.substr(1);
-        std::cout << "Querry String2: " << querryString << std::endl;
 	} else {
 		querryString = "";
 	}
@@ -145,9 +146,10 @@ char** generateEnvCgi(const Request& request, const ServerConfig* config, std::s
 	int i = 0;
 	for (std::map<std::string, std::string>::iterator it = env.begin(); it != env.end(); ++it)
 	{
-        std::cout << it->first << " : " << it->second << std::endl;
+        // std::cout << it->first << " : " << it->second << std::endl;
 		envp[i] = new char[it->second.size() + it->first.size() + 2];
 		envp[i] = strcpy(envp[i], (it->first + "=" + it->second).c_str());
+        std::cout << envp[i] << std::endl;
 		i++;
 	}
 	envp[i] = NULL;
@@ -168,16 +170,16 @@ void	printEnv(char **env) {
 	}
 }
 
-std::string generateCgiResponse(const Location* foundLocation, const Location* cgiLocation, std::string responseFilePath, const Request& request, const ServerConfig* config) {
-    (void)foundLocation; // TODO: ici pour peut être gerer max body etc;
+std::string generateCgiResponse(char* binary, char** args, char** envp, const Request& request) {
+    // (void)foundLocation; // TODO: ici pour peut être gerer max body etc;
     std::string response;
-    std::string binary = searchBinary(cgiLocation->getCgi());
-    char* args[] = {&binary[0], &responseFilePath[0], NULL};
-    char** envp = generateEnvCgi(request, config, responseFilePath);
+    // std::string binary = searchBinary(cgiLocation->getCgi());
+    // char* args[] = {&binary[0], &responseFilePath[0], NULL};
+    // char** envp = generateEnvCgi(request, config, responseFilePath);
     int pipefd[2];
     int stdinpipefd[2];
     if (pipe(pipefd) == -1 || pipe(stdinpipefd) == -1) {
-        throw std::runtime_error(std::string("pipe: ") + std::strerror(errno));
+        throw std::runtime_error(std::string("pipe: ") + std::strerror (errno));
     }
     pid_t pid = fork();
     if (pid == -1) {
@@ -193,7 +195,7 @@ std::string generateCgiResponse(const Location* foundLocation, const Location* c
 		if (close(pipefd[0]) == -1 || close(pipefd[1]) == -1 || close(stdinpipefd[0]) == -1 || close(stdinpipefd[1]) == -1) {
 			throw std::runtime_error(std::string("close: ") + std::strerror(errno));
 		}
-        execve(&binary[0], args, envp);
+        execve(binary, args, envp);
 		throw std::runtime_error(std::string("execve: ") + std::strerror(errno));
     } else {
         int status;
@@ -337,7 +339,7 @@ std::string httpFormatterCGI(std::string contentType, std::string bodySize, std:
 			response += "404 Not Found";
 			break;
 		default:
-			response += "Internal Server Error";
+			response += "500 Internal Server Error";
 			break;
 	}
     response += "\r\n";
@@ -353,10 +355,20 @@ std::string httpFormatterCGI(std::string contentType, std::string bodySize, std:
     return response;
 }
 
-std::string	CgiHandler::handleCGI(unsigned int* uiStatusCode, const Location* foundLocation, const Location* cgiLocation, std::string cgiFilePath, const Request& request, const ServerConfig* config) {
+std::string	CgiHandler::handleCGI(const Location* foundLocation, const Location* cgiLocation, std::string cgiFilePath, const Request& request, const ServerConfig* config) {
 	std::string response;
+
+    char* binary = &searchBinary(cgiLocation->getCgi())[0];
+    char* args[] = {&binary[0], &cgiFilePath[0], NULL};
+    char** envp = generateEnvCgi(request, config, cgiFilePath);
+    std::string fastcgi_pass = FastCgiHandler::setFastCgiPass(foundLocation, cgiLocation);
 	// std::cout << "Handle CGI\n";
-	std::string respCGI = generateCgiResponse(foundLocation, cgiLocation, cgiFilePath, request, config);
+    std::string respCGI = "";
+    if (!fastcgi_pass.empty() && FastCgiHandler::isPhpExtension(cgiFilePath)) {
+        respCGI = FastCgiHandler::generateFastCgiResponse(envp, fastcgi_pass, request);
+    } else {
+        respCGI = generateCgiResponse(binary, args, envp, request);
+    }
 	// std::cout << "respCGI: " << respCGI << "\n";
 	std::string CGIHeader = getCGIHeader(respCGI);
 	// std::cout << "CGIHeader: " << CGIHeader << "\n";
@@ -373,6 +385,6 @@ std::string	CgiHandler::handleCGI(unsigned int* uiStatusCode, const Location* fo
 		location = getCGILocation(CGIHeader);
     }
     response = httpFormatterCGI(contentType, bodySize, body, location, statusCode);
-    *uiStatusCode = 200; // TODO: handleCGI a ete refactor, may be on a plus besoin de cette variable, a discuter.
+    // *uiStatusCode = 200; // TODO: handleCGI a ete refactor, may be on a plus besoin de cette variable, a discuter.
 	return response;
 }
