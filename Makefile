@@ -15,6 +15,8 @@ SRCS 		:= $(addprefix src/, \
 )
 OBJS		:= $(SRCS:.cpp=.o)
 
+PID_FILE = var/php-fpm.d/tmp/php-fpm.pid
+
 CC 			:= c++
 CFLAGS		:= -Wall -Wextra -Werror -g -std=c++98 -Iinc/ -O3
 
@@ -47,9 +49,26 @@ info-%:
 	$(MAKE) --dry-run --always-make $* | grep -v "info"
 
 php-fpm:
-	chown lsohler:2022_lausanne /Users/lsohler/WebServer/var/php-fpm.d/tmp
-	chmod 755 /Users/lsohler/WebServer/var/php-fpm.d/tmp/
-	/usr/sbin/php-fpm --nodaemonize --fpm-config /Users/lsohler/WebServer/var/php-fpm.d/php-fpm.conf
+	bash var/fastCgiInit.sh
+
+php-fpm-clean:
+	@if [ -f "$(PID_FILE)" ]; then \
+		PID=$$(cat "$(PID_FILE)"); \
+		if [ "$$PID" -eq "$$PID" ] 2>/dev/null; then \
+			echo "Killing process with PID: $$PID"; \
+			kill "$$PID"; \
+			if [ $$? -eq 0 ]; then \
+				echo "Process $$PID has been terminated."; \
+			else \
+				echo "Failed to terminate process $$PID."; \
+			fi \
+		else \
+			echo "Invalid PID: $$PID"; \
+		fi \
+	else \
+		echo "PID file not found: $(PID_FILE)"; \
+	fi
+	rm -rf var/php-fpm.d/
 
 .PHONY : clean fclean re info- php-fpm
 .SILENT :
