@@ -47,9 +47,9 @@ info-%:
 	$(MAKE) --dry-run --always-make $* | grep -v "info"
 
 php-fpm:
-	/usr/sbin/php-fpm --nodaemonize --fpm-config /Users/lsohler/WebServer/var/php-fpm.d/php-fpm.conf
 	chown lsohler:2022_lausanne /Users/lsohler/WebServer/var/php-fpm.d/tmp
-	chmod 755 Users/lsohler/WebServer/var/php-fpm.d/tmp
+	chmod 755 /Users/lsohler/WebServer/var/php-fpm.d/tmp/
+	/usr/sbin/php-fpm --nodaemonize --fpm-config /Users/lsohler/WebServer/var/php-fpm.d/php-fpm.conf
 
 .PHONY : clean fclean re info- php-fpm
 .SILENT :

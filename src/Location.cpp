@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/04 11:25:41 by lsohler           #+#    #+#             */
-/*   Updated: 2024/06/01 16:45:32 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/06/02 12:33:00 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,7 @@ Location::Location(const Location& other) :
 	_methods(other._methods),
 	_root(other._root),
 	_cgi(other._cgi),
-    _fast_cgi_pass(other._fast_cgi_pass);
+    _fast_cgi_pass(other._fast_cgi_pass),
 	_upload(other._upload),
 	_index(other._index),
 	_client_max_body_size(other._client_max_body_size),
@@ -251,23 +251,21 @@ std::ostream &operator<<(std::ostream &os, Location const &ref) {
         }
         os << std::endl;
     }
-
     if (!ref.getRoot().empty()) {
         os << "	Root: " << ref.getRoot() << std::endl;
     }
-
     if (!ref.getCgi().empty()) {
         os << "	CGI: " << ref.getCgi() << std::endl;
     }
-
+    if (!ref.getFastCgiPass().empty()) {
+        os << "	fastcgi_pass: " << ref.getFastCgiPass() << std::endl;
+    }
     if (!ref.getUpload().empty()) {
         os << "	Upload: " << ref.getUpload() << std::endl;
     }
-
     if (!ref.getIndex().empty()) {
         os << "	Index: " << ref.getIndex() << std::endl;
     }
-
     if (ref.getMaxBody() > 0) {
         os << "	MaxBodySize: " << ref.getMaxBody() << std::endl;
     }
@@ -277,7 +275,6 @@ std::ostream &operator<<(std::ostream &os, Location const &ref) {
     if (ref.getAutoIndex() == true) {
         os << "	AutoIndex: " << "true" << std::endl;
     }
-
     if (ref.getReturn().first != 0 || !ref.getReturn().second.empty()) {
         os << "	Return: " << ref.getReturn().first << " " << ref.getReturn().second << std::endl;
     }

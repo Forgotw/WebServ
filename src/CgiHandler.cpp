@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/09 13:01:40 by lsohler           #+#    #+#             */
-/*   Updated: 2024/06/01 17:44:36 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/06/02 11:46:32 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -358,7 +358,8 @@ std::string httpFormatterCGI(std::string contentType, std::string bodySize, std:
 std::string	CgiHandler::handleCGI(const Location* foundLocation, const Location* cgiLocation, std::string cgiFilePath, const Request& request, const ServerConfig* config) {
 	std::string response;
 
-    char* binary = &searchBinary(cgiLocation->getCgi())[0];
+    std::string binStr= searchBinary(cgiLocation->getCgi());
+    char* binary = &binStr[0];
     char* args[] = {&binary[0], &cgiFilePath[0], NULL};
     char** envp = generateEnvCgi(request, config, cgiFilePath);
     std::string fastcgi_pass = FastCgiHandler::setFastCgiPass(foundLocation, cgiLocation);
