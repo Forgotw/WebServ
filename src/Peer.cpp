@@ -86,6 +86,10 @@ void Peer::readRequest() {
 							return;
 						}
 					}
+                    // if (MaxbodysizeReached()) {
+                    //     setResponse();
+                    //     reset;
+                    // }
 				}
 			}
 			if (_headerComplete) {

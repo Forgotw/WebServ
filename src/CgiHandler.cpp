@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/09 13:01:40 by lsohler           #+#    #+#             */
-/*   Updated: 2024/06/02 14:33:16 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/06/03 15:06:57 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -130,7 +130,8 @@ char** generateEnvCgi(const Request& request, const ServerConfig* config, std::s
 	env["SCRIPT_NAME"] = request.getURI().path;
 	env["SERVER_NAME"] = config->getHost();
 	env["SERVER_PORT"] = config->getPort();
-	env["TMPDIR"] = config->getUpload();
+	// env["TMPDIR"] = config->getUpload();
+    env["UPLOAD_DIR"] = "tests/upload/";
 	env["SERVER_PROTOCOL"] = "HTTP/1.1";
 	env["SERVER_SOFTWARE"] = "WebServ/1.0";
 	env["SCRIPT_FILENAME"] = getAbsolutePath(realPath);
