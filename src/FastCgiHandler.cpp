@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/01 13:46:37 by lsohler           #+#    #+#             */
-/*   Updated: 2024/06/02 13:00:26 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/06/03 14:29:27 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,7 @@
 #include <vector>
 #include <cstring>
 #include <algorithm>
-
+#include <arpa/inet.h>
 // Constantes et structures FastCGI
 #define FCGI_VERSION_1 1
 #define FCGI_BEGIN_REQUEST 1
@@ -55,6 +55,78 @@ struct FCGI_EndRequestBody {
     uint8_t protocolStatus;
     uint8_t reserved[3];
 };
+
+std::string uint16ToString(uint16_t value) {
+    std::stringstream ss;
+    ss << value;
+    return ss.str();
+}
+
+std::string uint8ToString(uint8_t value) {
+    std::stringstream ss;
+    ss << static_cast<unsigned>(value);
+    return ss.str();
+}
+
+// Fonction pour interpréter et afficher la requête FastCGI
+std::string interpretFastCGIRequest(const std::string& fcgiRequest) {
+    std::stringstream output;
+    size_t pos = 0;
+
+    while (pos < fcgiRequest.size()) {
+        if (pos + sizeof(FCGI_Header) > fcgiRequest.size()) {
+            output << "Incomplete FCGI_Header, remaining size: " << (fcgiRequest.size() - pos) << std::endl;
+            break;
+        }
+
+        FCGI_Header header;
+        std::memcpy(&header, &fcgiRequest[pos], sizeof(FCGI_Header));
+        pos += sizeof(FCGI_Header);
+
+        // Convertir en big-endian manuellement
+        header.contentLength = (header.contentLength << 8) | (header.contentLength >> 8);
+        header.requestId = (header.requestId << 8) | (header.requestId >> 8);
+
+        output << "FCGI_Header:" << std::endl;
+        output << "  version: " << uint8ToString(header.version) << std::endl;
+        output << "  type: " << uint8ToString(header.type) << std::endl;
+        output << "  requestId: " << uint16ToString(header.requestId) << std::endl;
+        output << "  contentLength: " << uint16ToString(header.contentLength) << std::endl;
+        output << "  paddingLength: " << uint8ToString(header.paddingLength) << std::endl;
+        output << "  reserved: " << uint8ToString(header.reserved) << std::endl;
+
+        if (pos + header.contentLength > fcgiRequest.size()) {
+            output << "Incomplete content, remaining size: " << (fcgiRequest.size() - pos) << std::endl;
+            break;
+        }
+
+        std::string content = fcgiRequest.substr(pos, header.contentLength);
+        pos += header.contentLength + header.paddingLength;
+
+        if (header.type == FCGI_BEGIN_REQUEST) {
+            FCGI_BeginRequestBody body;
+            std::memcpy(&body, content.data(), sizeof(FCGI_BeginRequestBody));
+
+            // Combiner les octets pour obtenir le role
+            uint16_t role = (body.roleB1 << 8) | body.roleB0;
+
+            output << "FCGI_BeginRequestBody:" << std::endl;
+            output << "  role: " << uint16ToString(role) << std::endl;
+            output << "  flags: " << uint8ToString(body.flags) << std::endl;
+        } else if (header.type == FCGI_PARAMS || header.type == FCGI_STDIN) {
+            output << "Content: " << std::endl;
+            for (size_t i = 0; i < content.size(); ++i) {
+                output << content[i];
+            }
+            output << std::endl;
+        } else {
+            output << "Unknown content type" << std::endl;
+        }
+    }
+
+    return output.str();
+}
+
 
 void printHex(const std::string& data) {
     for (std::size_t i = 0; i < data.size(); ++i) {
@@ -146,6 +218,7 @@ std::vector<uint8_t> createStdinRecord(uint16_t requestId, const std::string& re
     std::vector<uint8_t> record;
     size_t offset = 0;
     while (offset < requestBody.size()) {
+        std::cout << "createStdinRecord\n";
         size_t chunkSize = std::min(requestBody.size() - offset, static_cast<size_t>(65535));
         std::vector<uint8_t> header = createHeader(FCGI_STDIN, requestId, chunkSize);
         record.insert(record.end(), header.begin(), header.end());
@@ -229,6 +302,7 @@ std::string receiveFastCGIResponse(int sock) {
     std::string response;
     ssize_t bytesRead;
     while ((bytesRead = recv(sock, buffer, sizeof(buffer), 0)) > 0) {
+        std::cout << "receiveFastCGIResponse\n";
         response.append(buffer, bytesRead);
     }
     if (bytesRead < 0) {
@@ -243,6 +317,7 @@ std::string interpretFastCGIResponse(const std::string& response) {
     std::string stdoutContent;
     std::string stderrContent;
     while (pos < response.size()) {
+        std::cout << "interpretFastCGIResponse\n";
         FCGI_Header header;
         std::memcpy(&header, &response[pos], sizeof(FCGI_Header));
         pos += sizeof(FCGI_Header);
@@ -273,6 +348,7 @@ std::string interpretFastCGIResponse(const std::string& response) {
 
 std::string FastCgiHandler::generateFastCgiResponse(char** envp, const std::string& fastcgi_pass, const Request& request) {
     std::cout << "FastCgiHandler:: fastcgi_pass:" << fastcgi_pass << std::endl;
+    std::cout << "FastCgiHandler:: getBody:" << request.getBody() << std::endl;
     int sock = createFastCGIConnection(fastcgi_pass);
     if (sock < 0) {
         // *uiStatusCode = 500;
@@ -281,10 +357,12 @@ std::string FastCgiHandler::generateFastCgiResponse(char** envp, const std::stri
     }
     unsigned int id = generateUniqueId();
     std::string fcgiRequestBin = constructFastCGIRequest(id, envp, request.getBody());
+    // fcgiRequestBin += request.getBody();
     std::cout << "-----------------------------------------\n";
     std::cout << "----" << fastcgi_pass<< "----\n";
     std::cout << "-----------------------------------------\n";
-    printHex(fcgiRequestBin);
+    // printHex(fcgiRequestBin);
+    std::cout << interpretFastCGIRequest(fcgiRequestBin);
     std::cout << "-----------------------------------------\n";
     // std::cout << "-----------------------------------------\n";
     std::cout << "----" << "request end" << "----\n";
@@ -295,9 +373,10 @@ std::string FastCgiHandler::generateFastCgiResponse(char** envp, const std::stri
         close(sock);
         return "Status: 500\r\n\r\nFastCgi Php-Fpm write error";
     }
-
+    std::cout << "After fcgi write in socket\n";
     // Receive the response from PHP-FPM
     std::string fcgiResponseBin = receiveFastCGIResponse(sock);
+    std::cout << "After fcgiResponseBin\n";
     close(sock);
     // std::cout << "-----------------------------------------\n";
     // std::cout << "----" << respFCGI << "----\n";
@@ -305,9 +384,10 @@ std::string FastCgiHandler::generateFastCgiResponse(char** envp, const std::stri
     // // printHex(respFCGI);
     // // std::cout << respFCGI;
     std::string response = interpretFastCGIResponse(fcgiResponseBin);
+    std::cout << "After interpretFastCGIResponse\n";
     std::ofstream outFile("test", std::ios::binary);
     if (outFile.is_open()) {
-        outFile.write(response.c_str(), response.size());
+        outFile.write(fcgiResponseBin.c_str(), fcgiResponseBin.size());
         outFile.close();
     } else {
         std::cerr << "Unable to open file for writing" << std::endl;
@@ -317,28 +397,3 @@ std::string FastCgiHandler::generateFastCgiResponse(char** envp, const std::stri
     // std::cout << "-----------------------------------------\n";
     return response; // TODO: remove
 }
-
-/*
-Header:
-    Version: 1
-    Type: FCGI_BEGIN_REQUEST
-    Request ID: 1
-    Content Length: 8
-    Padding Length: 0
-
-Params:
-    SCRIPT_FILENAME=/var/www/html/index.php
-    REQUEST_METHOD=POST
-    QUERY_STRING=name=JohnDoe&age=30
-    CONTENT_TYPE=application/x-www-form-urlencoded
-    CONTENT_LENGTH=27
-    SERVER_PROTOCOL=HTTP/1.1
-    REMOTE_ADDR=192.168.1.1
-    HTTP_USER_AGENT=Mozilla/5.0
-    HTTP_ACCEPT=text/html,application/xhtml+xml
-
-STDIN:
-    name=JohnDoe&age=30
-
-*/
-

@@ -102,10 +102,11 @@ void Peer::readRequest() {
 		// }
 	}
 	if (_requestComplete) {
-		// std::cout << "------SUCCESS-------\n";
+		std::cout << "------SUCCESS-------\n";
         // std::cout << requestData;
-		// std::cout << "------SUCCESS--------\n";
 		setRequest(requestData);
+        getRequest()->printRequest();
+		std::cout << "------SUCCESS--------\n";
 		setLastActivity();
 		_requestComplete = false;
 		_headerComplete = false;

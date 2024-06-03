@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/09 13:01:40 by lsohler           #+#    #+#             */
-/*   Updated: 2024/06/02 11:46:32 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/06/02 14:33:16 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -239,7 +239,6 @@ std::string generateCgiResponse(char* binary, char** args, char** envp, const Re
 			throw std::runtime_error(std::string("waitpid: ") + std::strerror(errno));
 		}
     }
-	deleteEnv(envp);
     return response;
 }
 
@@ -305,7 +304,7 @@ std::string getCGILocation(std::string CGIHeader) {
 std::string getCGIBody(std::string respCGI) {
 	std::size_t pos1 = respCGI.find("\r\n\r\n");
 	if (pos1 != std::string::npos) {
-    	return respCGI.substr(pos1); // +4 to skip over the second "\r\n\r\n"
+    	return respCGI.substr(pos1);
     }
 	return "";
 }
@@ -370,6 +369,7 @@ std::string	CgiHandler::handleCGI(const Location* foundLocation, const Location*
     } else {
         respCGI = generateCgiResponse(binary, args, envp, request);
     }
+    deleteEnv(envp);
 	// std::cout << "respCGI: " << respCGI << "\n";
 	std::string CGIHeader = getCGIHeader(respCGI);
 	// std::cout << "CGIHeader: " << CGIHeader << "\n";
