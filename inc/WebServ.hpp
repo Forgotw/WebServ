@@ -21,6 +21,7 @@ private:
 	Peer _peers[FD_SETSIZE];
 	fd_set _readfds;
 	fd_set _writefds;
+	bool _stop;
 
 	void startServers();
 
