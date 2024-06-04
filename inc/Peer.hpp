@@ -26,11 +26,9 @@ public:
 	void				handleHttpRequest(void);
 
 	/*-----Set-----*/
-	void	setRequest(const std::string& buffer);
-	void	setRequestData(const std::vector<char>& requestData);
-	void	setReponse(std::string const &response);
-	void	setLastActivity();
-	void	reset();
+	void				setRequest(const std::string& buffer);
+	void				setReponse(std::string const &response);
+	void				reset();
 
 	/*-----Get-----*/
 	int					getSocket() const { return this->_sockfd; }
@@ -53,7 +51,19 @@ private:
 	bool				_requestComplete;
 	bool				_headerComplete;
 
+	std::string			_requestHeader;
+	std::string			_requestBody;
+	std::string			_requestMethod;
+	std::string			_requestBoundary;
+	std::string			_requestContentType;
+	size_t				_requestContentLength;
 
+	size_t				_responsePos;
+
+	void getMethod();
+	void getContentLength();
+	void getContentType();
+	void getBoundary();
 };
 
 #endif
