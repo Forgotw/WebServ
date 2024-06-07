@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lray <lray@student.42lausanne.ch >         +#+  +:+       +#+        */
+/*   By: efailla <efailla@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/13 20:30:58 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/22 19:25:01 by lray             ###   ########.fr       */
+/*   Updated: 2024/06/07 14:26:56 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,7 @@
 
 #include <string>
 #include <cstring>
+#include <vector>
 #include <sstream>
 #include <iostream>
 #include <ostream>
@@ -31,6 +32,8 @@
 #define LISTEN_BACKLOG 255
 
 Server::Server(ServerConfig &new_config) {
+	// std::cout << "Creating Server object\n";
+	_sessions.reserve(100000);
 	_config = new_config;
 	int err;
 	struct addrinfo *resp;
@@ -74,12 +77,24 @@ Server::Server(ServerConfig &new_config) {
 	this->_isRunning = false;
 }
 
+void clearVector(std::vector<sessions*>& vec) {
+    for (size_t i = 0; i < vec.size(); ++i) {
+        delete vec[i];
+    }
+    vec.clear();
+}
+
 Server::~Server() {
 	if (close(this->_sockfd) == -1) {
 		throw std::runtime_error(std::string("close: ") + std::strerror(errno));
 	}
 	this->_isRunning = false;
 	std::cout << "close socket: " << this->_sockfd << std::endl;
+
+	//clearVector(_sessions);
+	// for (std::map<std::string, sessions>::iterator it = _sessions.begin(); it != _sessions.end(); it++)
+	// 	delete &it->second;
+	
 }
 
 void Server::run() {
@@ -136,16 +151,17 @@ static bool	isCgi(const std::string& path) {
 }
 
 const Location*			Server::findCgiLocation(const std::string& path) const {
-	const std::map<std::string, Location>&				locations = _config.getLocations();
+	const std::map<std::string, Location>&				locations = _config.getCgiLocations();
 	size_t dotPosition = path.rfind('.');
 	if (dotPosition != std::string::npos) {
 		std::string extension = path.substr(dotPosition);
-
+        std::cout << "Searched extension: " << extension << std::endl;
 		for (size_t i = 0; i < sizeof(cgiExtensions) / sizeof(cgiExtensions[0]); ++i) {
 			if (extension == cgiExtensions[i]) {
-				std::map<std::string, Location>::const_iterator	it = locations.find("/*" + extension);
+                std::cout << "find: " << "\\" + extension + "$" << std::endl;
+				std::map<std::string, Location>::const_iterator	it = locations.find("\\" + extension + "$");
 				if (it != locations.end()) {
-					it->second.printLocation();
+					// it->second.printLocation();
 					return &it->second;
 				}
 			}
@@ -156,9 +172,9 @@ const Location*			Server::findCgiLocation(const std::string& path) const {
 
 const Location*		Server::findLocation(std::string path) const {
 	const std::map<std::string, Location>&				locations = _config.getLocations();
-	if (isCgi(path)) {
-		return	findCgiLocation(path);
-	}
+	// if (isCgi(path)) {
+	// 	return	findCgiLocation(path);
+	// }
 	while (true) {
 		std::map<std::string, Location>::const_iterator	it = locations.find(path);
 		if (path == "/" && it == locations.end()) {
@@ -196,22 +212,6 @@ std::string		Server::findRequestedPath(const Location* location, std::string pat
 	if (!location) {
 		std::cout << "No location\n";
 		return "";
-	}
-	if (location->isCgi()) {
-		std::string	cgiRoot = location->getRoot();
-		if (!cgiRoot.empty() && cgiRoot[cgiRoot.size() - 1] == '/' && path[0] == '/') {
-			path = path.substr(1);
-			std::cout << "cgiRoot is now: " << cgiRoot << "\n";
-		}
-		std::string realCgiPath = cgiRoot + path;
-		std::cout << "Location is cgi: " << realCgiPath << "\n";
-		struct stat sbCgi;
-		if (stat(realCgiPath.c_str(), &sbCgi) == -1) {
-			std::cout << "return NULL for cgi\n";
-			return "";
-		} else {
-			return realCgiPath;
-		}
 	}
 	std::string	realPath = location->getRoot();
 	if (location->getLocationName() != path) {
@@ -251,40 +251,42 @@ static bool urlContainRelativePath(std::string realPath) {
 	return realPath.find("/.") != std::string::npos || realPath.find("../") != std::string::npos || realPath.find("./") != std::string::npos;
 }
 
-unsigned int	Server::generateResponseCode(const Location* location, std::string realPath, const Request& request) const {
+unsigned int	Server::generateResponseCode(const Location* location, const Location *cgiLocation, std::string realPath, const Request& request) const {
 	if (!request.isValidRequest()) {
 		return 400;
 	}
 	if (location && location->getReturn().first > 0) {
 		return location->getReturn().first;
 	}
+	if (!isAllowedMethod(location->getMethods(), request.getMethod())) {
+		return 405;
+	}
 	if (urlContainRelativePath(request.getURI().path)) {
 		return 401;
 	}
-	if (!location || realPath.empty()) {
+	if (!location || realPath.empty() || (isCgi(realPath) && cgiLocation == nullptr)) {
 		return 404;
 	}
-	if (location && !location->getCgi().empty()) {
-		return	checkCgiError(location, realPath, request);
+	if (isCgi(realPath)) {
+        std::cout << "TEST GENERATE RESP CODE\n";
+		return	checkCgiError(cgiLocation->getCgi(), realPath);
 	}
 	if (!haveAccess(location->getAccess(), realPath)) {
 		return 403;
 	}
-	if (!isAllowedMethod(location->getMethods(), request.getMethod())) {
-		return 405;
-	}
 	return 200;
 }
 
-std::string		Server::generateReponseFilePath(unsigned int responseCode, std::string realPath) const {
+std::string		Server::generateReponseFilePath(unsigned int responseCode, std::string realPath, const ServerConfig& config) {
 	std::string responseFilePath = realPath;
 
 	if (responseCode >= 400) {
-		std::map<int, std::string>					error_pages = _config.getErrorPage();
+		std::map<int, std::string>					error_pages = config.getErrorPage();
 		std::map<int, std::string>::const_iterator	it = error_pages.find(responseCode);
 
 		if (it != error_pages.end()) {
-			responseFilePath = _config.getErrorDir() + it->second;
+			responseFilePath = config.getErrorDir() + it->second;
+            std::cout << "Error file in generate: " << responseFilePath << std::endl;
 				struct stat	sb;
 			if (stat(responseFilePath.c_str(), &sb) == -1) {
 				responseFilePath =  DEFAULT_ERROR_PAGE;
@@ -299,17 +301,13 @@ std::string		Server::generateReponseFilePath(unsigned int responseCode, std::str
 std::string		Server::ResponseRouter(const Request& request) const {
 	const Location*		foundLocation = findLocation(request.getURI().path);
 	std::string			realPath = findRequestedPath(foundLocation, request.getURI().path);
-	// std::cout << "realPath Before1: " << realPath << "\n";
-	unsigned int		respCode = generateResponseCode(foundLocation, realPath, request);
-	std::string			responseFilePath = generateReponseFilePath(respCode, realPath);
-	std::string			response;
-	if (foundLocation->isCgi() && respCode == 200) {
-		response = CgiHandler::handleCGI(&respCode, foundLocation, responseFilePath, request, &getConfig());
-		if (respCode >= 400) {
-			responseFilePath = generateReponseFilePath(respCode, realPath);
-		} else {
-			return response;
-		}
+    const Location*     cgiLocation = findCgiLocation(realPath);
+	unsigned int		respCode = generateResponseCode(foundLocation, cgiLocation, realPath, request);
+	std::string			responseFilePath = generateReponseFilePath(respCode, realPath, _config);
+	std::string			response = "";
+	if (isCgi(responseFilePath) && respCode == 200) {
+		response = CgiHandler::handleCGI(foundLocation, cgiLocation, responseFilePath, request, &getConfig());
+		return response;
 	} else if (respCode == 301) {
 		response = Response::handleRedir(foundLocation);
 		return response;
@@ -321,3 +319,41 @@ std::string		Server::ResponseRouter(const Request& request) const {
 	response = Response::httpFormatter(responseFilePath, respCode);
 	return response;
 }
+
+std::string generateIncrementalString() {
+    static int counter = 0;
+    std::string result = std::to_string(counter);
+    ++counter;
+    return result;
+}
+
+std::string generateRandomString() {
+    static const char alphanum[] =
+        "0123456789"
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        "abcdefghijklmnopqrstuvwxyz";
+    static const int stringLength = 15;
+
+    // Seed for random number generator
+    static bool initialized = false;
+    if (!initialized) {
+        srand(static_cast<unsigned int>(time(0)));
+        initialized = true;
+    }
+
+    std::string randomString;
+    randomString.reserve(stringLength);
+
+    for (int i = 0; i < stringLength; ++i) {
+        randomString += alphanum[rand() % (sizeof(alphanum) - 1)];
+    }
+
+    return randomString;
+}
+
+void Server::newSession(sessions& session) {
+        session.info = "coucou";
+        session.username = "";
+		std::cout << session.sessionID << " from newsession" << std::endl;
+        _sessions.push_back(session);
+    }

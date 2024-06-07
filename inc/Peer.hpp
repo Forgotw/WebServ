@@ -25,6 +25,9 @@ public:
 	void				writeResponse(void);
 	void				handleHttpRequest(void);
 
+	void				handleCookies(std::string &request);
+	
+
 	/*-----Set-----*/
 	void				setRequest(const std::string& buffer);
 	void				setReponse(std::string const &response);
@@ -48,8 +51,6 @@ private:
 	Server*				_server;
 	std::string			_response;
 	time_t				_lastActivity;
-	bool				_requestComplete;
-	bool				_headerComplete;
 
 	std::string			_requestHeader;
 	std::string			_requestBody;
@@ -64,6 +65,9 @@ private:
 	void getContentLength();
 	void getContentType();
 	void getBoundary();
+
+	sessions			_session;
+	std::string			_cookie;
 };
 
 #endif

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lray <lray@student.42lausanne.ch >         +#+  +:+       +#+        */
+/*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 16:44:57 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/18 15:54:06 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/06/07 14:26:35 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 #include <stdexcept>
 #include <cstring>
 #include <sys/uio.h>
+#include "Server.hpp"
 
 
 #include "Response.hpp"
@@ -162,6 +163,7 @@ std::string	Response::httpFormatter(const std::string& responseFilePath, unsigne
 	response << "\r\n";
 	response << "Content-Type: " + getContentType(responseFilePath) + "\r\n";
 	response << "Content-Length: " << htmlContent.length() << "\r\n";
+	//response << "Set-Cookie: SESSIONID=4242; Path=/; HttpOnly" << "\r\n";
 	response << "\r\n";
 	return (response.str() + htmlContent);
 }
@@ -176,4 +178,11 @@ std::string		Response::handleRedir(const Location* foundLocation) {
 		delete foundLocation;
 	}
 	return response;
+}
+
+std::string     Response::earlyErrorResponse(const Server* server, unsigned int error_code) {
+    ServerConfig    config = server->getConfig();
+    std::string errorFilePath = Server::generateReponseFilePath(error_code, "", server->getConfig());
+
+    return httpFormatter(errorFilePath, error_code);
 }

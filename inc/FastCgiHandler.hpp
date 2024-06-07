@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   CgiHandler.hpp                                     :+:      :+:    :+:   */
+/*   FastCgiHandler.hpp                                 :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/05/13 20:14:32 by lsohler           #+#    #+#             */
-/*   Updated: 2024/06/01 17:04:17 by lsohler          ###   ########.fr       */
+/*   Created: 2024/06/01 13:46:54 by lsohler           #+#    #+#             */
+/*   Updated: 2024/06/02 11:41:07 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,18 +17,17 @@
 **		Include
 **==========================
 */
-#include <string>
-#include "ServerConfig.hpp"
-#include "Request.hpp"
-#include "Location.hpp"
+#include "CgiHandler.hpp"
 
-class CgiHandler {
+class FastCgiHandler {
 
-	private:
-		CgiHandler() {}
-		~CgiHandler() {}
+    private:
+        FastCgiHandler() {}
+        ~FastCgiHandler() {}
 
-	public:
-		static std::string	handleCGI(const Location* foundLocation, const Location* cgiLocation, std::string responseFilePath, const Request& request, const ServerConfig* config);
+    public:
 
+        static std::string generateFastCgiResponse(char** envp, const std::string& fastcgi_pass, const Request& request);
+        static std::string setFastCgiPass(const Location* foundLocation, const Location* cgiLocation);
+        static bool        isPhpExtension(const std::string& path);
 };

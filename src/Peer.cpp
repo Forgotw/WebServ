@@ -68,6 +68,119 @@ void Peer::reset() {
 	_responsePos = 0;
 }
 
+std::string generateSetCookieHeader(const std::string& sessionId) {
+    std::stringstream ss;
+    ss << "Set-Cookie: SESSIONID=" << sessionId << "; Path=/; HttpOnly";
+    return ss.str();
+}
+
+
+void printSessions(const std::vector<sessions>& sessionsvec) {
+    std::vector<sessions>::const_iterator it = sessionsvec.begin();
+    while (it != sessionsvec.end()) {
+        sessions session = *it;
+        std::cout << "SessionID: " << session.sessionID << std::endl;
+        std::cout << "Info: " << session.info << std::endl;
+        std::cout << "Username: " << session.username << std::endl;
+        std::cout << "------------------------" << std::endl;
+        ++it;
+    }
+}
+
+std::string generateIncrementalString2() {
+    static int counter = 0;
+    std::string result = std::to_string(counter);
+    ++counter;
+    return result;
+}
+
+std::string generateRandomString2() {
+    static const char alphanum[] =
+        "0123456789"
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        "abcdefghijklmnopqrstuvwxyz";
+    static const int stringLength = 15;
+
+    // Seed for random number generator
+    static bool initialized = false;
+    if (!initialized) {
+        srand(static_cast<unsigned int>(time(0)));
+        initialized = true;
+    }
+
+    std::string randomString;
+    randomString.reserve(stringLength);
+
+    for (int i = 0; i < stringLength; ++i) {
+        randomString += alphanum[rand() % (sizeof(alphanum) - 1)];
+    }
+
+    return randomString;
+}
+
+std::string extractSessionID(const std::string& header) {
+    std::istringstream stream(header);
+    std::string line;
+
+    while (std::getline(stream, line)) {
+        if (line.find("Cookie") != std::string::npos) {
+            size_t pos = line.find("SESSIONID=");
+            if (pos != std::string::npos) {
+                pos += 10; // length of "SESSIONID="
+                size_t end = line.find(";", pos);
+                if (end == std::string::npos) {
+                    end = line.length();
+                }
+				//std::cout << "session existente :" << line.substr(pos, end - pos) << std::endl;
+                return line.substr(pos, end - pos - 1);
+            }
+        }
+    }
+
+    return "";
+}
+
+void	Peer::handleCookies(std::string &request)
+{
+	//std::string value = _request->getHeaders().find("Cookie")->second;
+	std::string sessionID = extractSessionID(request);
+	sessions session;
+	if (!sessionID.empty())
+	{
+		std::vector<sessions>& sessionsvec = _server->getSessions();
+		std::vector<sessions>::iterator it = sessionsvec.begin();
+		// std::cout << "sessions tab :\n";
+		// printSessions(sessionsvec);
+		// std::cout << "\n";
+		while (it != sessionsvec.end() && (*it).sessionID != sessionID)
+			it++;
+        if (it != sessionsvec.end())
+		{
+            this->_session = (*it);
+			_cookie = generateSetCookieHeader(this->_session.sessionID);
+            std::cout << "Session trouvée pour l'ID : " << sessionID << std::endl;
+        }
+		else
+		{
+			// session.sessionID = generateIncrementalString2();
+			session.sessionID = generateRandomString2();
+            _server->newSession(session);
+			this->_session = session;
+			_cookie = generateSetCookieHeader(this->_session.sessionID);
+            std::cout << "Nouvelle session créée avec un nouvel ID remplace par l'ancien." << std::endl;
+        }
+    }
+	else
+	{
+        // session.sessionID = generateIncrementalString2();
+		session.sessionID = generateRandomString2();
+        _server->newSession(session);
+		this->_session = session;
+		_cookie = generateSetCookieHeader(this->_session.sessionID);
+        std::cout << "Nouvelle session créée avec un nouvel ID." << std::endl;
+    }
+}
+
 void Peer::readRequest() {
 	try {
 		std::string buffer;
@@ -211,25 +324,23 @@ void Peer::writeResponse() {
 	}
 }
 
-/* void Peer::writeResponse() {
-	ssize_t httpReponseLen = getResponse().size();
-	ssize_t totalByteWritten = 0;
+void setCookie(std::string& response, std::string cookie)
+{
+        std::string delimiter = "\r\n";
+        size_t pos = response.find(delimiter);
 
-	while (totalByteWritten < httpReponseLen) {
-		ssize_t byteWritten = send(getSocket(), getResponse().c_str() + totalByteWritten, httpReponseLen - totalByteWritten, 0);
-		if (byteWritten <= 0) {
-			reset();
-			return;
-		}
-		totalByteWritten += byteWritten;
-	}
-	reset();
-} */
+        if (pos != std::string::npos) {
+            response.insert(pos + delimiter.length(), cookie + delimiter);
+        }
+    }
+
 
 void Peer::handleHttpRequest() {
 	const Server* server = getServer();
 	const Request request = *getRequest();
 	std::string response;
 	response = server->ResponseRouter(request);
+  if (!_cookie.empty())
+				setCookie(response, _cookie);
 	setReponse(response);
 }

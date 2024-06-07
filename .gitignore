@@ -3,5 +3,6 @@
 .DS_Store
 .build/
 siege_log.txt
+var/php-fpm.d/
 
 webserv

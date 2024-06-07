@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   CgiHandler.hpp                                     :+:      :+:    :+:   */
+/*   Endpoint.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/05/13 20:14:32 by lsohler           #+#    #+#             */
-/*   Updated: 2024/06/01 17:04:17 by lsohler          ###   ########.fr       */
+/*   Created: 2024/05/21 17:45:13 by lsohler           #+#    #+#             */
+/*   Updated: 2024/05/21 17:50:34 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,18 +17,18 @@
 **		Include
 **==========================
 */
-#include <string>
-#include "ServerConfig.hpp"
 #include "Request.hpp"
-#include "Location.hpp"
+#include "ServerConfig.hpp"
 
-class CgiHandler {
+class Endpoint {
 
-	private:
-		CgiHandler() {}
-		~CgiHandler() {}
+    private:
+        Endpoint();
+        ~Endpoint();
 
-	public:
-		static std::string	handleCGI(const Location* foundLocation, const Location* cgiLocation, std::string responseFilePath, const Request& request, const ServerConfig* config);
 
-};
+    public:
+        void postHardCodedEndpoint(const Request& request, const ServerConfig& server_config);
+        void deleteHardCodedEndpoint(const Request& request, const ServerConfig& server_config);
+
+}
