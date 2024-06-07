@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: efailla <efailla@42Lausanne.ch>            +#+  +:+       +#+        */
+/*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 16:44:57 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/23 10:44:50 by efailla          ###   ########.fr       */
+/*   Updated: 2024/06/07 14:26:35 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 #include <stdexcept>
 #include <cstring>
 #include <sys/uio.h>
+#include "Server.hpp"
 
 
 #include "Response.hpp"
@@ -179,3 +180,9 @@ std::string		Response::handleRedir(const Location* foundLocation) {
 	return response;
 }
 
+std::string     Response::earlyErrorResponse(const Server* server, unsigned int error_code) {
+    ServerConfig    config = server->getConfig();
+    std::string errorFilePath = Server::generateReponseFilePath(error_code, "", server->getConfig());
+
+    return httpFormatter(errorFilePath, error_code);
+}

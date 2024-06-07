@@ -2,5 +2,6 @@
 *.json
 .DS_Store
 .build/
+var/php-fpm.d/
 
 webserv

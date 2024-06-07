@@ -6,7 +6,7 @@
 /*   By: efailla <efailla@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/13 20:30:58 by lsohler           #+#    #+#             */
-/*   Updated: 2024/05/29 18:50:26 by efailla          ###   ########.fr       */
+/*   Updated: 2024/06/07 14:26:56 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -152,16 +152,17 @@ static bool	isCgi(const std::string& path) {
 }
 
 const Location*			Server::findCgiLocation(const std::string& path) const {
-	const std::map<std::string, Location>&				locations = _config.getLocations();
+	const std::map<std::string, Location>&				locations = _config.getCgiLocations();
 	size_t dotPosition = path.rfind('.');
 	if (dotPosition != std::string::npos) {
 		std::string extension = path.substr(dotPosition);
-
+        std::cout << "Searched extension: " << extension << std::endl;
 		for (size_t i = 0; i < sizeof(cgiExtensions) / sizeof(cgiExtensions[0]); ++i) {
 			if (extension == cgiExtensions[i]) {
-				std::map<std::string, Location>::const_iterator	it = locations.find("/*" + extension);
+                std::cout << "find: " << "\\" + extension + "$" << std::endl;
+				std::map<std::string, Location>::const_iterator	it = locations.find("\\" + extension + "$");
 				if (it != locations.end()) {
-					it->second.printLocation();
+					// it->second.printLocation();
 					return &it->second;
 				}
 			}
@@ -172,9 +173,9 @@ const Location*			Server::findCgiLocation(const std::string& path) const {
 
 const Location*		Server::findLocation(std::string path) const {
 	const std::map<std::string, Location>&				locations = _config.getLocations();
-	if (isCgi(path)) {
-		return	findCgiLocation(path);
-	}
+	// if (isCgi(path)) {
+	// 	return	findCgiLocation(path);
+	// }
 	while (true) {
 		std::map<std::string, Location>::const_iterator	it = locations.find(path);
 		if (path == "/" && it == locations.end()) {
@@ -213,22 +214,22 @@ std::string		Server::findRequestedPath(const Location* location, std::string pat
 		std::cout << "No location\n";
 		return "";
 	}
-	if (location->isCgi()) {
-		std::string	cgiRoot = location->getRoot();
-		if (!cgiRoot.empty() && cgiRoot.back() == '/' && path[0] == '/') {
-			path = path.substr(1);
-			std::cout << "cgiRoot is now: " << cgiRoot << "\n";
-		}
-		std::string realCgiPath = cgiRoot + path;
-		std::cout << "Location is cgi: " << realCgiPath << "\n";
-		struct stat sbCgi;
-		if (stat(realCgiPath.c_str(), &sbCgi) == -1) {
-			std::cout << "return NULL for cgi\n";
-			return "";
-		} else {
-			return realCgiPath;
-		}
-	}
+	// if (location->isCgi()) {
+	// 	std::string	cgiRoot = location->getRoot();
+	// 	if (!cgiRoot.empty() && cgiRoot.back() == '/' && path[0] == '/') {
+	// 		path = path.substr(1);
+	// 		std::cout << "cgiRoot is now: " << cgiRoot << "\n";
+	// 	}
+	// 	std::string realCgiPath = cgiRoot + path;
+	// 	std::cout << "Location is cgi: " << realCgiPath << "\n";
+	// 	struct stat sbCgi;
+	// 	if (stat(realCgiPath.c_str(), &sbCgi) == -1) {
+	// 		std::cout << "return NULL for cgi\n";
+	// 		return "";
+	// 	} else {
+	// 		return realCgiPath;
+	// 	}
+	// }
 	std::string	realPath = location->getRoot();
 	if (location->getLocationName() != path) {
 		realPath = searchFindReplace(path, location->getLocationName(), location->getRoot());
@@ -267,40 +268,42 @@ static bool urlContainRelativePath(std::string realPath) {
 	return realPath.find("/.") != std::string::npos || realPath.find("../") != std::string::npos || realPath.find("./") != std::string::npos;
 }
 
-unsigned int	Server::generateResponseCode(const Location* location, std::string realPath, const Request& request) const {
+unsigned int	Server::generateResponseCode(const Location* location, const Location *cgiLocation, std::string realPath, const Request& request) const {
 	if (!request.isValidRequest()) {
 		return 400;
 	}
 	if (location && location->getReturn().first > 0) {
 		return location->getReturn().first;
 	}
+	if (!isAllowedMethod(location->getMethods(), request.getMethod())) {
+		return 405;
+	}
 	if (urlContainRelativePath(request.getURI().path)) {
 		return 401;
 	}
-	if (!location || realPath.empty()) {
+	if (!location || realPath.empty() || (isCgi(realPath) && cgiLocation == nullptr)) {
 		return 404;
 	}
-	if (location && !location->getCgi().empty()) {
-		return	checkCgiError(location, realPath, request);
+	if (isCgi(realPath)) {
+        std::cout << "TEST GENERATE RESP CODE\n";
+		return	checkCgiError(cgiLocation->getCgi(), realPath);
 	}
 	if (!haveAccess(location->getAccess(), realPath)) {
 		return 403;
 	}
-	if (!isAllowedMethod(location->getMethods(), request.getMethod())) {
-		return 405;
-	}
 	return 200;
 }
 
-std::string		Server::generateReponseFilePath(unsigned int responseCode, std::string realPath) const {
+std::string		Server::generateReponseFilePath(unsigned int responseCode, std::string realPath, const ServerConfig& config) {
 	std::string responseFilePath = realPath;
 
 	if (responseCode >= 400) {
-		std::map<int, std::string>					error_pages = _config.getErrorPage();
+		std::map<int, std::string>					error_pages = config.getErrorPage();
 		std::map<int, std::string>::const_iterator	it = error_pages.find(responseCode);
 
 		if (it != error_pages.end()) {
-			responseFilePath = _config.getErrorDir() + it->second;
+			responseFilePath = config.getErrorDir() + it->second;
+            std::cout << "Error file in generate: " << responseFilePath << std::endl;
 				struct stat	sb;
 			if (stat(responseFilePath.c_str(), &sb) == -1) {
 				responseFilePath =  DEFAULT_ERROR_PAGE;
@@ -314,15 +317,34 @@ std::string		Server::generateReponseFilePath(unsigned int responseCode, std::str
 
 std::string		Server::ResponseRouter(const Request& request) const {
 	const Location*		foundLocation = findLocation(request.getURI().path);
+    if (foundLocation != nullptr) {
+        std::cout << "\n\n-------Found Location--------\n" << *foundLocation << std::endl;
+    } else {
+        std::cout << "\n\n-------no Location--------\n";
+    }
 	std::string			realPath = findRequestedPath(foundLocation, request.getURI().path);
-	// std::cout << "realPath Before1: " << realPath << "\n";
-	unsigned int		respCode = generateResponseCode(foundLocation, realPath, request);
-	std::string			responseFilePath = generateReponseFilePath(respCode, realPath);
-	std::string			response;
-	if (foundLocation->isCgi() && respCode == 200) {
-		response = CgiHandler::handleCGI(&respCode, foundLocation, responseFilePath, request, &getConfig());
+    std::cout << "realPath: " << realPath << std::endl;
+    const Location*     cgiLocation = findCgiLocation(realPath);
+    if (cgiLocation != nullptr) {
+        std::cout << "----CGI Location----\n" << *cgiLocation << "\n----CGI Location----\n";
+    } else if (isCgi(realPath)) {
+        std::cout << "----Cgi but no location---\n-------------\n";
+        // nginx renvoie 404 si il n'y pas de loc approprié pour le cgi
+    }
+	unsigned int		respCode = generateResponseCode(foundLocation, cgiLocation, realPath, request);
+    std::cout << "respCode: " << respCode << std::endl;
+	std::string			responseFilePath = generateReponseFilePath(respCode, realPath, _config);
+    std::cout << "responseFilePath: " << responseFilePath << std::endl;
+	std::string			response = "";
+    if (isCgi(responseFilePath)) {
+        std::cout << "Is cgi !!!!!!\n";
+    } else {
+        std::cout << "Not cgi !!!!!!\n";
+    }
+	if (isCgi(responseFilePath) && respCode == 200) {
+		response = CgiHandler::handleCGI(foundLocation, cgiLocation, responseFilePath, request, &getConfig());
 		if (respCode >= 400) {
-			responseFilePath = generateReponseFilePath(respCode, realPath);
+			responseFilePath = generateReponseFilePath(respCode, realPath, _config);
 		} else {
 			return response;
 		}
