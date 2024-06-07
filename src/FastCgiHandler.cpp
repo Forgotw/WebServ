@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/01 13:46:37 by lsohler           #+#    #+#             */
-/*   Updated: 2024/06/03 14:29:27 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/06/07 14:18:06 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -361,7 +361,7 @@ std::string FastCgiHandler::generateFastCgiResponse(char** envp, const std::stri
     std::cout << "-----------------------------------------\n";
     std::cout << "----" << fastcgi_pass<< "----\n";
     std::cout << "-----------------------------------------\n";
-    // printHex(fcgiRequestBin);
+    printHex(fcgiRequestBin);
     std::cout << interpretFastCGIRequest(fcgiRequestBin);
     std::cout << "-----------------------------------------\n";
     // std::cout << "-----------------------------------------\n";

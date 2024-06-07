@@ -23,7 +23,7 @@ public:
 	const Location*		findLocation(std::string path) const;
 	std::string			findRequestedPath(const Location* location, std::string path) const;
 	unsigned int		generateResponseCode(const Location* location, const Location* cgiLocation, std::string realPath, const Request& request) const;
-	std::string			generateReponseFilePath(unsigned int code, std::string realPath) const;
+	static std::string	generateReponseFilePath(unsigned int code, std::string realPath, const ServerConfig& config);
 	std::string			ServerHandleCGI(unsigned int& code, const Location* foundLocation, const std::string& cgiFilePath, const Request& request);
 	std::string			ResponseRouter(const Request& request) const;
 private:

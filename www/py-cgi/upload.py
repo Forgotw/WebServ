@@ -7,7 +7,7 @@ import sys
 cgitb.enable()  # Pour le débogage en cas d'erreur
 
 # Définir le répertoire de téléchargement
-UPLOAD_DIR = os.environ.get('TMPDIR', '/tmp')
+UPLOAD_DIR = os.environ.get('UPLOAD_DIR', '/tmp')
 
 # Vérifier si le répertoire de téléchargement existe
 if not os.path.exists(UPLOAD_DIR):

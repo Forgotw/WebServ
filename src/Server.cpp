@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/13 20:30:58 by lsohler           #+#    #+#             */
-/*   Updated: 2024/06/01 17:04:32 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/06/07 14:26:56 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -280,15 +280,15 @@ unsigned int	Server::generateResponseCode(const Location* location, const Locati
 	return 200;
 }
 
-std::string		Server::generateReponseFilePath(unsigned int responseCode, std::string realPath) const {
+std::string		Server::generateReponseFilePath(unsigned int responseCode, std::string realPath, const ServerConfig& config) {
 	std::string responseFilePath = realPath;
 
 	if (responseCode >= 400) {
-		std::map<int, std::string>					error_pages = _config.getErrorPage();
+		std::map<int, std::string>					error_pages = config.getErrorPage();
 		std::map<int, std::string>::const_iterator	it = error_pages.find(responseCode);
 
 		if (it != error_pages.end()) {
-			responseFilePath = _config.getErrorDir() + it->second;
+			responseFilePath = config.getErrorDir() + it->second;
             std::cout << "Error file in generate: " << responseFilePath << std::endl;
 				struct stat	sb;
 			if (stat(responseFilePath.c_str(), &sb) == -1) {
@@ -319,7 +319,7 @@ std::string		Server::ResponseRouter(const Request& request) const {
     }
 	unsigned int		respCode = generateResponseCode(foundLocation, cgiLocation, realPath, request);
     std::cout << "respCode: " << respCode << std::endl;
-	std::string			responseFilePath = generateReponseFilePath(respCode, realPath);
+	std::string			responseFilePath = generateReponseFilePath(respCode, realPath, _config);
     std::cout << "responseFilePath: " << responseFilePath << std::endl;
 	std::string			response = "";
     if (isCgi(responseFilePath)) {
@@ -330,7 +330,7 @@ std::string		Server::ResponseRouter(const Request& request) const {
 	if (isCgi(responseFilePath) && respCode == 200) {
 		response = CgiHandler::handleCGI(foundLocation, cgiLocation, responseFilePath, request, &getConfig());
 		if (respCode >= 400) {
-			responseFilePath = generateReponseFilePath(respCode, realPath);
+			responseFilePath = generateReponseFilePath(respCode, realPath, _config);
 		} else {
 			return response;
 		}
