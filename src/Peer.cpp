@@ -4,6 +4,7 @@
 
 #include <cstring>
 #include <algorithm>
+#include <sstream>
 
 #include "Response.hpp"
 
@@ -84,10 +85,12 @@ void printSessions(const std::vector<sessions>& sessionsvec) {
 }
 
 std::string generateIncrementalString2() {
-    static int counter = 0;
-    std::string result = std::to_string(counter);
-    ++counter;
-    return result;
+	static int counter = 0;
+	std::stringstream ss;
+	ss << counter;
+	std::string result = ss.str();
+	++counter;
+	return result;
 }
 
 std::string generateRandomString2() {
