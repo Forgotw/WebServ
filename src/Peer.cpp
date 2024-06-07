@@ -13,8 +13,6 @@ Peer::Peer() {
 	std::memset(&this->_addr, 0, sizeof(this->_addr));
 	this->_request = NULL;
 	this->_lastActivity = 0;
-	_requestComplete = false;
-	_headerComplete = false;
 	_requestHeader = "";
 	_requestBody = "";
 	_requestMethod = "";
@@ -36,8 +34,6 @@ void Peer::connect(int sockfd, struct sockaddr_in addr, Server* server) {
 		this->_addr = addr;
 		this->_status = CONNECTED;
 		this->_server = server;
-		_requestComplete = false;
-		_headerComplete = false;
 	}
 }
 void Peer::setRequest(const std::string& requestString) {
