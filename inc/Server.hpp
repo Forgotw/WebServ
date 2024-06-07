@@ -6,13 +6,23 @@
 #include "ServerConfig.hpp"
 #include "Request.hpp"
 
+typedef struct s_sessions {
+	std::string sessionID;
+	std::string info;
+	std::string username;
+}				sessions;
 
 class Server {
 public:
 	Server(ServerConfig &config);
 	~Server();
 
-	void run();
+	void 	run();
+	void	newSession(sessions& session);
+
+	/*-----Set-----*/
+	// void addSession(const std::string& sessionID, const sessions& session) {
+    //     _sessions[sessionID] = session;}
 
 
 	/*-----Get-----*/
@@ -26,10 +36,12 @@ public:
 	static std::string	generateReponseFilePath(unsigned int code, std::string realPath, const ServerConfig& config);
 	std::string			ServerHandleCGI(unsigned int& code, const Location* foundLocation, const std::string& cgiFilePath, const Request& request);
 	std::string			ResponseRouter(const Request& request) const;
+  std::vector<sessions>& getSessions() { return _sessions; }
 private:
-	int				_sockfd;
-	bool			_isRunning;
-	ServerConfig	_config;
+	int								_sockfd;
+	bool							_isRunning;
+	ServerConfig					_config;
+	std::vector<sessions> 			_sessions;
 
 };
 std::ostream &operator<<(std::ostream &os, Server const &ref);

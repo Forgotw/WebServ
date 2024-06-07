@@ -25,6 +25,9 @@ public:
 	void				writeResponse(void);
 	void				handleHttpRequest(void);
 
+	void				handleCookies(std::string &request);
+	
+
 	/*-----Set-----*/
 	void	setRequest(const std::string& buffer);
 	void	setRequestData(const std::vector<char>& requestData);
@@ -52,8 +55,8 @@ private:
 	time_t				_lastActivity;
 	bool				_requestComplete;
 	bool				_headerComplete;
-
-
+	sessions			_session;
+	std::string			_cookie;
 };
 
 #endif

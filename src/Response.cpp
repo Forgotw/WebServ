@@ -163,6 +163,7 @@ std::string	Response::httpFormatter(const std::string& responseFilePath, unsigne
 	response << "\r\n";
 	response << "Content-Type: " + getContentType(responseFilePath) + "\r\n";
 	response << "Content-Length: " << htmlContent.length() << "\r\n";
+	//response << "Set-Cookie: SESSIONID=4242; Path=/; HttpOnly" << "\r\n";
 	response << "\r\n";
 	return (response.str() + htmlContent);
 }

@@ -3,7 +3,7 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
+/*   By: efailla <efailla@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/13 20:30:58 by lsohler           #+#    #+#             */
 /*   Updated: 2024/06/07 14:26:56 by lsohler          ###   ########.fr       */
@@ -22,6 +22,7 @@
 
 #include <string>
 #include <cstring>
+#include <vector>
 #include <sstream>
 #include <iostream>
 #include <ostream>
@@ -32,6 +33,7 @@
 
 Server::Server(ServerConfig &new_config) {
 	// std::cout << "Creating Server object\n";
+	_sessions.reserve(100000);
 	_config = new_config;
 	int err;
 	struct addrinfo *resp;
@@ -76,12 +78,24 @@ Server::Server(ServerConfig &new_config) {
 	this->_isRunning = false;
 }
 
+void clearVector(std::vector<sessions*>& vec) {
+    for (size_t i = 0; i < vec.size(); ++i) {
+        delete vec[i];
+    }
+    vec.clear();
+}
+
 Server::~Server() {
 	if (close(this->_sockfd) == -1) {
 		throw std::runtime_error(std::string("close: ") + std::strerror(errno));
 	}
 	this->_isRunning = false;
 	std::cout << "close socket: " << this->_sockfd << std::endl;
+
+	//clearVector(_sessions);
+	// for (std::map<std::string, sessions>::iterator it = _sessions.begin(); it != _sessions.end(); it++)
+	// 	delete &it->second;
+	
 }
 
 void Server::run() {
@@ -345,3 +359,54 @@ std::string		Server::ResponseRouter(const Request& request) const {
 	response = Response::httpFormatter(responseFilePath, respCode);
 	return response;
 }
+
+// std::map<std::string, sessions> Server::getSessions()
+// {
+// 	return this->_sessions;
+// }
+
+// std::string generateSessionId() {
+//     std::stringstream ss;
+//     for (int i = 0; i < 32; ++i) {
+//         ss << std::hex << (std::rand() % 16);
+//     }
+//     return ss.str();
+// }
+
+std::string generateIncrementalString() {
+    static int counter = 0;
+    std::string result = std::to_string(counter);
+    ++counter;
+    return result;
+}
+
+std::string generateRandomString() {
+    static const char alphanum[] =
+        "0123456789"
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        "abcdefghijklmnopqrstuvwxyz";
+    static const int stringLength = 15;
+
+    // Seed for random number generator
+    static bool initialized = false;
+    if (!initialized) {
+        srand(static_cast<unsigned int>(time(0)));
+        initialized = true;
+    }
+
+    std::string randomString;
+    randomString.reserve(stringLength);
+
+    for (int i = 0; i < stringLength; ++i) {
+        randomString += alphanum[rand() % (sizeof(alphanum) - 1)];
+    }
+
+    return randomString;
+}
+
+void Server::newSession(sessions& session) {
+        session.info = "coucou";
+        session.username = "";
+		std::cout << session.sessionID << " from newsession" << std::endl;
+        _sessions.push_back(session);
+    }
