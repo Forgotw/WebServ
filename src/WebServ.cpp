@@ -121,7 +121,6 @@ void WebServ::handleNewConnection() {
 				}
 			}
 			if (i >= FD_SETSIZE) {
-				std::cout << "Server full" << std::endl;
 				close(newSocket);
 			}
 		}
