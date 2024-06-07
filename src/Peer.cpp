@@ -196,6 +196,7 @@ void Peer::readRequest() {
 				_requestBody = buffer.substr(posEndHeader + 4);
 				getMethod();
 				if (_requestMethod == "GET" || _requestMethod == "DELETE") {
+					handleCookies(_requestHeader);
 					setRequest(_requestHeader);
 					return;
 				} else if (_requestMethod == "POST") {
@@ -204,11 +205,15 @@ void Peer::readRequest() {
 					getBoundary();
 				} else {
 					// TODO: Doit être une erreur HTTP (invalid method)
-					throw std::runtime_error("readRequest() - Invalid method");
+					// throw std::runtime_error("readRequest() - Invalid method");
+					setReponse(Response::earlyErrorResponse(_server, 405));
+					return ;
 				}
 			} else {
 				// TODO: Dois être une erreur HTTP
-				throw std::runtime_error("readRequest() - Header too long");
+				// throw std::runtime_error("readRequest() - Header too long");
+				setReponse(Response::earlyErrorResponse(_server, 431));
+				return ;
 			}
 		} else {
 			_requestBody.append(buffer, 0, byteRead);
@@ -217,9 +222,12 @@ void Peer::readRequest() {
 			if (_requestBody.find(_requestBoundary + "--") != std::string::npos) {
 				if (_requestBody.size() > _server->getConfig().getClientMaxBodySize()) {
 					//TODO: il faut retourner une erreur 413
-					throw std::runtime_error("413 - Body too large");
+					// throw std::runtime_error("413 - Body too large");
+					setReponse(Response::earlyErrorResponse(_server, 413));
+					return ;
 				}
 				std::string request = _requestHeader + _requestBody;
+				handleCookies(request);
 				setRequest(request);
 				return;
 			}
@@ -227,9 +235,12 @@ void Peer::readRequest() {
 		if (_requestBody.size() >= _requestContentLength) {
 			if (_requestBody.size() > _server->getConfig().getClientMaxBodySize()) {
 				//TODO: il faut retourner une erreur 413
-				throw std::runtime_error("413 - Body too large");
+				// throw std::runtime_error("413 - Body too large");
+				setReponse(Response::earlyErrorResponse(_server, 413));
+				return ;
 			}
 			std::string request = _requestHeader + _requestBody;
+			handleCookies(request);
 			setRequest(request);
 			return;
 		}
@@ -246,7 +257,8 @@ void Peer::getMethod() {
 		_requestMethod = _requestHeader.substr(0, pos);
 	} else {
 		// TODO: Dois retourner une erreur HTML (invalid header)
-		throw std::runtime_error("getMethod() - Invalid header");
+		// throw std::runtime_error("getMethod() - Invalid header");
+		_requestMethod = "";
 	}
 }
 

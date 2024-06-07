@@ -6,7 +6,7 @@
 /*   By: lray <lray@student.42lausanne.ch >         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/09 13:01:40 by lsohler           #+#    #+#             */
-/*   Updated: 2024/06/03 15:06:57 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/06/07 16:39:19 by lray             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,12 +35,12 @@ std::string getAbsolutePath(const std::string& localPath) {
 
 bool isScriptExecutable(const std::string& filePath) {
     std::cout << "isScriptExecutable: " << filePath <<  " : ";
-    if (access(filePath.c_str(), X_OK) == 0) {
+    if (access(filePath.c_str(), R_OK) == 0) {
         std::cout << "YES\n";
     } else {
         std::cout << "NO\n";
     }
-    return access(filePath.c_str(), X_OK) == 0;
+    return access(filePath.c_str(), R_OK) == 0;
 }
 
 bool isExecutable(const std::string& filePath) {
@@ -321,6 +321,7 @@ std::string getCGIBodySize(std::string body) {
 
 std::string httpFormatterCGI(std::string contentType, std::string bodySize, std::string body, std::string location, std::string strStatusCode) {
 	std::string response = "HTTP/1.1 ";
+	std::cout << "CGI Formatter code: " << strStatusCode << std::endl;
     unsigned int statusCode = std::atoi(strStatusCode.c_str());
 	switch (statusCode) {
 		case 200:
@@ -341,6 +342,9 @@ std::string httpFormatterCGI(std::string contentType, std::string bodySize, std:
 		case 404:
 			response += "404 Not Found";
 			break;
+		case 500:
+			response += "500 Internal Server Errorr\r\n\r\n";
+			response += "500 Internal Server Errorr";
 		default:
 			response += "500 Internal Server Error";
 			break;
@@ -381,7 +385,7 @@ std::string	CgiHandler::handleCGI(const Location* foundLocation, const Location*
 	std::string statusCode = getCGIStatusCode(CGIHeader);
 	// std::cout << "statusCode: " << statusCode << "\n";
 	std::string body = getCGIBody(respCGI);
-	// std::cout << "body: " << body << "\n";
+	std::cout << "body: " << body << "\n";
 	std::string bodySize = getCGIBodySize(body);
 	// std::cout << "bodySize: " << bodySize << "\n";
     std::string location = "";

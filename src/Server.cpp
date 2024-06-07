@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: efailla <efailla@student.42.fr>            +#+  +:+       +#+        */
+/*   By: lray <lray@student.42lausanne.ch >         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/13 20:30:58 by lsohler           #+#    #+#             */
-/*   Updated: 2024/06/07 14:26:56 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/06/07 16:26:22 by lray             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,7 +44,7 @@ Server::Server(ServerConfig &new_config) {
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
 
-	std::string	ip = this->getConfig().getIP();
+	std::string	ip = this->getConfig().getHost();
 	std::string	port = this->getConfig().getPort();
 	if (ip.empty()) {
 		ip = "0.0.0.0";
@@ -94,7 +94,7 @@ Server::~Server() {
 	//clearVector(_sessions);
 	// for (std::map<std::string, sessions>::iterator it = _sessions.begin(); it != _sessions.end(); it++)
 	// 	delete &it->second;
-	
+
 }
 
 void Server::run() {

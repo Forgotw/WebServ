@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Location.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
+/*   By: lray <lray@student.42lausanne.ch >         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/04 11:24:57 by lsohler           #+#    #+#             */
-/*   Updated: 2024/06/01 16:45:32 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/06/07 15:30:52 by lray             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,7 +51,7 @@ class Location {
 		Location(std::vector<std::string> &tokens);
 		~Location(void);
 		Location	&operator=(const Location& other);
-	
+
 		/*-----Set-----*/
 		void setLocationName(const std::string& location) { _locationName = location; }
 		void setMethods(const std::string& method) { _methods.push_back(method); }
@@ -63,7 +63,7 @@ class Location {
 		void setBodySize(const std::string& size) { _client_max_body_size = maxBodySizeConverter(size); }
 		void setReturn(const std::pair<unsigned int, std::string>& ret) { _return = ret; }
 		void setAccess(const std::string& access) { _access = true; if (access == "false") _access = false; }
-		void setAutoIndex(const std::string& autoindex) { _autoindex = true; if (autoindex == "false") _autoindex = false; }
+		void setAutoIndex(const std::string& autoindex) { _autoindex = true; if (autoindex == "off") _autoindex = false; }
 
 		/*-----Get-----*/
 		const std::string& getLocationName() const { return _locationName; }

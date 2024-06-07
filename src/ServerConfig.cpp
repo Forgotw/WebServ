@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerConfig.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
+/*   By: lray <lray@student.42lausanne.ch >         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/12 16:26:12 by lsohler           #+#    #+#             */
-/*   Updated: 2024/06/01 15:05:46 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/06/07 16:20:32 by lray             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,7 +92,7 @@ void	handleHost(ServerConfig &config, std::vector<std::string> &tokens) {
 		}
         if (isValidIP(*tokens.begin())) {
     		config.setIP(*tokens.begin());
-        } else if (tokens.begin()->find('.') == std::string::npos) { // FIXEME: Faut-il exclure server name si il y a un . dedans ? genre google.com
+        } else {
             config.setServerName(*tokens.begin());
         }
 		tokens.erase(tokens.begin());

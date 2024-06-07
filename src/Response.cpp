@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
+/*   By: lray <lray@student.42lausanne.ch >         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 16:44:57 by lsohler           #+#    #+#             */
-/*   Updated: 2024/06/07 14:26:35 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/06/07 15:53:59 by lray             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -184,5 +184,6 @@ std::string     Response::earlyErrorResponse(const Server* server, unsigned int 
     ServerConfig    config = server->getConfig();
     std::string errorFilePath = Server::generateReponseFilePath(error_code, "", server->getConfig());
 
+	std::cout << "Early Response with code: " << error_code << std::endl;
     return httpFormatter(errorFilePath, error_code);
 }
