@@ -3,7 +3,7 @@
 /*                                                        :::      ::::::::   */
 /*   CgiHandler.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
+/*   By: lray <lray@student.42lausanne.ch >         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/09 13:01:40 by lsohler           #+#    #+#             */
 /*   Updated: 2024/06/03 15:06:57 by lsohler          ###   ########.fr       */
@@ -21,6 +21,9 @@
 #include <sstream>
 #include <dirent.h>
 #include <string>
+#include <cerrno>
+
+#define BUFSIZ 1024
 
 std::string getAbsolutePath(const std::string& localPath) {
     char resolvedPath[PATH_MAX];
@@ -357,7 +360,6 @@ std::string httpFormatterCGI(std::string contentType, std::string bodySize, std:
 
 std::string	CgiHandler::handleCGI(const Location* foundLocation, const Location* cgiLocation, std::string cgiFilePath, const Request& request, const ServerConfig* config) {
 	std::string response;
-
     std::string binStr= searchBinary(cgiLocation->getCgi());
     char* binary = &binStr[0];
     char* args[] = {&binary[0], &cgiFilePath[0], NULL};

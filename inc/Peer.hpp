@@ -29,11 +29,9 @@ public:
 	
 
 	/*-----Set-----*/
-	void	setRequest(const std::string& buffer);
-	void	setRequestData(const std::vector<char>& requestData);
-	void	setReponse(std::string const &response);
-	void	setLastActivity();
-	void	reset();
+	void				setRequest(const std::string& buffer);
+	void				setReponse(std::string const &response);
+	void				reset();
 
 	/*-----Get-----*/
 	int					getSocket() const { return this->_sockfd; }
@@ -53,8 +51,21 @@ private:
 	Server*				_server;
 	std::string			_response;
 	time_t				_lastActivity;
-	bool				_requestComplete;
-	bool				_headerComplete;
+
+	std::string			_requestHeader;
+	std::string			_requestBody;
+	std::string			_requestMethod;
+	std::string			_requestBoundary;
+	std::string			_requestContentType;
+	size_t				_requestContentLength;
+
+	size_t				_responsePos;
+
+	void getMethod();
+	void getContentLength();
+	void getContentType();
+	void getBoundary();
+
 	sessions			_session;
 	std::string			_cookie;
 };

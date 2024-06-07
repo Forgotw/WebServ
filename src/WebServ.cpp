@@ -8,6 +8,7 @@
 #include <sys/socket.h>
 #include <netdb.h>
 #include <arpa/inet.h>
+#include <signal.h>
 
 #include <string>
 #include <cstring>
@@ -15,11 +16,16 @@
 #include <iostream>
 #include <fstream>
 
+bool _stop = true;
 
-#define TIMEOUT 10
+void handle_sigint(int sig) {
+	(void)sig;
+	_stop = true;
+}
 
 WebServ::WebServ(std::vector<ServerConfig>& serverConfigVector) {
 	std::cout << "Creating WebServ objet.\n";
+	_stop = true;
 	for (std::vector<ServerConfig>::iterator it = serverConfigVector.begin(); it != serverConfigVector.end(); it++) {
 		(*it).printServerConfig();
 		if (it->isValidServerConfig()) {
@@ -30,26 +36,30 @@ WebServ::WebServ(std::vector<ServerConfig>& serverConfigVector) {
 
 WebServ::~WebServ() {
 	std::vector<Server *>::iterator it = this->_serverSockets.begin();
+	for (int i = 0; i < FD_SETSIZE; i++) {
+		if (_peers[i].getStatus() != Peer::EMPTY) {
+			_peers[i].reset();
+		}
+	}
 	for (; it != this->_serverSockets.end(); it++) {
 		delete *it;
 	}
 }
 
+
 void WebServ::start() {
 	startServers();
 	int activity;
-	struct timeval timeout;
-	timeout.tv_sec = 0;
-	timeout.tv_usec = 300000;
-	for (;;) {
-		checkTimeout();
+	_stop = false;
+	signal(SIGINT, handle_sigint);
+
+	for (;!_stop;) {
 		setupSets();
-		activity = select(FD_SETSIZE, &this->_readfds, &this->_writefds, &this->_exceptfds, &timeout);
+		activity = select(FD_SETSIZE, &this->_readfds, &this->_writefds, NULL, NULL);
 		if (activity < 0) {
 			throw std::runtime_error(std::string("select: ") + std::strerror(errno));
 		}
 		if (activity > 0) {
-			handleExcept();
 			handleNewConnection();
 			handlePeerRequest();
 			handlePeerResponse();
@@ -69,7 +79,6 @@ void WebServ::addServerToSet() {
 	std::vector<Server *>::iterator it = this->_serverSockets.begin();
 	for (; it != this->_serverSockets.end(); it++) {
 		FD_SET((*it)->getSocket(), &this->_readfds);
-		FD_SET((*it)->getSocket(), &this->_exceptfds);
 	}
 }
 void WebServ::addPeerToReadSet() {
@@ -86,29 +95,12 @@ void WebServ::addPeerToWriteSet() {
 		}
 	}
 }
-void WebServ::addFdToExceptSet() {
-	for (int i = 0; i < FD_SETSIZE; i++) {
-		if (this->_peers[i].getStatus() != Peer::EMPTY) {
-			FD_SET(this->_peers[i].getSocket(), &this->_exceptfds);
-		}
-	}
-}
 void WebServ::setupSets() {
 	FD_ZERO(&this->_readfds);
 	FD_ZERO(&this->_writefds);
-	FD_ZERO(&this->_exceptfds);
 	addServerToSet();
 	addPeerToReadSet();
 	addPeerToWriteSet();
-	addFdToExceptSet();
-}
-
-void WebServ::checkTimeout() {
-	for (int i = 0; i < FD_SETSIZE; i++) {
-		if (this->_peers[i].getStatus() != Peer::EMPTY && time(NULL) - this->_peers[i].getLastActivity() > TIMEOUT) {
-			this->_peers[i].reset();
-		}
-	}
 }
 
 void WebServ::handleNewConnection() {
@@ -125,11 +117,10 @@ void WebServ::handleNewConnection() {
 			for (; i < FD_SETSIZE; i++) {
 				if (this->_peers[i].getStatus() == Peer::EMPTY) {
 					this->_peers[i].connect(newSocket, peerSocketAddr, *it);
-					this->_peers[i].setLastActivity();
 					break;
 				}
 			}
-			if (i == FD_SETSIZE) {
+			if (i >= FD_SETSIZE) {
 				std::cout << "Server full" << std::endl;
 				close(newSocket);
 			}
@@ -149,14 +140,6 @@ void WebServ::handlePeerResponse() {
 	for (size_t i = 0; i < FD_SETSIZE; i++) {
 		if (FD_ISSET(this->_peers[i].getSocket(), &this->_writefds)) {
 			_peers[i].writeResponse();
-		}
-	}
-}
-void WebServ::handleExcept() {
-	for (size_t i = 0; i < FD_SETSIZE; i++) {
-		if (FD_ISSET(this->_peers[i].getSocket(), &this->_exceptfds)) {
-			std::cout << "ERROR on: " << i << std::endl;
-			this->_peers[i].reset();
 		}
 	}
 }

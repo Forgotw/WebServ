@@ -29,7 +29,7 @@
 #include <cerrno>
 #include <algorithm>
 
-#define LISTEN_BACKLOG 42
+#define LISTEN_BACKLOG 255
 
 Server::Server(ServerConfig &new_config) {
 	// std::cout << "Creating Server object\n";
@@ -46,7 +46,6 @@ Server::Server(ServerConfig &new_config) {
 
 	std::string	ip = this->getConfig().getIP();
 	std::string	port = this->getConfig().getPort();
-	// std::cout << "IP: " << ip << "Port: " << port << std::endl;
 	if (ip.empty()) {
 		ip = "0.0.0.0";
 	}
@@ -214,22 +213,6 @@ std::string		Server::findRequestedPath(const Location* location, std::string pat
 		std::cout << "No location\n";
 		return "";
 	}
-	// if (location->isCgi()) {
-	// 	std::string	cgiRoot = location->getRoot();
-	// 	if (!cgiRoot.empty() && cgiRoot.back() == '/' && path[0] == '/') {
-	// 		path = path.substr(1);
-	// 		std::cout << "cgiRoot is now: " << cgiRoot << "\n";
-	// 	}
-	// 	std::string realCgiPath = cgiRoot + path;
-	// 	std::cout << "Location is cgi: " << realCgiPath << "\n";
-	// 	struct stat sbCgi;
-	// 	if (stat(realCgiPath.c_str(), &sbCgi) == -1) {
-	// 		std::cout << "return NULL for cgi\n";
-	// 		return "";
-	// 	} else {
-	// 		return realCgiPath;
-	// 	}
-	// }
 	std::string	realPath = location->getRoot();
 	if (location->getLocationName() != path) {
 		realPath = searchFindReplace(path, location->getLocationName(), location->getRoot());
@@ -317,37 +300,14 @@ std::string		Server::generateReponseFilePath(unsigned int responseCode, std::str
 
 std::string		Server::ResponseRouter(const Request& request) const {
 	const Location*		foundLocation = findLocation(request.getURI().path);
-    if (foundLocation != nullptr) {
-        std::cout << "\n\n-------Found Location--------\n" << *foundLocation << std::endl;
-    } else {
-        std::cout << "\n\n-------no Location--------\n";
-    }
 	std::string			realPath = findRequestedPath(foundLocation, request.getURI().path);
-    std::cout << "realPath: " << realPath << std::endl;
     const Location*     cgiLocation = findCgiLocation(realPath);
-    if (cgiLocation != nullptr) {
-        std::cout << "----CGI Location----\n" << *cgiLocation << "\n----CGI Location----\n";
-    } else if (isCgi(realPath)) {
-        std::cout << "----Cgi but no location---\n-------------\n";
-        // nginx renvoie 404 si il n'y pas de loc approprié pour le cgi
-    }
 	unsigned int		respCode = generateResponseCode(foundLocation, cgiLocation, realPath, request);
-    std::cout << "respCode: " << respCode << std::endl;
 	std::string			responseFilePath = generateReponseFilePath(respCode, realPath, _config);
-    std::cout << "responseFilePath: " << responseFilePath << std::endl;
 	std::string			response = "";
-    if (isCgi(responseFilePath)) {
-        std::cout << "Is cgi !!!!!!\n";
-    } else {
-        std::cout << "Not cgi !!!!!!\n";
-    }
 	if (isCgi(responseFilePath) && respCode == 200) {
 		response = CgiHandler::handleCGI(foundLocation, cgiLocation, responseFilePath, request, &getConfig());
-		if (respCode >= 400) {
-			responseFilePath = generateReponseFilePath(respCode, realPath, _config);
-		} else {
-			return response;
-		}
+		return response;
 	} else if (respCode == 301) {
 		response = Response::handleRedir(foundLocation);
 		return response;
@@ -359,19 +319,6 @@ std::string		Server::ResponseRouter(const Request& request) const {
 	response = Response::httpFormatter(responseFilePath, respCode);
 	return response;
 }
-
-// std::map<std::string, sessions> Server::getSessions()
-// {
-// 	return this->_sessions;
-// }
-
-// std::string generateSessionId() {
-//     std::stringstream ss;
-//     for (int i = 0; i < 32; ++i) {
-//         ss << std::hex << (std::rand() % 16);
-//     }
-//     return ss.str();
-// }
 
 std::string generateIncrementalString() {
     static int counter = 0;

@@ -22,14 +22,13 @@ private:
 	Peer _peers[FD_SETSIZE];
 	fd_set _readfds;
 	fd_set _writefds;
-	fd_set _exceptfds;
+	bool _stop;
 
 	void startServers();
 
 	void addServerToSet();
 	void addPeerToReadSet();
 	void addPeerToWriteSet();
-	void addFdToExceptSet();
 	void setupSets();
 
 	void checkTimeout();
@@ -37,9 +36,7 @@ private:
 	void handleNewConnection();
 	void handlePeerRequest();
 	void handlePeerResponse();
-	void handleExcept();
 	void handleHttp();
-
 };
 
 #endif
