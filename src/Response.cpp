@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 16:44:57 by lsohler           #+#    #+#             */
-/*   Updated: 2024/06/08 13:20:37 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/06/08 18:44:09 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -212,38 +212,11 @@ std::string	Response::httpFormatter(const std::string& responseFilePath, unsigne
 
 	// Lire le contenu du fichier dans la chaîne
 	response << "HTTP/1.1 " << returnCode << " ";
-	switch (returnCode) {
-		case 200:
-			response << "OK";
-			break;
-		case 301:
-			response << "Moved Permanently";
-			break;
-		case 400:
-			response << "Bad Request";
-			break;
-		case 401:
-			response << "Unauthorized";
-			break;
-		case 403:
-			response << "Forbidden";
-			break;
-		case 404:
-			response << "Not Found";
-			break;
-		case 405:
-			response << "Method Not Allowed";
-			break;
-		case 500:
-			response << "Internal Server Error";
-			break;
-		case 501:
-			response << "Not Implemented";
-			break;
-		default:
-			response << "Internal Server Error";
-			break;
-	}
+    if (errorMap.find(returnCode) != errorMap.end()) {
+        response << errorMap[returnCode];
+    } else {
+        response << "WebServ42 Custom Error";
+    }
 	response << "\r\n";
 	std::string htmlContent;
 	struct stat sb;

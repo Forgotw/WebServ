@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/01 13:46:37 by lsohler           #+#    #+#             */
-/*   Updated: 2024/06/08 18:23:09 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/06/08 18:36:47 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -413,8 +413,8 @@ std::string FastCgiHandler::handleFastCGIRequest(const std::string& fastcgi_pass
 
     // Params
     for (std::map<std::string, std::string>::const_iterator it = params.begin(); it != params.end(); ++it) {
-        std::string paramRecord = createNameValuePair(it->first, it->second);
         FCGI_Header paramHeader;
+        std::string paramRecord = createNameValuePair(it->first, it->second);
         createHeader(paramHeader, FCGI_PARAMS, id, paramRecord.size(), 0);
         send(sock, &paramHeader, sizeof(paramHeader), 0);
         send(sock, paramRecord.c_str(), paramRecord.size(), 0);

@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/09 13:01:40 by lsohler           #+#    #+#             */
-/*   Updated: 2024/06/08 16:22:32 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/06/08 18:46:04 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -458,13 +458,14 @@ std::string CgiHandler::handleCGI(const Location* foundLocation,
 	std::string binStr = searchBinary(cgiLocation->getCgi());
 	std::string fastcgi_pass =
 		FastCgiHandler::setFastCgiPass(foundLocation, cgiLocation);
-	std::cout << "setFastCgiPass: " << fastcgi_pass << "\n";
 	std::string respCGI = "";
 	if (!fastcgi_pass.empty() && FastCgiHandler::isPhpExtension(cgiFilePath)) {
         std::map<std::string, std::string> envp = generateEnvMapCgi(request, server->getConfig(), cgiFilePath);
+        // for (std::map<std::string, std::string>::iterator it = envp.begin(); it != envp.end(); it++) {
+        //     std::cout << it->first << " = " << it->second << std::endl;
+        // }
 		respCGI = FastCgiHandler::handleFastCGIRequest(fastcgi_pass, envp,
 														  request.getBody());
-	    std::cout << "respCGI: " << respCGI << "\no=o=o=o=o=o=o=o\n";
 	} else {
         char* binary = &binStr[0];
         char* args[] = {&binary[0], &cgiFilePath[0], NULL};
@@ -478,12 +479,12 @@ std::string CgiHandler::handleCGI(const Location* foundLocation,
 	std::cout << "contentType: " << contentType << "\n";
 	std::string statusCode = getCGIStatusCode(CGIHeader);
     unsigned int uiStatusCode = std::atoi(statusCode.c_str());
-    if (uiStatusCode >= 400) {
+    if (uiStatusCode != 200 && uiStatusCode != 302) {
         return Response::earlyErrorResponse(server, uiStatusCode);
     }
 	// std::cout << "statusCode: " << statusCode << "\n";
 	std::string body = getCGIBody(respCGI);
-	std::cout << "body: " << body << "\n";
+	// std::cout << "body: " << body << "\n";
 	std::string bodySize = getCGIBodySize(body);
 	// std::cout << "bodySize: " << bodySize << "\n";
 	std::string location = "";
