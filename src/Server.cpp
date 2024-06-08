@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/13 20:30:58 by lsohler           #+#    #+#             */
-/*   Updated: 2024/06/08 13:20:58 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/06/08 13:32:12 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -336,7 +336,7 @@ std::string Server::ResponseRouter(const Request& request) const {
 	if (isCgi(responseFilePath) && respCode == 200) {
 		response =
 			CgiHandler::handleCGI(foundLocation, cgiLocation, responseFilePath,
-								  request, &getConfig());
+								  request, this);
 		return response;
 	} else if (respCode == 301) {
 		response = Response::handleRedir(foundLocation);

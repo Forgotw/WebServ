@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/13 20:14:32 by lsohler           #+#    #+#             */
-/*   Updated: 2024/06/01 17:04:17 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/06/08 13:33:38 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,7 @@
 #include "ServerConfig.hpp"
 #include "Request.hpp"
 #include "Location.hpp"
+#include "Server.hpp"
 
 class CgiHandler {
 
@@ -29,6 +30,6 @@ class CgiHandler {
 		~CgiHandler() {}
 
 	public:
-		static std::string	handleCGI(const Location* foundLocation, const Location* cgiLocation, std::string responseFilePath, const Request& request, const ServerConfig* config);
+		static std::string	handleCGI(const Location* foundLocation, const Location* cgiLocation, std::string responseFilePath, const Request& request, const Server* server);
 
 };

@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/09 13:01:40 by lsohler           #+#    #+#             */
-/*   Updated: 2024/06/08 12:29:47 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/06/08 13:38:16 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,7 @@
 #include <string>
 
 #include "FastCgiHandler.hpp"
+#include "Response.hpp"
 
 #define BUFSIZ 1024
 
@@ -104,7 +105,7 @@ unsigned int checkCgiError(const std::string& cgiBin,
 	return 200;
 }
 
-char** generateEnvCgi(const Request& request, const ServerConfig* config,
+char** generateEnvCgi(const Request& request, const ServerConfig& config,
 					  std::string realPath) {
 	std::map<std::string, std::string> env;
 	std::map<std::string, std::string> headers = request.getHeaders();
@@ -138,8 +139,8 @@ char** generateEnvCgi(const Request& request, const ServerConfig* config,
 	env["REMOTE_HOST"] = headers["Host"];
 	env["REQUEST_METHOD"] = request.getMethod();
 	env["SCRIPT_NAME"] = request.getURI().path;
-	env["SERVER_NAME"] = config->getHost();
-	env["SERVER_PORT"] = config->getPort();
+	env["SERVER_NAME"] = config.getHost();
+	env["SERVER_PORT"] = config.getPort();
 	// env["TMPDIR"] = config->getUpload();
 	env["UPLOAD_DIR"] = "tests/upload/";
 	env["SERVER_PROTOCOL"] = "HTTP/1.1";
@@ -397,12 +398,12 @@ std::string CgiHandler::handleCGI(const Location* foundLocation,
 								  const Location* cgiLocation,
 								  std::string cgiFilePath,
 								  const Request& request,
-								  const ServerConfig* config) {
+								  const Server* server) {
 	std::string response;
 	std::string binStr = searchBinary(cgiLocation->getCgi());
 	char* binary = &binStr[0];
 	char* args[] = {&binary[0], &cgiFilePath[0], NULL};
-	char** envp = generateEnvCgi(request, config, cgiFilePath);
+	char** envp = generateEnvCgi(request, server->getConfig(), cgiFilePath);
 	std::string fastcgi_pass =
 		FastCgiHandler::setFastCgiPass(foundLocation, cgiLocation);
 	// std::cout << "Handle CGI\n";
@@ -420,6 +421,10 @@ std::string CgiHandler::handleCGI(const Location* foundLocation,
 	std::string contentType = getCGIContentType(CGIHeader);
 	// std::cout << "contentType: " << contentType << "\n";
 	std::string statusCode = getCGIStatusCode(CGIHeader);
+    unsigned int uiStatusCode = std::atoi(statusCode.c_str());
+    if (uiStatusCode >= 400) {
+        return Response::earlyErrorResponse(server, uiStatusCode);
+    }
 	// std::cout << "statusCode: " << statusCode << "\n";
 	std::string body = getCGIBody(respCGI);
 	std::cout << "body: " << body << "\n";
