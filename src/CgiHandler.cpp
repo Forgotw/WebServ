@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   CgiHandler.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lray <lray@student.42lausanne.ch >         +#+  +:+       +#+        */
+/*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/09 13:01:40 by lsohler           #+#    #+#             */
-/*   Updated: 2024/06/07 23:08:02 by lray             ###   ########.fr       */
+/*   Updated: 2024/06/08 12:29:47 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -308,6 +308,11 @@ std::string getCGIStatusCode(const std::string& CGIHeader) {
 			return CGIHeader.substr(startPos, endPos - startPos);
 		}
 	}
+	std::string search = "Location:";
+	std::size_t pos = CGIHeader.find(search);
+	if (pos != std::string::npos) {
+        return "302";
+    }
 	return "200";
 }
 
@@ -369,7 +374,6 @@ std::string httpFormatterCGI(std::string contentType, std::string bodySize,
 			response += "404 Not Found";
 			break;
 		case 500:
-			response += "500 Internal Server Errorr\r\n\r\n";
 			response += "500 Internal Server Errorr";
 			break;
 		default:

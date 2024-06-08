@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lray <lray@student.42lausanne.ch >         +#+  +:+       +#+        */
+/*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/13 20:30:58 by lsohler           #+#    #+#             */
-/*   Updated: 2024/06/07 23:09:58 by lray             ###   ########.fr       */
+/*   Updated: 2024/06/08 13:20:58 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -230,7 +230,6 @@ std::string Server::findRequestedPath(const Location* location,
 									 location->getRoot());
 	}
 	struct stat sb;
-	// std::cout << "Path before check stats: " << realPath << std::endl;
 	if (stat(realPath.c_str(), &sb) == -1) {
 		return "";
 	}
@@ -244,7 +243,8 @@ static bool isAutoIndex(const Location* foundLocation,
 						std::string& responseFilePath) {
 	struct stat sb;
 	if (stat(responseFilePath.c_str(), &sb) == -1) {
-		throw std::runtime_error(std::string("stat: ") + std::strerror(errno));
+		// throw std::runtime_error(std::string("stat: ") + std::strerror(errno));
+    	return false;
 	}
 	if (S_ISDIR(sb.st_mode) && foundLocation->getAutoIndex() &&
 		foundLocation->getIndex().empty()) {
@@ -314,10 +314,10 @@ std::string Server::generateReponseFilePath(unsigned int responseCode,
 					  << std::endl;
 			struct stat sb;
 			if (stat(responseFilePath.c_str(), &sb) == -1) {
-				responseFilePath = DEFAULT_ERROR_PAGE;
+				responseFilePath = "";
 			}
 		} else {
-			responseFilePath = DEFAULT_ERROR_PAGE;
+			responseFilePath = "";
 		}
 	}
 	return responseFilePath;
