@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/09 13:01:40 by lsohler           #+#    #+#             */
-/*   Updated: 2024/06/08 18:46:04 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/06/08 19:22:36 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -355,6 +355,11 @@ std::string getCGIContentType(const std::string& CGIHeader) {
 }
 
 std::string getCGIStatusCode(const std::string& CGIHeader) {
+	std::string search = "Location:";
+	std::size_t pos = CGIHeader.find(search);
+	if (pos != std::string::npos) {
+        return "302";
+    }
 	std::string status = "Status: ";
 	std::size_t startPos = CGIHeader.find(status);
 	if (startPos != std::string::npos) {
@@ -364,11 +369,6 @@ std::string getCGIStatusCode(const std::string& CGIHeader) {
 			return CGIHeader.substr(startPos, endPos - startPos);
 		}
 	}
-	std::string search = "Location:";
-	std::size_t pos = CGIHeader.find(search);
-	if (pos != std::string::npos) {
-        return "302";
-    }
 	return "200";
 }
 
