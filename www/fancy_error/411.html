@@ -2,27 +2,32 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>411 Length Required</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error 411 - Length Required</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            color: #333;
+            background-color: #fff3cd;
+            color: #856404;
             text-align: center;
             padding: 50px;
         }
-        h1 {
-            font-size: 36px;
-            margin-bottom: 20px;
+        .error-image {
+            width: 200px;
+            height: auto;
         }
-        p {
-            font-size: 18px;
-            margin-bottom: 20px;
+        .error-title {
+            font-size: 48px;
+            margin: 20px 0;
+        }
+        .error-message {
+            font-size: 24px;
         }
     </style>
 </head>
 <body>
-    <h1>411 Length Required</h1>
-    <p>The request did not specify the length of its content, which is required by the requested resource.</p>
+    <img src="/assets/error.jpg" alt="Error Image" class="error-image">
+    <div class="error-title">Error 411 - Length Required</div>
+    <div class="error-message">The server refuses to accept the request without a defined Content-Length.</div>
 </body>
 </html>

@@ -3,40 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>405 Method Not Allowed</title>
+    <title>Error 405 - Method Not Allowed</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            color: #333;
-            margin: 0;
-            padding: 0;
-        }
-
-        .container {
-            max-width: 800px;
-            margin: 100px auto;
-            padding: 20px;
-            background-color: #fff;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-
-        h1 {
-            color: #d9534f;
+            background-color: #e2e3e5;
+            color: #383d41;
             text-align: center;
+            padding: 50px;
         }
-
-        p {
-            text-align: center;
-            margin-top: 20px;
+        .error-image {
+            width: 200px;
+            height: auto;
+        }
+        .error-title {
+            font-size: 48px;
+            margin: 20px 0;
+        }
+        .error-message {
+            font-size: 24px;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>405 Method Not Allowed</h1>
-        <p>Désolé, la méthode HTTP utilisée pour accéder à cette ressource n'est pas autorisée.</p>
-    </div>
+    <img src="/assets/error.jpg" alt="Error Image" class="error-image">
+    <div class="error-title">Error 405 - Method Not Allowed</div>
+    <div class="error-message">The method specified in the request is not allowed for the resource identified by the request URI.</div>
 </body>
 </html>
