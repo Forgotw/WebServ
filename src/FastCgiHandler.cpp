@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/01 13:46:37 by lsohler           #+#    #+#             */
-/*   Updated: 2024/06/07 14:18:06 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/06/08 18:23:09 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,17 +14,21 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 #include <unistd.h>
 #include <string>
 #include <iostream>
 #include <iomanip>
 #include <fstream>
 #include <vector>
+#include <map>
 #include <cstring>
 #include <algorithm>
-#include <arpa/inet.h>
-// Constantes et structures FastCGI
+#include <sstream>
+
+// Constants for FastCGI
 #define FCGI_VERSION_1 1
+
 #define FCGI_BEGIN_REQUEST 1
 #define FCGI_ABORT_REQUEST 2
 #define FCGI_END_REQUEST 3
@@ -32,17 +36,29 @@
 #define FCGI_STDIN 5
 #define FCGI_STDOUT 6
 #define FCGI_STDERR 7
+#define FCGI_DATA 8
+#define FCGI_GET_VALUES 9
+#define FCGI_GET_VALUES_RESULT 10
+#define FCGI_UNKNOWN_TYPE 11
+#define FCGI_MAXTYPE FCGI_UNKNOWN_TYPE
+
 #define FCGI_RESPONDER 1
 
+#define FCGI_KEEP_CONN 1
+
+// Structure of a FastCGI Header
 struct FCGI_Header {
-    uint8_t version;
-    uint8_t type;
-    uint16_t requestId;
-    uint16_t contentLength;
-    uint8_t paddingLength;
-    uint8_t reserved;
+    unsigned char version;
+    unsigned char type;
+    unsigned char requestIdB1;
+    unsigned char requestIdB0;
+    unsigned char contentLengthB1;
+    unsigned char contentLengthB0;
+    unsigned char paddingLength;
+    unsigned char reserved;
 };
 
+// Structure of a FastCGI Begin Request Body
 struct FCGI_BeginRequestBody {
     unsigned char roleB1;
     unsigned char roleB0;
@@ -50,83 +66,128 @@ struct FCGI_BeginRequestBody {
     unsigned char reserved[5];
 };
 
-struct FCGI_EndRequestBody {
-    uint32_t appStatus;
-    uint8_t protocolStatus;
-    uint8_t reserved[3];
-};
-
-std::string uint16ToString(uint16_t value) {
-    std::stringstream ss;
-    ss << value;
-    return ss.str();
+// Function to create a FastCGI header
+void createHeader(FCGI_Header &header, unsigned char type, unsigned short requestId, unsigned short contentLength, unsigned char paddingLength) {
+    header.version = FCGI_VERSION_1;
+    header.type = type;
+    header.requestIdB1 = (requestId >> 8) & 0xff;
+    header.requestIdB0 = requestId & 0xff;
+    header.contentLengthB1 = (contentLength >> 8) & 0xff;
+    header.contentLengthB0 = contentLength & 0xff;
+    header.paddingLength = paddingLength;
+    header.reserved = 0;
 }
 
-std::string uint8ToString(uint8_t value) {
-    std::stringstream ss;
-    ss << static_cast<unsigned>(value);
-    return ss.str();
+// Function to create a FastCGI name-value pair
+std::string createNameValuePair(const std::string &name, const std::string &value) {
+    std::string pair;
+    unsigned char nameLength = name.size();
+    unsigned char valueLength = value.size();
+    pair += nameLength;
+    pair += valueLength;
+    pair += name;
+    pair += value;
+    return pair;
 }
 
-// Fonction pour interpréter et afficher la requête FastCGI
-std::string interpretFastCGIRequest(const std::string& fcgiRequest) {
-    std::stringstream output;
-    size_t pos = 0;
+// void interpretAndPrintFCGIRequest(const std::string& fcgiRequestBin) {
+//     size_t pos = 0;
 
-    while (pos < fcgiRequest.size()) {
-        if (pos + sizeof(FCGI_Header) > fcgiRequest.size()) {
-            output << "Incomplete FCGI_Header, remaining size: " << (fcgiRequest.size() - pos) << std::endl;
-            break;
-        }
+//     while (pos < fcgiRequestBin.size()) {
+//         // Lire l'en-tête FastCGI
+//         FCGI_Header header;
+//         std::memcpy(&header, fcgiRequestBin.data() + pos, sizeof(header));
+//         header.requestId = ntohs(header.requestId);
+//         header.contentLength = ntohs(header.contentLength);
+//         pos += sizeof(header);
 
-        FCGI_Header header;
-        std::memcpy(&header, &fcgiRequest[pos], sizeof(FCGI_Header));
-        pos += sizeof(FCGI_Header);
+//         // Afficher l'en-tête
+//         std::cout << "FCGI Header:" << std::endl;
+//         std::cout << "  Version: " << static_cast<int>(header.version) << std::endl;
+//         std::cout << "  Type: " << static_cast<int>(header.type) << std::endl;
+//         std::cout << "  Request ID: " << header.requestId << std::endl;
+//         std::cout << "  Content Length: " << header.contentLength << std::endl;
+//         std::cout << "  Padding Length: " << static_cast<int>(header.paddingLength) << std::endl;
+//         std::cout << "  Reserved: " << static_cast<int>(header.reserved) << std::endl;
 
-        // Convertir en big-endian manuellement
-        header.contentLength = (header.contentLength << 8) | (header.contentLength >> 8);
-        header.requestId = (header.requestId << 8) | (header.requestId >> 8);
+//         // Lire le contenu
+//         std::string content(fcgiRequestBin.data() + pos, header.contentLength);
+//         pos += header.contentLength + header.paddingLength;
 
-        output << "FCGI_Header:" << std::endl;
-        output << "  version: " << uint8ToString(header.version) << std::endl;
-        output << "  type: " << uint8ToString(header.type) << std::endl;
-        output << "  requestId: " << uint16ToString(header.requestId) << std::endl;
-        output << "  contentLength: " << uint16ToString(header.contentLength) << std::endl;
-        output << "  paddingLength: " << uint8ToString(header.paddingLength) << std::endl;
-        output << "  reserved: " << uint8ToString(header.reserved) << std::endl;
+//         // Afficher le contenu en fonction du type
+//         switch (header.type) {
+//             case FCGI_BEGIN_REQUEST:
+//                 {
+//                     FCGI_BeginRequestBody beginRequestBody;
+//                     std::memcpy(&beginRequestBody, content.data(), sizeof(beginRequestBody));
+//                     beginRequestBody.role = ntohs(beginRequestBody.role);
 
-        if (pos + header.contentLength > fcgiRequest.size()) {
-            output << "Incomplete content, remaining size: " << (fcgiRequest.size() - pos) << std::endl;
-            break;
-        }
+//                     std::cout << "FCGI Begin Request Body:" << std::endl;
+//                     std::cout << "  Role: " << beginRequestBody.role << std::endl;
+//                     std::cout << "  Flags: " << static_cast<int>(beginRequestBody.flags) << std::endl;
+//                     std::cout << "  Reserved: ";
+//                     for (size_t i = 0; i < sizeof(beginRequestBody.reserved); ++i) {
+//                         std::cout << static_cast<int>(beginRequestBody.reserved[i]) << " ";
+//                     }
+//                     std::cout << std::endl;
+//                 }
+//                 break;
+//             case FCGI_PARAMS:
+//                 {
+//                     std::cout << "FCGI Params:" << std::endl;
+//                     size_t paramPos = 0;
+//                     while (paramPos < content.size()) {
+//                         uint32_t nameLength;
+//                         uint32_t valueLength;
 
-        std::string content = fcgiRequest.substr(pos, header.contentLength);
-        pos += header.contentLength + header.paddingLength;
+//                         if (content[paramPos] & 0x80) {
+//                             nameLength = ((content[paramPos] & 0x7f) << 24) | (content[paramPos+1] << 16) | (content[paramPos+2] << 8) | content[paramPos+3];
+//                             paramPos += 4;
+//                         } else {
+//                             nameLength = content[paramPos];
+//                             paramPos += 1;
+//                         }
 
-        if (header.type == FCGI_BEGIN_REQUEST) {
-            FCGI_BeginRequestBody body;
-            std::memcpy(&body, content.data(), sizeof(FCGI_BeginRequestBody));
+//                         if (content[paramPos] & 0x80) {
+//                             valueLength = ((content[paramPos] & 0x7f) << 24) | (content[paramPos+1] << 16) | (content[paramPos+2] << 8) | content[paramPos+3];
+//                             paramPos += 4;
+//                         } else {
+//                             valueLength = content[paramPos];
+//                             paramPos += 1;
+//                         }
 
-            // Combiner les octets pour obtenir le role
-            uint16_t role = (body.roleB1 << 8) | body.roleB0;
+//                         std::string name = content.substr(paramPos, nameLength);
+//                         paramPos += nameLength;
+//                         std::string value = content.substr(paramPos, valueLength);
+//                         paramPos += valueLength;
 
-            output << "FCGI_BeginRequestBody:" << std::endl;
-            output << "  role: " << uint16ToString(role) << std::endl;
-            output << "  flags: " << uint8ToString(body.flags) << std::endl;
-        } else if (header.type == FCGI_PARAMS || header.type == FCGI_STDIN) {
-            output << "Content: " << std::endl;
-            for (size_t i = 0; i < content.size(); ++i) {
-                output << content[i];
-            }
-            output << std::endl;
-        } else {
-            output << "Unknown content type" << std::endl;
-        }
-    }
+//                         std::cout << "  Name: " << name << ", Value: " << value << std::endl;
+//                     }
+//                 }
+//                 break;
+//             case FCGI_STDIN:
+//                 std::cout << "FCGI Stdin: " << std::endl;
+//                 std::cout << "  " << content << std::endl;
+//                 break;
+//             case FCGI_STDOUT:
+//                 std::cout << "FCGI Stdout: " << std::endl;
+//                 std::cout << "  " << content << std::endl;
+//                 break;
+//             case FCGI_STDERR:
+//                 std::cerr << "FCGI Stderr: " << std::endl;
+//                 std::cerr << "  " << content << std::endl;
+//                 break;
+//             case FCGI_END_REQUEST:
+//                 std::cout << "FCGI End Request" << std::endl;
+//                 break;
+//             default:
+//                 std::cout << "Unknown FCGI type: " << static_cast<int>(header.type) << std::endl;
+//                 break;
+//         }
 
-    return output.str();
-}
-
+//         std::cout << "-----------------------------------------" << std::endl;
+//     }
+// }
 
 void printHex(const std::string& data) {
     for (std::size_t i = 0; i < data.size(); ++i) {
@@ -137,117 +198,18 @@ void printHex(const std::string& data) {
     }
     std::cout << std::dec << std::endl; // Reset the stream to decimal format
 }
-// Fonction pour créer un en-tête FastCGI
-std::vector<uint8_t> createHeader(uint8_t type, uint16_t requestId, uint16_t contentLength, uint8_t paddingLength = 0) {
-    std::vector<uint8_t> header(8);
-    header[0] = 1; // FCGI_VERSION_1
-    header[1] = type;
-    header[2] = (requestId >> 8) & 0xff;
-    header[3] = requestId & 0xff;
-    header[4] = (contentLength >> 8) & 0xff;
-    header[5] = contentLength & 0xff;
-    header[6] = paddingLength;
-    header[7] = 0;
-    return header;
+
+std::string toString(uint16_t value) {
+    std::ostringstream oss;
+    oss << value;
+    return oss.str();
 }
 
-std::vector<uint8_t> createBeginRequestRecord(uint16_t requestId) {
-    std::vector<uint8_t> record;
-    std::vector<uint8_t> header = createHeader(FCGI_BEGIN_REQUEST, requestId, sizeof(FCGI_BeginRequestBody));
-    record.insert(record.end(), header.begin(), header.end());
-
-    FCGI_BeginRequestBody body;
-    body.roleB1 = 0;
-    body.roleB0 = FCGI_RESPONDER;
-    body.flags = 0;
-    std::memset(body.reserved, 0, sizeof(body.reserved));
-
-    record.insert(record.end(), reinterpret_cast<uint8_t*>(&body), reinterpret_cast<uint8_t*>(&body) + sizeof(body));
-    return record;
+std::string toString(uint8_t value) {
+    std::ostringstream oss;
+    oss << static_cast<int>(value);
+    return oss.str();
 }
-
-std::vector<uint8_t> createNameValuePair(const std::string& name, const std::string& value) {
-    std::vector<uint8_t> result;
-    uint32_t nameLength = name.size();
-    uint32_t valueLength = value.size();
-
-    if (nameLength < 128) {
-        result.push_back(static_cast<uint8_t>(nameLength));
-    } else {
-        result.push_back(static_cast<uint8_t>((nameLength >> 24) | 0x80));
-        result.push_back(static_cast<uint8_t>(nameLength >> 16));
-        result.push_back(static_cast<uint8_t>(nameLength >> 8));
-        result.push_back(static_cast<uint8_t>(nameLength));
-    }
-
-    if (valueLength < 128) {
-        result.push_back(static_cast<uint8_t>(valueLength));
-    } else {
-        result.push_back(static_cast<uint8_t>((valueLength >> 24) | 0x80));
-        result.push_back(static_cast<uint8_t>(valueLength >> 16));
-        result.push_back(static_cast<uint8_t>(valueLength >> 8));
-        result.push_back(static_cast<uint8_t>(valueLength));
-    }
-
-    result.insert(result.end(), name.begin(), name.end());
-    result.insert(result.end(), value.begin(), value.end());
-
-    return result;
-}
-
-
-std::vector<uint8_t> createParamsRecord(uint16_t requestId, char** envp) {
-    std::vector<uint8_t> record;
-    for (int i = 0; envp[i] != NULL; ++i) {
-        std::string env_entry(envp[i]);
-        std::size_t pos = env_entry.find('=');
-        if (pos != std::string::npos) {
-            std::string key = env_entry.substr(0, pos);
-            std::string value = env_entry.substr(pos + 1);
-            std::vector<uint8_t> nameValuePair = createNameValuePair(key, value);
-            std::vector<uint8_t> header = createHeader(FCGI_PARAMS, requestId, nameValuePair.size());
-            record.insert(record.end(), header.begin(), header.end());
-            record.insert(record.end(), nameValuePair.begin(), nameValuePair.end());
-        }
-    }
-    record.insert(record.end(), createHeader(FCGI_PARAMS, requestId, 0).begin(), createHeader(FCGI_PARAMS, requestId, 0).end());
-    return record;
-}
-
-std::vector<uint8_t> createStdinRecord(uint16_t requestId, const std::string& requestBody) {
-    std::vector<uint8_t> record;
-    size_t offset = 0;
-    while (offset < requestBody.size()) {
-        std::cout << "createStdinRecord\n";
-        size_t chunkSize = std::min(requestBody.size() - offset, static_cast<size_t>(65535));
-        std::vector<uint8_t> header = createHeader(FCGI_STDIN, requestId, chunkSize);
-        record.insert(record.end(), header.begin(), header.end());
-        record.insert(record.end(), requestBody.begin() + offset, requestBody.begin() + offset + chunkSize);
-        offset += chunkSize;
-    }
-    record.insert(record.end(), createHeader(FCGI_STDIN, requestId, 0).begin(), createHeader(FCGI_STDIN, requestId, 0).end());
-    return record;
-}
-
-
-std::string constructFastCGIRequest(uint16_t requestId, char** envp, const std::string& requestBody) {
-    std::vector<uint8_t> request;
-
-    // Ajouter l'enregistrement FCGI_BEGIN_REQUEST
-    std::vector<uint8_t> beginRequestRecord = createBeginRequestRecord(requestId);
-    request.insert(request.end(), beginRequestRecord.begin(), beginRequestRecord.end());
-
-    // Ajouter les enregistrements FCGI_PARAMS
-    std::vector<uint8_t> paramsRecord = createParamsRecord(requestId, envp);
-    request.insert(request.end(), paramsRecord.begin(), paramsRecord.end());
-
-    // Ajouter les enregistrements FCGI_STDIN
-    std::vector<uint8_t> stdinRecord = createStdinRecord(requestId, requestBody);
-    request.insert(request.end(), stdinRecord.begin(), stdinRecord.end());
-
-    return std::string(request.begin(), request.end());
-}
-
 
 std::string FastCgiHandler::setFastCgiPass(const Location* foundLocation, const Location* cgiLocation) {
     if (!foundLocation->getFastCgiPass().empty()) {
@@ -270,9 +232,147 @@ bool FastCgiHandler::isPhpExtension(const std::string& path) {
     return false;
 }
 
+
+// std::string constructFastCGIRequest(int requestId, const std::map<std::string, std::string>& params, const std::string& body) {
+//     FCGI_Header header;
+//     FCGI_BeginRequestBody beginRequestBody;
+//     std::string request;
+
+//     // Header de la requête
+//     header.version = FCGI_VERSION_1;
+//     header.type = FCGI_BEGIN_REQUEST;
+//     header.requestId = htons(requestId);
+//     header.contentLength = htons(sizeof(FCGI_BeginRequestBody));
+//     header.paddingLength = 0;
+//     header.reserved = 0;
+
+//     request.append(reinterpret_cast<char*>(&header), sizeof(header));
+
+//     // Body de la requête
+//     beginRequestBody.role = htons(FCGI_RESPONDER);
+//     beginRequestBody.flags = 0;
+//     memset(beginRequestBody.reserved, 0, sizeof(beginRequestBody.reserved));
+
+//     request.append(reinterpret_cast<char*>(&beginRequestBody), sizeof(beginRequestBody));
+
+//     // Ajout des paramètres
+//     for (std::map<std::string, std::string>::const_iterator param = params.begin(); param != params.end(); param++) {
+//         const std::string& name = param->first;
+//         const std::string& value = param->second;
+//         std::cout << param->first << param->second << std::endl;
+
+//         uint32_t nameLength = name.size();
+//         uint32_t valueLength = value.size();
+
+//         if (nameLength < 128) {
+//             request.push_back(static_cast<uint8_t>(nameLength));
+//         } else {
+//             request.push_back(static_cast<uint8_t>((nameLength >> 24) | 0x80));
+//             request.push_back(static_cast<uint8_t>(nameLength >> 16));
+//             request.push_back(static_cast<uint8_t>(nameLength >> 8));
+//             request.push_back(static_cast<uint8_t>(nameLength));
+//         }
+
+//         if (valueLength < 128) {
+//             request.push_back(static_cast<uint8_t>(valueLength));
+//         } else {
+//             request.push_back(static_cast<uint8_t>((valueLength >> 24) | 0x80));
+//             request.push_back(static_cast<uint8_t>(valueLength >> 16));
+//             request.push_back(static_cast<uint8_t>(valueLength >> 8));
+//             request.push_back(static_cast<uint8_t>(valueLength));
+//         }
+
+//         request.append(name);
+//         request.append(value);
+//     }
+
+//     // Ajouter un en-tête PARAMS vide pour indiquer la fin des paramètres
+//     FCGI_Header paramsEndHeader;
+//     paramsEndHeader.version = FCGI_VERSION_1;
+//     paramsEndHeader.type = FCGI_PARAMS;
+//     paramsEndHeader.requestId = htons(requestId);
+//     paramsEndHeader.contentLength = 0;
+//     paramsEndHeader.paddingLength = 0;
+//     paramsEndHeader.reserved = 0;
+//     request.append(reinterpret_cast<char*>(&paramsEndHeader), sizeof(paramsEndHeader));
+
+//     // Ajout du corps de la requête
+//     if (!body.empty()) {
+//         FCGI_Header stdinHeader;
+//         stdinHeader.version = FCGI_VERSION_1;
+//         stdinHeader.type = FCGI_STDIN;
+//         stdinHeader.requestId = htons(requestId);
+//         stdinHeader.contentLength = htons(body.size());
+//         stdinHeader.paddingLength = 0;
+//         stdinHeader.reserved = 0;
+
+//         request.append(reinterpret_cast<char*>(&stdinHeader), sizeof(stdinHeader));
+//         request.append(body);
+//     }
+
+//     // Ajout de la fin de la requête STDIN
+//     FCGI_Header stdinEndHeader;
+//     stdinEndHeader.version = FCGI_VERSION_1;
+//     stdinEndHeader.type = FCGI_STDIN;
+//     stdinEndHeader.requestId = htons(requestId);
+//     stdinEndHeader.contentLength = 0;
+//     stdinEndHeader.paddingLength = 0;
+//     stdinEndHeader.reserved = 0;
+
+//     request.append(reinterpret_cast<char*>(&stdinEndHeader), sizeof(stdinEndHeader));
+
+//     return request;
+// }
+
+
+// std::string receiveFastCGIResponse(int sock) {
+//     std::string response;
+//     char buffer[1024];
+//     ssize_t bytesRead;
+
+//     while ((bytesRead = read(sock, buffer, sizeof(buffer))) > 0) {
+//         response.append(buffer, bytesRead);
+//     }
+
+//     return response;
+// }
+
+unsigned int generateUniqueId() {
+    static unsigned int id = 0;
+    return id++;
+}
+
+// std::string interpretFastCGIResponse(const std::string& response) {
+//     std::string httpResponse;
+//     size_t pos = 0;
+
+//     while (pos < response.size()) {
+//         // Lire l'en-tête FastCGI
+//         FCGI_Header header;
+//         std::memcpy(&header, response.data() + pos, sizeof(header));
+//         header.requestId = ntohs(header.requestId);
+//         header.contentLength = ntohs(header.contentLength);
+//         pos += sizeof(header);
+
+//         // Lire le contenu
+//         std::string content(response.data() + pos, header.contentLength);
+//         pos += header.contentLength + header.paddingLength;
+
+//         if (header.type == FCGI_STDOUT) {
+//             httpResponse += content;
+//         } else if (header.type == FCGI_STDERR) {
+//             std::cerr << "FastCGI Error: " << content << std::endl;
+//         }
+//     }
+
+//     return httpResponse;
+// }
+
+
 int createFastCGIConnection(const std::string& fastcgi_pass) {
     int sock = socket(AF_UNIX, SOCK_STREAM, 0);
     if (sock < 0) {
+        perror("inet_pton");
         // throw std::runtime_error(std::string("socket: ") + std::strerror(errno));
         return -1;
     }
@@ -283,6 +383,7 @@ int createFastCGIConnection(const std::string& fastcgi_pass) {
     strncpy(server_addr.sun_path, fastcgi_pass.c_str(), sizeof(server_addr.sun_path) - 1);
 
     if (connect(sock, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0) {
+        perror("connect");
         close(sock);
         // throw std::runtime_error(std::string("connest: ") + std::strerror(errno));
         return -1;
@@ -291,109 +392,82 @@ int createFastCGIConnection(const std::string& fastcgi_pass) {
     return sock;
 }
 
-unsigned int generateUniqueId() {
-    static unsigned int id = 0;
-    return id++;
-}
+std::string FastCgiHandler::handleFastCGIRequest(const std::string& fastcgi_pass, const std::map<std::string, std::string>& params, const std::string& stdinData) {
+    int sock = createFastCGIConnection(fastcgi_pass);
+    if (sock == -1) {
+        return "Status: 500\r\n\r\nFastCgi Php-Fpm socket creation error";
+    }
 
+    // Begin Request
+    FCGI_Header beginRequestHeader;
+    FCGI_BeginRequestBody beginRequestBody;
+    unsigned int id = generateUniqueId();
+    createHeader(beginRequestHeader, FCGI_BEGIN_REQUEST, id, sizeof(beginRequestBody), 0);
+    beginRequestBody.roleB1 = (FCGI_RESPONDER >> 8) & 0xff;
+    beginRequestBody.roleB0 = FCGI_RESPONDER & 0xff;
+    beginRequestBody.flags = 0;
+    memset(beginRequestBody.reserved, 0, sizeof(beginRequestBody.reserved));
 
-std::string receiveFastCGIResponse(int sock) {
-    char buffer[8192];
+    send(sock, &beginRequestHeader, sizeof(beginRequestHeader), 0);
+    send(sock, &beginRequestBody, sizeof(beginRequestBody), 0);
+
+    // Params
+    for (std::map<std::string, std::string>::const_iterator it = params.begin(); it != params.end(); ++it) {
+        std::string paramRecord = createNameValuePair(it->first, it->second);
+        FCGI_Header paramHeader;
+        createHeader(paramHeader, FCGI_PARAMS, id, paramRecord.size(), 0);
+        send(sock, &paramHeader, sizeof(paramHeader), 0);
+        send(sock, paramRecord.c_str(), paramRecord.size(), 0);
+    }
+    // End of Params
+    FCGI_Header endParamsHeader;
+    createHeader(endParamsHeader, FCGI_PARAMS, id, 0, 0);
+    send(sock, &endParamsHeader, sizeof(endParamsHeader), 0);
+
+    // std::cout << "FCGI Body: " << stdinData << std::endl;
+    // Stdin (for POST data)
+    if (!stdinData.empty()) {
+        FCGI_Header stdinHeader;
+        createHeader(stdinHeader, FCGI_STDIN, id, stdinData.size(), 0);
+        send(sock, &stdinHeader, sizeof(stdinHeader), 0);
+        send(sock, stdinData.c_str(), stdinData.size(), 0);
+    }
+
+    // End of Stdin
+    FCGI_Header endStdinHeader;
+    createHeader(endStdinHeader, FCGI_STDIN, id, 0, 0);
+    send(sock, &endStdinHeader, sizeof(endStdinHeader), 0);
+
+    // Read the response
     std::string response;
-    ssize_t bytesRead;
-    while ((bytesRead = recv(sock, buffer, sizeof(buffer), 0)) > 0) {
-        std::cout << "receiveFastCGIResponse\n";
-        response.append(buffer, bytesRead);
-    }
-    if (bytesRead < 0) {
-        perror("recv");
-        return "Status: 500\r\n\r\nFastCgi Php-Fpm receive error"; // TODO: remove
-    }
-    return response;
-}
+    while (true) {
+        FCGI_Header responseHeader;
+        int bytesRead = recv(sock, &responseHeader, sizeof(responseHeader), 0);
+        if (bytesRead <= 0) {
+            break;
+        }
 
-std::string interpretFastCGIResponse(const std::string& response) {
-    size_t pos = 0;
-    std::string stdoutContent;
-    std::string stderrContent;
-    while (pos < response.size()) {
-        std::cout << "interpretFastCGIResponse\n";
-        FCGI_Header header;
-        std::memcpy(&header, &response[pos], sizeof(FCGI_Header));
-        pos += sizeof(FCGI_Header);
+        unsigned short contentLength = (responseHeader.contentLengthB1 << 8) + responseHeader.contentLengthB0;
+        unsigned char paddingLength = responseHeader.paddingLength;
 
-        header.contentLength = (header.contentLength << 8) | (header.contentLength >> 8); // Convertir en big-endian
-        header.requestId = (header.requestId << 8) | (header.requestId >> 8); // Convertir en big-endian
+        if (contentLength > 0) {
+            std::vector<char> contentData(contentLength);
+            recv(sock, &contentData[0], contentLength, 0);
+            if (responseHeader.type == FCGI_STDOUT) {
+                response.append(contentData.begin(), contentData.end());
+            }
+        }
 
-        std::string content = response.substr(pos, header.contentLength);
-        pos += header.contentLength + header.paddingLength;
+        if (paddingLength > 0) {
+            std::vector<char> paddingData(paddingLength);
+            recv(sock, &paddingData[0], paddingLength, 0);
+        }
 
-        if (header.type == FCGI_STDOUT) {
-            stdoutContent += content;
-        } else if (header.type == FCGI_STDERR) {
-            stderrContent += content;
-        } else if (header.type == FCGI_END_REQUEST) {
-            FCGI_EndRequestBody endRequestBody;
-            std::memcpy(&endRequestBody, content.data(), sizeof(endRequestBody));
-            break; // Fin de la requête
+        if (responseHeader.type == FCGI_END_REQUEST) {
+            break;
         }
     }
 
-    if (!stderrContent.empty()) {
-        std::cerr << "Error: " << stderrContent << std::endl;
-    }
-
-    return stdoutContent;
-}
-
-std::string FastCgiHandler::generateFastCgiResponse(char** envp, const std::string& fastcgi_pass, const Request& request) {
-    std::cout << "FastCgiHandler:: fastcgi_pass:" << fastcgi_pass << std::endl;
-    std::cout << "FastCgiHandler:: getBody:" << request.getBody() << std::endl;
-    int sock = createFastCGIConnection(fastcgi_pass);
-    if (sock < 0) {
-        // *uiStatusCode = 500;
-        perror("sock");
-        return "Status: 500\r\n\r\nFastCgi Php-Fpm sock error";
-    }
-    unsigned int id = generateUniqueId();
-    std::string fcgiRequestBin = constructFastCGIRequest(id, envp, request.getBody());
-    // fcgiRequestBin += request.getBody();
-    std::cout << "-----------------------------------------\n";
-    std::cout << "----" << fastcgi_pass<< "----\n";
-    std::cout << "-----------------------------------------\n";
-    printHex(fcgiRequestBin);
-    std::cout << interpretFastCGIRequest(fcgiRequestBin);
-    std::cout << "-----------------------------------------\n";
-    // std::cout << "-----------------------------------------\n";
-    std::cout << "----" << "request end" << "----\n";
-    std::cout << "-----------------------------------------\n";
-    ssize_t bytesSent = write(sock, fcgiRequestBin.c_str(), fcgiRequestBin.size());
-    if (bytesSent < 0) {
-        perror("write");
-        close(sock);
-        return "Status: 500\r\n\r\nFastCgi Php-Fpm write error";
-    }
-    std::cout << "After fcgi write in socket\n";
-    // Receive the response from PHP-FPM
-    std::string fcgiResponseBin = receiveFastCGIResponse(sock);
-    std::cout << "After fcgiResponseBin\n";
     close(sock);
-    // std::cout << "-----------------------------------------\n";
-    // std::cout << "----" << respFCGI << "----\n";
-    // std::cout << "-----------------------------------------\n";
-    // // printHex(respFCGI);
-    // // std::cout << respFCGI;
-    std::string response = interpretFastCGIResponse(fcgiResponseBin);
-    std::cout << "After interpretFastCGIResponse\n";
-    std::ofstream outFile("test", std::ios::binary);
-    if (outFile.is_open()) {
-        outFile.write(fcgiResponseBin.c_str(), fcgiResponseBin.size());
-        outFile.close();
-    } else {
-        std::cerr << "Unable to open file for writing" << std::endl;
-    }
-    // std::cout << "-----------------------------------------\n";
-    // std::cout << "-----------------------------------------\n";
-    // std::cout << "-----------------------------------------\n";
-    return response; // TODO: remove
+    return response;
 }

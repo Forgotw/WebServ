@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/09 13:01:40 by lsohler           #+#    #+#             */
-/*   Updated: 2024/06/08 13:38:16 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/06/08 16:22:32 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -170,6 +170,61 @@ char** generateEnvCgi(const Request& request, const ServerConfig& config,
 	return envp;
 }
 
+std::map<std::string, std::string> generateEnvMapCgi(const Request& request, const ServerConfig& config,
+					  std::string realPath) {
+	std::map<std::string, std::string> env;
+	std::map<std::string, std::string> headers = request.getHeaders();
+
+	if (!request.getBody().empty()) {
+		std::stringstream ss;
+		ss << request.getBody().size();
+		env["CONTENT_LENGTH"] = ss.str();
+	} else {
+		env["CONTENT_LENGTH"] = "0";
+	}
+	// env["CONTENT_TYPE"] = headers.count("Content-Type") ?
+	// headers["Content-Type"] : "application/x-www-form-urlencoded";
+	env["CONTENT_TYPE"] =
+		headers.count("Content-Type") ? headers["Content-Type"] : "";
+	env["GATEWAY_INTERFACE"] = "CGI/1.1";
+	env["PATH_INFO"] = request.getURI().pathInfo;
+	std::string querryString = request.getURI().querryString;
+	if (!querryString.empty()) {
+		querryString = querryString.substr(1);
+	} else {
+		querryString = "";
+	}
+	env["QUERY_STRING"] = querryString;
+	std::string host = headers["Host"];
+	std::size_t pos = host.find(":");
+	if (pos != std::string::npos) {
+		host = host.substr(0, pos);
+	}
+	env["REMOTE_ADDR"] = host;
+	env["REMOTE_HOST"] = headers["Host"];
+	env["REQUEST_METHOD"] = request.getMethod();
+	env["SCRIPT_NAME"] = request.getURI().path;
+	env["SERVER_NAME"] = config.getHost();
+	env["SERVER_PORT"] = config.getPort();
+	// env["TMPDIR"] = config->getUpload();
+	env["UPLOAD_DIR"] = "tests/upload/";
+	env["SERVER_PROTOCOL"] = "HTTP/1.1";
+	env["SERVER_SOFTWARE"] = "WebServ/1.0";
+	env["SCRIPT_FILENAME"] = getAbsolutePath(realPath);
+	env["HTTP_ACCEPT"] = headers.count("Accept") ? headers["Accept"] : "";
+	env["HTTP_ACCEPT_LANGUAGE"] =
+		headers.count("Accept-Language") ? headers["Accept-Language"] : "";
+	env["HTTP_USER_AGENT"] =
+		headers.count("User-Agent") ? headers["User-Agent"] : "";
+	env["HTTP_COOKIE"] = headers.count("Cookie") ? headers["Cookie"] : "";
+	env["HTTP_REFERER"] = headers.count("Referer") ? headers["Referer"] : "";
+	env["REDIRECT_STATUS"] = "200";
+	// std::cout << "\n\n------------ENV CREATE--------\n";
+	// std::cout << "SCRIPT_NAME";
+
+	return env;
+}
+
 void deleteEnv(char** env) {
 	for (int i = 0; env[i]; i++) {
 		delete env[i];
@@ -279,7 +334,7 @@ std::string getCGIHeader(const std::string& respCGI) {
 }
 
 std::string getCGIContentType(const std::string& CGIHeader) {
-	std::string contentType = "Content-Type: ";
+	std::string contentType = "Content-type: ";
 	std::size_t startPos = CGIHeader.find(contentType);
 	if (startPos != std::string::npos) {
 		startPos += contentType.length();
@@ -401,25 +456,26 @@ std::string CgiHandler::handleCGI(const Location* foundLocation,
 								  const Server* server) {
 	std::string response;
 	std::string binStr = searchBinary(cgiLocation->getCgi());
-	char* binary = &binStr[0];
-	char* args[] = {&binary[0], &cgiFilePath[0], NULL};
-	char** envp = generateEnvCgi(request, server->getConfig(), cgiFilePath);
 	std::string fastcgi_pass =
 		FastCgiHandler::setFastCgiPass(foundLocation, cgiLocation);
-	// std::cout << "Handle CGI\n";
+	std::cout << "setFastCgiPass: " << fastcgi_pass << "\n";
 	std::string respCGI = "";
 	if (!fastcgi_pass.empty() && FastCgiHandler::isPhpExtension(cgiFilePath)) {
-		respCGI = FastCgiHandler::generateFastCgiResponse(envp, fastcgi_pass,
-														  request);
+        std::map<std::string, std::string> envp = generateEnvMapCgi(request, server->getConfig(), cgiFilePath);
+		respCGI = FastCgiHandler::handleFastCGIRequest(fastcgi_pass, envp,
+														  request.getBody());
+	    std::cout << "respCGI: " << respCGI << "\no=o=o=o=o=o=o=o\n";
 	} else {
+        char* binary = &binStr[0];
+        char* args[] = {&binary[0], &cgiFilePath[0], NULL};
+	    char** envp = generateEnvCgi(request, server->getConfig(), cgiFilePath);
 		respCGI = generateCgiResponse(binary, args, envp, request);
+    	deleteEnv(envp);
 	}
-	deleteEnv(envp);
-	// std::cout << "respCGI: " << respCGI << "\n";
 	std::string CGIHeader = getCGIHeader(respCGI);
-	// std::cout << "CGIHeader: " << CGIHeader << "\n";
+	std::cout << "CGIHeader: " << CGIHeader << "\n";
 	std::string contentType = getCGIContentType(CGIHeader);
-	// std::cout << "contentType: " << contentType << "\n";
+	std::cout << "contentType: " << contentType << "\n";
 	std::string statusCode = getCGIStatusCode(CGIHeader);
     unsigned int uiStatusCode = std::atoi(statusCode.c_str());
     if (uiStatusCode >= 400) {
