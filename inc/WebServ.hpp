@@ -29,6 +29,7 @@ private:
 	void addServerToSet();
 	void addPeerToReadSet();
 	void addPeerToWriteSet();
+    void addPeerToReadSetCgi();
 	void setupSets();
 
 	void checkTimeout();
@@ -37,6 +38,7 @@ private:
 	void handlePeerRequest();
 	void handlePeerResponse();
 	void handleHttp();
+    void handleCgi();
 };
 
 #endif

@@ -7,6 +7,7 @@
 #include <sstream>
 
 #include "Response.hpp"
+#include "CgiHandler.hpp"
 
 Peer::Peer() {
 	this->_status = EMPTY;
@@ -153,17 +154,17 @@ void Peer::handleCookies(std::string& request) {
 		if (it != sessionsvec.end()) {
 			this->_session = (*it);
 			_cookie = generateSetCookieHeader(this->_session.sessionID);
-			std::cout << "Session trouvée pour l'ID : " << sessionID
-					  << std::endl;
+			// std::cout << "Session trouvée pour l'ID : " << sessionID
+			// 		  << std::endl;
 		} else {
 			// session.sessionID = generateIncrementalString2();
 			session.sessionID = generateRandomString2();
 			_server->newSession(session);
 			this->_session = session;
 			_cookie = generateSetCookieHeader(this->_session.sessionID);
-			std::cout << "Nouvelle session créée avec un nouvel ID remplace "
-						 "par l'ancien."
-					  << std::endl;
+			// std::cout << "Nouvelle session créée avec un nouvel ID remplace "
+			// 			 "par l'ancien."
+			// 		  << std::endl;
 		}
 	} else {
 		// session.sessionID = generateIncrementalString2();
@@ -171,7 +172,7 @@ void Peer::handleCookies(std::string& request) {
 		_server->newSession(session);
 		this->_session = session;
 		_cookie = generateSetCookieHeader(this->_session.sessionID);
-		std::cout << "Nouvelle session créée avec un nouvel ID." << std::endl;
+		// std::cout << "Nouvelle session créée avec un nouvel ID." << std::endl;
 	}
 }
 
@@ -343,7 +344,33 @@ void Peer::handleHttpRequest() {
 	const Server* server = getServer();
 	const Request request = *getRequest();
 	std::string response;
-	response = server->ResponseRouter(request);
-	if (!_cookie.empty()) setCookie(response, _cookie);
-	setReponse(response);
+	response = server->ResponseRouter(*this);
+	if (!_cookie.empty()) {
+        setCookie(response, _cookie);
+    }
+    if (_status != WAITING_CGI) {
+        setReponse(response);
+    }
+}
+
+void    Peer::handleCgiProcess() {
+    if (_cgiProcess == nullptr) {
+        throw std::runtime_error(std::string("ERROR HANDLING CGI PROCESS"));
+    }
+    if (!_cgiProcess->isReadyToWrite()) {
+        std::cout << "_cgiProcess->checkProcessStatus();\n";
+        _cgiProcess->checkProcessStatus();
+        std::cout << "_cgiProcess->checkProcessStatus(); end\n";
+    } 
+    if (_cgiProcess->isReadyToWrite() && !_cgiProcess->isReady()) {
+        std::cout << "_cgiProcess->writeCgiOuput();\n";
+        _cgiProcess->writeCgiOuput();
+        std::cout << "_cgiProcess->writeCgiOuput(); end\n";
+    }
+    if (_cgiProcess->isReady()) {
+        std::cout << "setReponse(CgiHandler::ProcessCgiOutput(_server, _cgiProcess->getCgiOutputStr()));\n";
+        setReponse(CgiHandler::ProcessCgiOutput(_server, _cgiProcess->getCgiOutputStr()));
+        std::cout << "setReponse(CgiHandler::ProcessCgiOutput(_server, _cgiProcess->getCgiOutputStr())); end\n";
+        delete (_cgiProcess);
+    }
 }
