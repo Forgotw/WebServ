@@ -1,5 +1,4 @@
-#ifndef SERVER_HPP
-#define SERVER_HPP
+#pragma once
 
 #include <string>
 #include <ostream>
@@ -11,6 +10,8 @@ typedef struct s_sessions {
 	std::string info;
 	std::string username;
 }				sessions;
+
+class Peer;
 
 class Server {
 public:
@@ -35,7 +36,7 @@ public:
 	unsigned int		generateResponseCode(const Location* location, const Location* cgiLocation, std::string realPath, const Request& request) const;
 	static std::string	generateReponseFilePath(unsigned int code, std::string realPath, const ServerConfig& config);
 	std::string			ServerHandleCGI(unsigned int& code, const Location* foundLocation, const std::string& cgiFilePath, const Request& request);
-	std::string			ResponseRouter(const Request& request) const;
+	std::string			ResponseRouter(Peer& peer) const;
   std::vector<sessions>& getSessions() { return _sessions; }
 private:
 	int								_sockfd;
@@ -47,4 +48,3 @@ private:
 std::ostream &operator<<(std::ostream &os, Server const &ref);
 unsigned int checkCgiError(const std::string& cgiBin, const std::string& realPath);
 
-#endif
