@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/01 13:46:37 by lsohler           #+#    #+#             */
-/*   Updated: 2024/06/11 15:18:32 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/06/11 15:49:23 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -232,142 +232,10 @@ bool FastCgiHandler::isPhpExtension(const std::string& path) {
     return false;
 }
 
-
-// std::string constructFastCGIRequest(int requestId, const std::map<std::string, std::string>& params, const std::string& body) {
-//     FCGI_Header header;
-//     FCGI_BeginRequestBody beginRequestBody;
-//     std::string request;
-
-//     // Header de la requête
-//     header.version = FCGI_VERSION_1;
-//     header.type = FCGI_BEGIN_REQUEST;
-//     header.requestId = htons(requestId);
-//     header.contentLength = htons(sizeof(FCGI_BeginRequestBody));
-//     header.paddingLength = 0;
-//     header.reserved = 0;
-
-//     request.append(reinterpret_cast<char*>(&header), sizeof(header));
-
-//     // Body de la requête
-//     beginRequestBody.role = htons(FCGI_RESPONDER);
-//     beginRequestBody.flags = 0;
-//     memset(beginRequestBody.reserved, 0, sizeof(beginRequestBody.reserved));
-
-//     request.append(reinterpret_cast<char*>(&beginRequestBody), sizeof(beginRequestBody));
-
-//     // Ajout des paramètres
-//     for (std::map<std::string, std::string>::const_iterator param = params.begin(); param != params.end(); param++) {
-//         const std::string& name = param->first;
-//         const std::string& value = param->second;
-//         std::cout << param->first << param->second << std::endl;
-
-//         uint32_t nameLength = name.size();
-//         uint32_t valueLength = value.size();
-
-//         if (nameLength < 128) {
-//             request.push_back(static_cast<uint8_t>(nameLength));
-//         } else {
-//             request.push_back(static_cast<uint8_t>((nameLength >> 24) | 0x80));
-//             request.push_back(static_cast<uint8_t>(nameLength >> 16));
-//             request.push_back(static_cast<uint8_t>(nameLength >> 8));
-//             request.push_back(static_cast<uint8_t>(nameLength));
-//         }
-
-//         if (valueLength < 128) {
-//             request.push_back(static_cast<uint8_t>(valueLength));
-//         } else {
-//             request.push_back(static_cast<uint8_t>((valueLength >> 24) | 0x80));
-//             request.push_back(static_cast<uint8_t>(valueLength >> 16));
-//             request.push_back(static_cast<uint8_t>(valueLength >> 8));
-//             request.push_back(static_cast<uint8_t>(valueLength));
-//         }
-
-//         request.append(name);
-//         request.append(value);
-//     }
-
-//     // Ajouter un en-tête PARAMS vide pour indiquer la fin des paramètres
-//     FCGI_Header paramsEndHeader;
-//     paramsEndHeader.version = FCGI_VERSION_1;
-//     paramsEndHeader.type = FCGI_PARAMS;
-//     paramsEndHeader.requestId = htons(requestId);
-//     paramsEndHeader.contentLength = 0;
-//     paramsEndHeader.paddingLength = 0;
-//     paramsEndHeader.reserved = 0;
-//     request.append(reinterpret_cast<char*>(&paramsEndHeader), sizeof(paramsEndHeader));
-
-//     // Ajout du corps de la requête
-//     if (!body.empty()) {
-//         FCGI_Header stdinHeader;
-//         stdinHeader.version = FCGI_VERSION_1;
-//         stdinHeader.type = FCGI_STDIN;
-//         stdinHeader.requestId = htons(requestId);
-//         stdinHeader.contentLength = htons(body.size());
-//         stdinHeader.paddingLength = 0;
-//         stdinHeader.reserved = 0;
-
-//         request.append(reinterpret_cast<char*>(&stdinHeader), sizeof(stdinHeader));
-//         request.append(body);
-//     }
-
-//     // Ajout de la fin de la requête STDIN
-//     FCGI_Header stdinEndHeader;
-//     stdinEndHeader.version = FCGI_VERSION_1;
-//     stdinEndHeader.type = FCGI_STDIN;
-//     stdinEndHeader.requestId = htons(requestId);
-//     stdinEndHeader.contentLength = 0;
-//     stdinEndHeader.paddingLength = 0;
-//     stdinEndHeader.reserved = 0;
-
-//     request.append(reinterpret_cast<char*>(&stdinEndHeader), sizeof(stdinEndHeader));
-
-//     return request;
-// }
-
-
-// std::string receiveFastCGIResponse(int sock) {
-//     std::string response;
-//     char buffer[1024];
-//     ssize_t bytesRead;
-
-//     while ((bytesRead = read(sock, buffer, sizeof(buffer))) > 0) {
-//         response.append(buffer, bytesRead);
-//     }
-
-//     return response;
-// }
-
 unsigned int generateUniqueId() {
     static unsigned int id = 0;
     return id++;
 }
-
-// std::string interpretFastCGIResponse(const std::string& response) {
-//     std::string httpResponse;
-//     size_t pos = 0;
-
-//     while (pos < response.size()) {
-//         // Lire l'en-tête FastCGI
-//         FCGI_Header header;
-//         std::memcpy(&header, response.data() + pos, sizeof(header));
-//         header.requestId = ntohs(header.requestId);
-//         header.contentLength = ntohs(header.contentLength);
-//         pos += sizeof(header);
-
-//         // Lire le contenu
-//         std::string content(response.data() + pos, header.contentLength);
-//         pos += header.contentLength + header.paddingLength;
-
-//         if (header.type == FCGI_STDOUT) {
-//             httpResponse += content;
-//         } else if (header.type == FCGI_STDERR) {
-//             std::cerr << "FastCGI Error: " << content << std::endl;
-//         }
-//     }
-
-//     return httpResponse;
-// }
-
 
 int createFastCGIConnection(const std::string& fastcgi_pass) {
     int sock = socket(AF_UNIX, SOCK_STREAM, 0);
@@ -392,8 +260,9 @@ int createFastCGIConnection(const std::string& fastcgi_pass) {
     return sock;
 }
 
-std::string FastCgiHandler::handleFastCGIRequest(const std::string& fastcgi_pass, const std::map<std::string, std::string>& params, const std::string& stdinData) {
-    int sock = createFastCGIConnection(fastcgi_pass);
+void FastCgiHandler::handleFastCGIRequest(const std::string& fastcgi_pass, const std::map<std::string, std::string>& params, const std::string& stdinData, CgiProcess& cgi_process) {
+    cgi_process.setSocket(createFastCGIConnection(fastcgi_pass));
+    int sock = cgi_process.getSocket();
     if (sock == -1) {
         return "Status: 500\r\n\r\nFastCgi Php-Fpm socket creation error";
     }
@@ -469,5 +338,5 @@ std::string FastCgiHandler::handleFastCGIRequest(const std::string& fastcgi_pass
     }
 
     close(sock);
-    return response;
+    // return response;
 }

@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/10 11:34:38 by lsohler           #+#    #+#             */
-/*   Updated: 2024/06/11 15:08:47 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/06/11 15:41:54 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,8 @@ CgiProcess::CgiProcess() :
     _status(), _ready(false),
     _readyToWrite(false),
     _cgiOutput(),
-    _type(0) {
+    _type(0),
+    _sock() {
 }
 
 CgiProcess::CgiProcess(int type) : 
@@ -28,7 +29,8 @@ CgiProcess::CgiProcess(int type) :
     _status(), _ready(false),
     _readyToWrite(false),
     _cgiOutput(),
-    _type(type) {
+    _type(type),
+    _sock() {
 }
 
 void    CgiProcess::initCgiProcess(char* binary, char** args, char** envp, const Request& request) {
@@ -122,7 +124,3 @@ void    CgiProcess::writeCgiOuput() {
     }
 }
 
-void    CgiProcess::initFastCgiProcess(char* binary, char** args, char** envp, const Request& request) {
-
-
-}

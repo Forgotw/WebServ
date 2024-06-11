@@ -9,7 +9,7 @@ print("\r")
 
 # Boucle de 120 secondes
 start_time = time.time()
-while time.time() - start_time < 5:
+while time.time() - start_time < 60:
     print("Boucle en cours")
     sys.stdout.flush()  # Assurer que la sortie est envoyée immédiatement
     time.sleep(1)  # Attendre 1 seconde avant de passer à l'itération suivante
