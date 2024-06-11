@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/10 11:34:38 by lsohler           #+#    #+#             */
-/*   Updated: 2024/06/11 14:25:16 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/06/11 15:08:47 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -104,7 +104,7 @@ void    CgiProcess::writeCgiOuput() {
     int bytesRead;
     (void)_type;
 
-    std::cout << "writeCgiOutput\n";
+    // std::cout << "writeCgiOutput\n";
     bytesRead = read(_pipefd[0], buffer, BUFSIZ);
     if (bytesRead < 0) {
         throw std::runtime_error(std::string("read: ") +
@@ -114,7 +114,7 @@ void    CgiProcess::writeCgiOuput() {
             throw std::runtime_error(std::string("close: ") +
                                         std::strerror(errno));
         } else {
-            std::cout << "cgiOutput is Ready\n";
+            // std::cout << "cgiOutput is Ready\n";
             _ready = true;
         }
     } else {
@@ -122,6 +122,7 @@ void    CgiProcess::writeCgiOuput() {
     }
 }
 
-void    placeHolder() {
+void    CgiProcess::initFastCgiProcess(char* binary, char** args, char** envp, const Request& request) {
+
 
 }

@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/09 13:01:40 by lsohler           #+#    #+#             */
-/*   Updated: 2024/06/10 17:46:14 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/06/11 15:24:42 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -102,7 +102,7 @@ unsigned int checkCgiError(const std::string& cgiBin,
 }
 
 char** generateEnvCgi(const Request& request, const ServerConfig& config,
-					  std::string realPath) {
+					  std::string realPath, const Peer& peer) {
 	std::map<std::string, std::string> env;
 	std::map<std::string, std::string> headers = request.getHeaders();
 
@@ -150,6 +150,7 @@ char** generateEnvCgi(const Request& request, const ServerConfig& config,
 	env["HTTP_COOKIE"] = headers.count("Cookie") ? headers["Cookie"] : "";
 	env["HTTP_REFERER"] = headers.count("Referer") ? headers["Referer"] : "";
 	env["REDIRECT_STATUS"] = "200";
+    env["SESSION_ID"] = peer.getSessionId();
 	// std::cout << "\n\n------------ENV CREATE--------\n";
 	// std::cout << "SCRIPT_NAME";
 	char** envp = new char*[env.size() + 1];
@@ -167,7 +168,7 @@ char** generateEnvCgi(const Request& request, const ServerConfig& config,
 }
 
 std::map<std::string, std::string> generateEnvMapCgi(const Request& request, const ServerConfig& config,
-					  std::string realPath) {
+					  std::string realPath, const Peer& peer) {
 	std::map<std::string, std::string> env;
 	std::map<std::string, std::string> headers = request.getHeaders();
 
@@ -215,6 +216,7 @@ std::map<std::string, std::string> generateEnvMapCgi(const Request& request, con
 	env["HTTP_COOKIE"] = headers.count("Cookie") ? headers["Cookie"] : "";
 	env["HTTP_REFERER"] = headers.count("Referer") ? headers["Referer"] : "";
 	env["REDIRECT_STATUS"] = "200";
+    env["SESSION_ID"] = peer.getSessionId();
 	// std::cout << "\n\n------------ENV CREATE--------\n";
 	// std::cout << "SCRIPT_NAME";
 
@@ -330,24 +332,26 @@ std::string getCGIHeader(const std::string& respCGI) {
 }
 
 std::string getCGIContentType(const std::string& CGIHeader) {
-	std::string contentType = "Content-type: ";
+	std::string contentType = "Content-Type: ";
 	std::size_t startPos = CGIHeader.find(contentType);
 	if (startPos != std::string::npos) {
 		startPos += contentType.length();
 		std::size_t endPos = CGIHeader.find("\r\n", startPos);
 		if (endPos != std::string::npos) {
 			std::string result = CGIHeader.substr(startPos, endPos - startPos);
-			// std::cout << "Found Content-Type: " << result
-			// 		  << std::endl;	 // Debug output
 			return result;
-		} else {
-			// std::cout << "End of line not found after Content-Type"
-			// 		  << std::endl;	 // Debug output
+		}
+	}
+	contentType = "Content-type: ";
+	startPos = CGIHeader.find(contentType);
+	if (startPos != std::string::npos) {
+		startPos += contentType.length();
+		std::size_t endPos = CGIHeader.find("\r\n", startPos);
+		if (endPos != std::string::npos) {
+			std::string result = CGIHeader.substr(startPos, endPos - startPos);
+			return result;
 		}
 	} 
-    // else {
-	// 	std::cout << "Content-Type not found" << std::endl;	 // Debug output
-	// }
 	return "";
 }
 
@@ -460,7 +464,7 @@ void CgiHandler::handleCGI(const Location* foundLocation,
 
 	if (!fastcgi_pass.empty() && FastCgiHandler::isPhpExtension(cgiFilePath)) {
         // peer.setCgiProcess(new CgiProcess(FCGI));
-        std::map<std::string, std::string> envp = generateEnvMapCgi(*request, server->getConfig(), cgiFilePath);
+        std::map<std::string, std::string> envp = generateEnvMapCgi(*request, server->getConfig(), cgiFilePath, peer);
         // for (std::map<std::string, std::string>::iterator it = envp.begin(); it != envp.end(); it++) {
         //     std::cout << it->first << " = " << it->second << std::endl;
         // }
@@ -471,7 +475,7 @@ void CgiHandler::handleCGI(const Location* foundLocation,
         peer.setStatus(WAITING_CGI);
         char* binary = &binStr[0];
         char* args[] = {&binary[0], &cgiFilePath[0], NULL};
-	    char** envp = generateEnvCgi(*request, server->getConfig(), cgiFilePath);
+	    char** envp = generateEnvCgi(*request, server->getConfig(), cgiFilePath, peer);
 		// respCGI = generateCgiResponse(binary, args, envp, *request);
         peer.getCgiProcess()->initCgiProcess(binary, args, envp, *request);
     	deleteEnv(envp);
@@ -483,7 +487,6 @@ std::string CgiHandler::ProcessCgiOutput(const Server* server, const std::string
 	std::string CGIHeader = getCGIHeader(cgiOutput);
 	// std::cout << "CGIHeader: " << CGIHeader << "\n";
 	std::string contentType = getCGIContentType(CGIHeader);
-	// std::cout << "contentType: " << contentType << "\n";
 	std::string statusCode = getCGIStatusCode(CGIHeader);
     unsigned int uiStatusCode = std::atoi(statusCode.c_str());
     if (uiStatusCode != 200 && uiStatusCode != 302) {

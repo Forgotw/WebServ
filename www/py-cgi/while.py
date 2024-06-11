@@ -7,11 +7,10 @@ import sys
 print("Content-Type: text/plain\r")
 print("\r")
 
-# Boucle de 5 secondes
+# Boucle de 120 secondes
 start_time = time.time()
 while time.time() - start_time < 5:
     print("Boucle en cours")
     sys.stdout.flush()  # Assurer que la sortie est envoyée immédiatement
     time.sleep(1)  # Attendre 1 seconde avant de passer à l'itération suivante
-
 print("Boucle terminée")

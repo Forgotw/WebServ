@@ -139,7 +139,7 @@ void WebServ::handleNewConnection() {
 void WebServ::handlePeerRequest() {
 	for (size_t i = 0; i < FD_SETSIZE; i++) {
 		if (FD_ISSET(this->_peers[i].getSocket(), &this->_readfds)) {
-            std::cout << "handlePeerRequest Peer: " << &_peers[i] << std::endl;
+            // std::cout << "handlePeerRequest Peer: " << &_peers[i] << std::endl;
 			_peers[i].readRequest();
 		}
 	}
@@ -148,7 +148,7 @@ void WebServ::handlePeerRequest() {
 void WebServ::handlePeerResponse() {
 	for (size_t i = 0; i < FD_SETSIZE; i++) {
 		if (FD_ISSET(this->_peers[i].getSocket(), &this->_writefds)) {
-            std::cout << "handlePeerResponse Peer: " << &_peers[i] << std::endl;
+            // std::cout << "handlePeerResponse Peer: " << &_peers[i] << std::endl;
 			_peers[i].writeResponse();
 		}
 	}
@@ -157,7 +157,7 @@ void WebServ::handlePeerResponse() {
 void WebServ::handleHttp() {
 	for (size_t i = 0; i < FD_SETSIZE; i++) {
 		if (this->_peers[i].getStatus() == WAITING_READ) {
-            std::cout << "handleHttp Peer: " << &_peers[i] << std::endl;
+            // std::cout << "handleHttp Peer: " << &_peers[i] << std::endl;
 			_peers[i].handleHttpRequest();
 		}
 	}
@@ -166,7 +166,7 @@ void WebServ::handleHttp() {
 void WebServ::handleCgi() {
 	for (size_t i = 0; i < FD_SETSIZE; i++) {
 		if (this->_peers[i].getStatus() == WAITING_CGI) {
-            std::cout << "handleCgi Peer: " << &_peers[i] << std::endl;
+            // std::cout << "handleCgi Peer: " << &_peers[i] << std::endl;
 			_peers[i].handleCgiProcess();
 		}
 	}

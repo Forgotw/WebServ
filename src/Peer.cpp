@@ -358,19 +358,19 @@ void    Peer::handleCgiProcess() {
         throw std::runtime_error(std::string("ERROR HANDLING CGI PROCESS"));
     }
     if (!_cgiProcess->isReadyToWrite()) {
-        std::cout << "_cgiProcess->checkProcessStatus();\n";
+        // std::cout << "_cgiProcess->checkProcessStatus();\n";
         _cgiProcess->checkProcessStatus();
-        std::cout << "_cgiProcess->checkProcessStatus(); end\n";
+        // std::cout << "_cgiProcess->checkProcessStatus(); end\n";
     } 
     if (_cgiProcess->isReadyToWrite() && !_cgiProcess->isReady()) {
-        std::cout << "_cgiProcess->writeCgiOuput();\n";
+        // std::cout << "_cgiProcess->writeCgiOuput();\n";
         _cgiProcess->writeCgiOuput();
-        std::cout << "_cgiProcess->writeCgiOuput(); end\n";
+        // std::cout << "_cgiProcess->writeCgiOuput(); end\n";
     }
     if (_cgiProcess->isReady()) {
-        std::cout << "setReponse(CgiHandler::ProcessCgiOutput(_server, _cgiProcess->getCgiOutputStr()));\n";
+        // std::cout << "setReponse(CgiHandler::ProcessCgiOutput(_server, _cgiProcess->getCgiOutputStr()));\n";
         setReponse(CgiHandler::ProcessCgiOutput(_server, _cgiProcess->getCgiOutputStr()));
-        std::cout << "setReponse(CgiHandler::ProcessCgiOutput(_server, _cgiProcess->getCgiOutputStr())); end\n";
+        // std::cout << "setReponse(CgiHandler::ProcessCgiOutput(_server, _cgiProcess->getCgiOutputStr())); end\n";
         delete (_cgiProcess);
     }
 }
