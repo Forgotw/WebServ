@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   CgiProcess.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
+/*   By: efailla <efailla@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/10 11:34:38 by lsohler           #+#    #+#             */
-/*   Updated: 2024/06/11 15:08:47 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/06/11 15:27:28 by efailla          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -122,7 +122,7 @@ void    CgiProcess::writeCgiOuput() {
     }
 }
 
-void    CgiProcess::initFastCgiProcess(char* binary, char** args, char** envp, const Request& request) {
+// void    CgiProcess::initFastCgiProcess(char* binary, char** args, char** envp, const Request& request) {
 
 
-}
+// }

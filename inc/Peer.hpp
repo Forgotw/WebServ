@@ -48,7 +48,7 @@ public:
 	const std::string&	getResponse() const { return this->_response; }
 	CgiProcess*         getCgiProcess() { return this->_cgiProcess; }
     sessions            getSession() const { return this->_session; }
-	const std::string&  getSessionId() const { return this->session.sessionID; }
+	const std::string&  getSessionId() const { return this->_session.sessionID; }
 	time_t				getLastActivity() const { return this->_lastActivity; }
 
 
