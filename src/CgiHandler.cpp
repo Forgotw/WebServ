@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/09 13:01:40 by lsohler           #+#    #+#             */
-/*   Updated: 2024/06/11 15:24:42 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/06/14 13:51:03 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -470,6 +470,7 @@ void CgiHandler::handleCGI(const Location* foundLocation,
         // }
 		respCGI = FastCgiHandler::handleFastCGIRequest(fastcgi_pass, envp,
 														  request->getBody());
+        peer.setReponse(ProcessCgiOutput(server, respCGI));
 	} else {
         peer.setCgiProcess(new CgiProcess(CGI));
         peer.setStatus(WAITING_CGI);

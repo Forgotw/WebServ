@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/01 13:46:37 by lsohler           #+#    #+#             */
-/*   Updated: 2024/06/11 15:49:23 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/06/14 13:31:56 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -260,9 +260,8 @@ int createFastCGIConnection(const std::string& fastcgi_pass) {
     return sock;
 }
 
-void FastCgiHandler::handleFastCGIRequest(const std::string& fastcgi_pass, const std::map<std::string, std::string>& params, const std::string& stdinData, CgiProcess& cgi_process) {
-    cgi_process.setSocket(createFastCGIConnection(fastcgi_pass));
-    int sock = cgi_process.getSocket();
+std::string FastCgiHandler::handleFastCGIRequest(const std::string& fastcgi_pass, const std::map<std::string, std::string>& params, const std::string& stdinData) {
+    int sock = createFastCGIConnection(fastcgi_pass);
     if (sock == -1) {
         return "Status: 500\r\n\r\nFastCgi Php-Fpm socket creation error";
     }
@@ -338,5 +337,5 @@ void FastCgiHandler::handleFastCGIRequest(const std::string& fastcgi_pass, const
     }
 
     close(sock);
-    // return response;
+    return response;
 }

@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/10 11:34:38 by lsohler           #+#    #+#             */
-/*   Updated: 2024/06/11 15:41:54 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/06/14 13:55:26 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -93,7 +93,7 @@ void    CgiProcess::checkProcessStatus() {
         return ;
     } else {
         if (WIFEXITED(_status) || WIFSIGNALED(_status)) {
-            std::cout << "ReadyToWrite\n";
+            // std::cout << "ReadyToWrite\n";
             _readyToWrite = true;
             return ;
         }
