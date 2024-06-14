@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   CgiProcess.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
+/*   By: efailla <efailla@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/10 11:34:38 by lsohler           #+#    #+#             */
-/*   Updated: 2024/06/14 13:55:26 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/06/14 13:55:26 by lsohler          ###   ########.fr       *
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -123,4 +123,3 @@ void    CgiProcess::writeCgiOuput() {
         _cgiOutput.write(buffer, bytesRead);
     }
 }
-
