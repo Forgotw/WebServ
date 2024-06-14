@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/10 11:34:56 by lsohler           #+#    #+#             */
-/*   Updated: 2024/06/11 15:50:48 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/06/14 14:15:39 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,6 +57,7 @@ class CgiProcess {
         void         setSocket(int socket) { _sock = socket; }
         std::string  getCgiOutputStr() { return _cgiOutput.str(); }
         int          getCgiPipe() { return _pipefd[0]; }
+        int          getStdInPipe() { return _stdinpipefd[1]; }
         int          getSocket() { return _sock; }
 
 };

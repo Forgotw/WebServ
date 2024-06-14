@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Location.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lray <lray@student.42lausanne.ch >         +#+  +:+       +#+        */
+/*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/04 11:25:41 by lsohler           #+#    #+#             */
-/*   Updated: 2024/06/02 12:33:00 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/06/14 14:03:40 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -202,7 +202,7 @@ Location::Location(std::vector<std::string> &tokens):
 	std::map<std::string, locationHandler> map = locationMap();
 
 	if (*tokens.begin() != "{") {
-        std::cout << "Locations name: " << *tokens.begin() << std::endl;
+        // std::cout << "Locations name: " << *tokens.begin() << std::endl;
 		_locationName = *tokens.begin();
 		tokens.erase(tokens.begin());
 	}
@@ -224,7 +224,7 @@ Location::Location(std::vector<std::string> &tokens):
 			tokenLocationNotRecognized(tokens);
 		}
 	}
-    std::cout << "-------Locations name after: " << *tokens.begin() << std::endl;
+    // std::cout << "-------Locations name after: " << *tokens.begin() << std::endl;
 }
 
 // std::ostream &operator<<(std::ostream &os, Location const &ref) { {

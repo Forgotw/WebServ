@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/13 20:30:58 by lsohler           #+#    #+#             */
-/*   Updated: 2024/06/14 13:42:04 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/06/14 14:05:07 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -386,6 +386,6 @@ std::string generateRandomString() {
 void Server::newSession(sessions& session) {
 	session.info = "coucou";
 	session.username = "";
-	std::cout << session.sessionID << " from newsession" << std::endl;
+	// std::cout << session.sessionID << " from newsession" << std::endl;
 	_sessions.push_back(session);
 }

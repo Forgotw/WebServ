@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerConfig.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lray <lray@student.42lausanne.ch >         +#+  +:+       +#+        */
+/*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/12 16:26:12 by lsohler           #+#    #+#             */
-/*   Updated: 2024/06/07 16:20:32 by lray             ###   ########.fr       */
+/*   Updated: 2024/06/14 14:04:27 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -149,17 +149,13 @@ void	tokenNotRecognized(std::vector<std::string> &tokens) {
 }
 
 void	handleLocation(ServerConfig &config, std::vector<std::string> &tokens) {
-    std::cout << "handleLocation: " << *tokens.begin() << std::endl;
     tokens.erase(tokens.begin());
-    std::cout << "handleLocation 2: " << *tokens.begin() << std::endl;
     if (tokens.empty()) {
         std::cout << "Locations return;\n";
         return ;
     }
     if (*tokens.begin() == "~") {
-        std::cout << "handleLocation 3: " << *tokens.begin() << std::endl;
         tokens.erase(tokens.begin());
-        std::cout << "Found cgi location: " << *tokens.begin() << std::endl;
         Location	newLocation(tokens);
         config.setCgiLocations(newLocation);
     } else {

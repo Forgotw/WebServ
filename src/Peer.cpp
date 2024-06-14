@@ -247,7 +247,7 @@ void Peer::readRequest() {
 			return;
 		}
 	} catch (std::exception& err) {
-		std::cerr << "[!] " << err.what() << std::endl;
+		// std::cerr << "[!] " << err.what() << std::endl;
 		reset();
 		return;
 	}
