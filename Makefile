@@ -19,7 +19,7 @@ OBJS		:= $(SRCS:.cpp=.o)
 PID_FILE = var/php-fpm.d/tmp/php-fpm.pid
 
 CC 			:= c++
-CFLAGS		:= -Wall -Wextra -Werror -g -std=c++98 -Iinc/ -O3
+CFLAGS		:= -Wall -Wextra -Werror -std=c++98 -Iinc/
 
 RM			:= rm -f
 MAKEFLAGS   += --no-print-directory
