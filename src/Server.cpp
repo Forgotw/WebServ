@@ -6,11 +6,14 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/13 20:30:58 by lsohler           #+#    #+#             */
-/*   Updated: 2024/06/08 13:32:12 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/06/14 13:42:04 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Server.hpp"
+#include "CgiHandler.hpp"
+#include "Response.hpp"
+#include "Peer.hpp"
 
 #include <netdb.h>
 #include <sys/socket.h>
@@ -26,9 +29,6 @@
 #include <sstream>
 #include <string>
 #include <vector>
-
-#include "CgiHandler.hpp"
-#include "Response.hpp"
 
 #define LISTEN_BACKLOG 255
 
@@ -162,11 +162,11 @@ const Location* Server::findCgiLocation(const std::string& path) const {
 	size_t dotPosition = path.rfind('.');
 	if (dotPosition != std::string::npos) {
 		std::string extension = path.substr(dotPosition);
-		std::cout << "Searched extension: " << extension << std::endl;
+		// std::cout << "Searched extension: " << extension << std::endl;
 		for (size_t i = 0; i < sizeof(cgiExtensions) / sizeof(cgiExtensions[0]);
 			 ++i) {
 			if (extension == cgiExtensions[i]) {
-				std::cout << "find: " << "\\" + extension + "$" << std::endl;
+				// std::cout << "find: " << "\\" + extension + "$" << std::endl;
 				std::map<std::string, Location>::const_iterator it =
 					locations.find("\\" + extension + "$");
 				if (it != locations.end()) {
@@ -289,7 +289,6 @@ unsigned int Server::generateResponseCode(const Location* location,
 		return 404;
 	}
 	if (isCgi(realPath)) {
-		std::cout << "TEST GENERATE RESP CODE\n";
 		return checkCgiError(cgiLocation->getCgi(), realPath);
 	}
 	if (!haveAccess(location->getAccess(), realPath)) {
@@ -323,21 +322,22 @@ std::string Server::generateReponseFilePath(unsigned int responseCode,
 	return responseFilePath;
 }
 
-std::string Server::ResponseRouter(const Request& request) const {
-	const Location* foundLocation = findLocation(request.getURI().path);
+std::string Server::ResponseRouter(Peer& peer) const {
+    const Request*  request = peer.getRequest();
+	const Location* foundLocation = findLocation(request->getURI().path);
 	std::string realPath =
-		findRequestedPath(foundLocation, request.getURI().path);
+		findRequestedPath(foundLocation, request->getURI().path);
 	const Location* cgiLocation = findCgiLocation(realPath);
 	unsigned int respCode =
-		generateResponseCode(foundLocation, cgiLocation, realPath, request);
+		generateResponseCode(foundLocation, cgiLocation, realPath, *request);
 	std::string responseFilePath =
 		generateReponseFilePath(respCode, realPath, _config);
 	std::string response = "";
 	if (isCgi(responseFilePath) && respCode == 200) {
-		response =
-			CgiHandler::handleCGI(foundLocation, cgiLocation, responseFilePath,
-								  request, this);
-		return response;
+        // peer.setStatus(WAITING_CGI);
+		CgiHandler::handleCGI(foundLocation, cgiLocation, responseFilePath,
+								  peer, this);
+		return "";
 	} else if (respCode == 301) {
 		response = Response::handleRedir(foundLocation);
 		return response;

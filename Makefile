@@ -4,6 +4,7 @@ SRCS 		:= $(addprefix src/, \
 	main.cpp \
 	ConfigParser.cpp \
 	CgiHandler.cpp \
+	CgiProcess.cpp \
 	FastCgiHandler.cpp \
 	Location.cpp \
 	Peer.cpp \

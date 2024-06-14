@@ -1,21 +1,24 @@
-#ifndef PEER_HPP
-#define PEER_HPP
+#pragma once
 
 #include "Request.hpp"
+#include "CgiProcess.hpp"
 #include "Server.hpp"
 
 #include <arpa/inet.h>
 #include <fstream>
 #include <sstream>
 
+enum PeerState {
+    EMPTY,
+    CONNECTED,
+    WAITING_READ,
+    WAITING_WRITE,
+    WAITING_CGI
+};
+
+
 class Peer {
 public:
-	enum PeerState {
-		EMPTY,
-		CONNECTED,
-		WAITING_READ,
-		WAITING_WRITE
-	};
 
 	Peer();
 	~Peer();
@@ -24,11 +27,14 @@ public:
 	void				readRequest(void);
 	void				writeResponse(void);
 	void				handleHttpRequest(void);
+    void                handleCgiProcess(void);
 
 	void				handleCookies(std::string &request);
 	
 
 	/*-----Set-----*/
+    void                setCgiProcess(CgiProcess* cgiprocess) { _cgiProcess = cgiprocess; }
+    void                setStatus(PeerState state) { _status = state; }
 	void				setRequest(const std::string& buffer);
 	void				setReponse(std::string const &response);
 	void				reset();
@@ -40,6 +46,9 @@ public:
 	const Request* 		getRequest() const { return this->_request; }
 	const Server*		getServer() const { return this->_server; }
 	const std::string&	getResponse() const { return this->_response; }
+	CgiProcess*         getCgiProcess() { return this->_cgiProcess; }
+    sessions            getSession() const { return this->_session; }
+	const std::string&  getSessionId() const { return this->_session.sessionID; }
 	time_t				getLastActivity() const { return this->_lastActivity; }
 
 
@@ -48,6 +57,7 @@ private:
 	struct sockaddr_in	_addr;
 	int					_status;
 	Request*			_request;
+    CgiProcess*         _cgiProcess;
 	Server*				_server;
 	std::string			_response;
 	time_t				_lastActivity;
@@ -69,5 +79,3 @@ private:
 	sessions			_session;
 	std::string			_cookie;
 };
-
-#endif
