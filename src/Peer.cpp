@@ -348,7 +348,7 @@ void Peer::handleHttpRequest() {
 	if (!_cookie.empty()) {
         setCookie(response, _cookie);
     }
-    if (_status != WAITING_CGI) {
+    if (_status != WAITING_CGI && _status != WAITING_WRITE) {
         setReponse(response);
     }
 }

@@ -6,7 +6,7 @@
 /*   By: efailla <efailla@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/10 11:34:38 by lsohler           #+#    #+#             */
-/*   Updated: 2024/06/11 15:27:28 by efailla          ###   ########.fr       */
+/*   Updated: 2024/06/14 13:55:26 by lsohler          ###   ########.fr       *
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,8 @@ CgiProcess::CgiProcess() :
     _status(), _ready(false),
     _readyToWrite(false),
     _cgiOutput(),
-    _type(0) {
+    _type(0),
+    _sock() {
 }
 
 CgiProcess::CgiProcess(int type) : 
@@ -28,7 +29,8 @@ CgiProcess::CgiProcess(int type) :
     _status(), _ready(false),
     _readyToWrite(false),
     _cgiOutput(),
-    _type(type) {
+    _type(type),
+    _sock() {
 }
 
 void    CgiProcess::initCgiProcess(char* binary, char** args, char** envp, const Request& request) {
@@ -91,7 +93,7 @@ void    CgiProcess::checkProcessStatus() {
         return ;
     } else {
         if (WIFEXITED(_status) || WIFSIGNALED(_status)) {
-            std::cout << "ReadyToWrite\n";
+            // std::cout << "ReadyToWrite\n";
             _readyToWrite = true;
             return ;
         }
@@ -121,8 +123,3 @@ void    CgiProcess::writeCgiOuput() {
         _cgiOutput.write(buffer, bytesRead);
     }
 }
-
-// void    CgiProcess::initFastCgiProcess(char* binary, char** args, char** envp, const Request& request) {
-
-
-// }

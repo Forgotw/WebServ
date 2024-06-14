@@ -6,7 +6,7 @@
 /*   By: lsohler <lsohler@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/13 20:30:58 by lsohler           #+#    #+#             */
-/*   Updated: 2024/06/10 17:47:04 by lsohler          ###   ########.fr       */
+/*   Updated: 2024/06/14 13:42:04 by lsohler          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -334,7 +334,7 @@ std::string Server::ResponseRouter(Peer& peer) const {
 		generateReponseFilePath(respCode, realPath, _config);
 	std::string response = "";
 	if (isCgi(responseFilePath) && respCode == 200) {
-        peer.setStatus(WAITING_CGI);
+        // peer.setStatus(WAITING_CGI);
 		CgiHandler::handleCGI(foundLocation, cgiLocation, responseFilePath,
 								  peer, this);
 		return "";
