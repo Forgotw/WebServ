@@ -142,3 +142,46 @@ This project emphasizes low-level programming concepts, including socket program
    - Dynamic requests are forwarded to a FastCGI server using a socket, enabling high-performance interaction with programs like PHP-FPM.
 
 ---
+## **Key Learnings**
+  - Low-level socket programming for HTTP server implementation.
+  - Process creation and management for executing CGI scripts.
+  - Integration of FastCGI for high-performance dynamic content delivery.
+  - HTTP/1.1 compliance and request parsing.
+  - Efficient handling of multiple client connections using multiplexing.
+
+---
+
+## **Recommended Resources**
+
+### **HTTP and Web Servers**
+- [RFC 2616: HTTP/1.1 Specification](https://www.ietf.org/rfc/rfc2616.txt)  
+- [RFC 7540: HTTP/2 Specification](https://www.rfc-editor.org/rfc/rfc7540)  
+- [MDN Web Docs: HTTP Overview](https://developer.mozilla.org/en-US/docs/Web/HTTP/Overview)  
+- [The Architecture of Open Source Applications: NGINX](https://aosabook.org/en/nginx.html)  
+
+### **CGI and FastCGI**
+- [FastCGI Documentation](https://fastcgi-archives.github.io/)  
+- [CGI Programming 101](http://www.cgi101.com/book/)  
+- [FastCGI: A High-Performance Gateway Interface](https://www.fastcgi.com/)  
+
+### **Networking and Sockets**
+- [Beej's Guide to Network Programming](https://beej.us/guide/bgnet/)  
+- [UNIX Network Programming by W. Richard Stevens](https://www.amazon.com/UNIX-Network-Programming-Sockets-Networking/dp/0131411551)  
+- [Linux Socket Programming by Example](https://nostarch.com/socket.htm)  
+
+### **C++ and System Programming**
+- [C++ Reference (cppreference.com)](https://en.cppreference.com/)  
+- [The C++ Programming Language by Bjarne Stroustrup](https://www.amazon.com/C-Programming-Language-4th/dp/0321563840)  
+- [Advanced Programming in the UNIX Environment by W. Richard Stevens](https://www.amazon.com/Advanced-Programming-UNIX-Environment-3rd/dp/0321637739)  
+
+### **Web Security**
+- [OWASP: HTTP Security Headers](https://owasp.org/www-project-secure-headers/)  
+- [Understanding TLS and SSL](https://www.cloudflare.com/learning/ssl/what-is-ssl/)  
+- [TLS/SSL Best Practices](https://bettertls.com/)  
+
+### **Debugging and Performance**
+- [Valgrind: Memory Debugging Tool](https://valgrind.org/)  
+- [GDB: The GNU Debugger](https://www.gnu.org/software/gdb/)  
+- [Perf: Linux Performance Analysis Tool](https://perf.wiki.kernel.org/index.php/Main_Page)  
+
+---
